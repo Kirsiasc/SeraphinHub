@@ -16,5 +16,5 @@ local Tabs = {
     Main = Window:AddTab({ Title = "Main", Icon = "gamepad-2" }),
     Players = Window:AddTab({ Title = "Playes", Icon = "user" }),
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
-    List = Window:AddTab({ Title = "List", Icon = "table-of-contents" })
+    List = Window:AddTab({ Title = "List", Icon = "list" })
 }
