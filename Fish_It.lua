@@ -19,9 +19,9 @@ local Tabs = {
     List = Window:AddTab({ Title = "List", Icon = "list" })
 }
 
-local Section = TabMain:AddSection("Infomation")
+local Section = Tab.Main:AddSection("Infomation")
 
-TabMain:AddButton({
+Tab.Main:AddButton({
     Title = "Discord",
     Description = "Join Discord SeraphinHub",
     Callback = function()
