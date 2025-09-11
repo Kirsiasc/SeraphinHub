@@ -21,7 +21,7 @@ local Tabs = {
 
 local Section = TabMain:AddSection("Infomation")
 
-Tab:AddButton({
+TabMain:AddButton({
     Title = "Discord",
     Description = "Join Discord SeraphinHub",
     Callback = function()
