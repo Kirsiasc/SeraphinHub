@@ -8,6 +8,11 @@ local Window = Fluent:CreateWindow({
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
-    Theme = "Dark",
+    Theme = "Amethyst",
     MinimizeKey = Enum.KeyCode.LeftControl
 })
+
+local Tabs = {
+    Main = Window:AddTab({ Title = "Main", Icon = "gamepad-2" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" })
+}
