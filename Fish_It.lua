@@ -21,20 +21,10 @@ local Tabs = {
 
 local Section = TabMain:AddSection("Infomation")
 
-TabMain:AddButton({
-    Title = "Discord Invite",
-    Description = "Join SeraphinHub Discord",
+Tab:AddButton({
+    Title = "Discord",
+    Description = "Join Discord SeraphinHub",
     Callback = function()
-        if setclipboard then
-            setclipboard("https://discord.gg/wYXXZgmk")
-            print("✅ Link Discord disalin ke clipboard!")
-        else
-            print("📌 Copy manual: https://discord.gg/wYXXZgmk")
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "SeraphinHub",
-                Text = "Link Discord: https://discord.gg/wYXXZgmk",
-                Duration = 5
-            })
-        end
+        setclipboard("https://discord.gg/wYXXZgmk")
     end
 })
