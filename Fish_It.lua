@@ -18,3 +18,23 @@ local Tabs = {
     Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
     List = Window:AddTab({ Title = "List", Icon = "list" })
 }
+
+local Section = TabMain:AddSection("Infomation")
+
+TabMain:AddButton({
+    Title = "Discord Invite",
+    Description = "Join SeraphinHub Discord",
+    Callback = function()
+        if setclipboard then
+            setclipboard("https://discord.gg/wYXXZgmk")
+            print("✅ Link Discord disalin ke clipboard!")
+        else
+            print("📌 Copy manual: https://discord.gg/wYXXZgmk")
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "SeraphinHub",
+                Text = "Link Discord: https://discord.gg/wYXXZgmk",
+                Duration = 5
+            })
+        end
+    end
+})
