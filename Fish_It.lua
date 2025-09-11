@@ -28,3 +28,26 @@ Tab.Main:AddButton({
         setclipboard("https://discord.gg/wYXXZgmk")
     end
 })
+
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("SeraphinHub")
+SaveManager:SetFolder("SeraphinHub/Fish It")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "SeraphinHub",
+    Content = "SeraphinHub has been loaded.",
+    Duration = 8
+})
+
+SaveManager:LoadAutoloadConfig()
