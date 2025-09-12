@@ -10,13 +10,15 @@ end
 print("✓ WindUI loaded successfully!")
 
 local Window = WindUI:CreateWindow({
-    Title = "Test Window",
+    Title = "SeraphinHub",
     Icon = "monitor",
-    Author = "Test",
-    Folder = "TestHub",
-    Size = UDim2.fromOffset(500, 300),
-    SideBarWidth = 160,
-    HasOutline = true,
+    Author = "Fish It | v0.0.0.1",
+    Folder = "Seraphin_Hub",
+    Size = UDim2.fromOffset(560, 400),
+    Transparent = true,
+    Theme = "Default",
+    SideBarWidth = 170,
+    HasOutline = true
 })
 
 local Tab1 = Window:Tab({
