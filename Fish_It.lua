@@ -215,9 +215,9 @@ local Toggle = Tab3:Toggle({
     end
 })
 
-local Toggle = Tab3:Toggle({
-    Title = "Walk On Water",
-    Desc = "Jalan di atas permukaan air",
+local Toggle = Tab:Toggle({
+    Title = "Walk/Run On Water",
+    Desc = "Jalan atau lari di atas air otomatis",
     Icon = "bird",
     Type = "Checkbox",
     Default = false,
@@ -226,21 +226,22 @@ local Toggle = Tab3:Toggle({
 
         task.spawn(function()
             local player = game.Players.LocalPlayer
-            local char = player.Character
-            if not char then return end
-            local root = char:FindFirstChild("HumanoidRootPart")
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if not root or not hum then return end
-
             while _G.WalkOnWater do
                 task.wait(0.1)
-                -- Cek ketinggian di atas air (asumsi y < water level)
-                local waterY = 0 -- ubah sesuai level air di game
-                if root.Position.Y < waterY + 2 then
-                    root.CFrame = CFrame.new(root.Position.X, waterY + 2, root.Position.Z)
-                    hum.PlatformStand = true -- biar tidak tenggelam / jatuh
-                else
-                    hum.PlatformStand = false
+                local char = player.Character
+                if char then
+                    local root = char:FindFirstChild("HumanoidRootPart")
+                    local hum = char:FindFirstChildOfClass("Humanoid")
+                    if root and hum then
+                        local ray = Ray.new(root.Position, Vector3.new(0, -50, 0))
+                        local hit, pos = workspace:FindPartOnRay(ray, char)
+                        if hit and hit.Material == Enum.Material.Water then
+                            root.CFrame = CFrame.new(root.Position.X, pos.Y + 2, root.Position.Z)
+                            hum.PlatformStand = true
+                        else
+                            hum.PlatformStand = false
+                        end
+                    end
                 end
             end
         end)
