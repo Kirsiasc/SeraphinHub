@@ -26,6 +26,13 @@ Window:Tag({
     Color = Color3.fromHex("#30ff6a")
 })
 
+WindUI:Notify({
+    Title = "SeraphinHub Loaded",
+    Content = "wait a moment until the UI appears!",
+    Duration = 3,
+    Icon = "bell",
+})
+
 local Tab1 = Window:Tab({
     Title = "Home",
     Icon = "house",
