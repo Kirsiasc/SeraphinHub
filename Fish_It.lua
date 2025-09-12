@@ -43,16 +43,21 @@ Tab1:Button({
 })
 
 local Tab2 = Window:Tab({
+    Title = "Players",
+    Icon = "user",
+})
+
+local Tab3 = Window:Tab({
     Title = "Main",
     Icon = "gamepad-2",
 })
 
-local Tab3 = Window:Tab({
+local Tab4 = Window:Tab({
     Title = "Settings",
     Icon = "settings",
 })
 
-local Tab4 = Window:Tab({
+local Tab5 = Window:Tab({
     Title = "Misc",
     Icon = "list",
 })
