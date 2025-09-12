@@ -1,5 +1,5 @@
 local success, WindUI = pcall(function()
-    return local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
 end
 
 if not success or not WindUI then
