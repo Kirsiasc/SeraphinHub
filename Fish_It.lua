@@ -98,6 +98,34 @@ Tab2:Button({
     end
 })
 
+local InfiniteJumpToggle = Tab2:Toggle({
+    Title = "Infinite Jump",
+    Desc = "activate to use infinite jump",
+    Icon = "bird",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state) 
+        _G.InfiniteJump = state
+        if state then
+            print("✅ Infinite Jump Aktif")
+        else
+            print("❌ Infinite Jump Nonaktif")
+        end
+    end
+})
+
+local Player = game:GetService("Players").LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.JumpRequest:Connect(function()
+    if _G.InfiniteJump then
+        local Humanoid = Player.Character and Player.Character:FindFirstChildOfClass("Humanoid")
+        if Humanoid then
+            Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
 local Tab3 = Window:Tab({
     Title = "Main",
     Icon = "landmark",
