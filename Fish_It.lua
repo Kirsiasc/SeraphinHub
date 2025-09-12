@@ -1,20 +1,24 @@
 local success, WindUI = pcall(function()
     return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-end
+end)
 
 if not success or not WindUI then
-    warn("⚠️ WindUI failed to load!")
+    warn("⚠️ Windows gagal dimuat!")
     return
 else
-    print("✓ WindUI loaded successfully!")
+    print("✓ WindUI berhasil dimuat!")
 end
 
 local Window = WindUI:CreateWindow({
     Title = "SeraphinHub",
     Icon = "monitor",
-    Author = "Fish It | v0.0.0.1"
-    Folder = "Seraphin_Hub",
-    Transparent = true
+    Author = "KirsiaSC | Fish It | v0.0.0.1",
+    Folder = "SERAPHIN_HUB",
+    Size = UDim2.fromOffset(560, 400),
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 170,
+    HasOutline = true
 })
 
 local Tab1 = Window:Tab({
@@ -22,12 +26,35 @@ local Tab1 = Window:Tab({
     Icon = "house",
 })
 
-Tab1:AddButton({
-    Title = "Hello",
-    Description = "Test button",
+local Section = Tab1:Section({ 
+    Title = "Community Support",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+Tab1:Button({
+    Title = "Discord",
+    Desc = "click to copy link",
     Callback = function()
-        print("Button clicked!")
+        if setclipboard then
+            setclipboard("https://discord.gg/wYXXZgmk")
+        end
     end
+})
+
+local Tab2 = Window:Tab({
+    Title = "Main",
+    Icon = "gamepad-2",
+})
+
+local Tab3 = Window:Tab({
+    Title = "Settings",
+    Icon = "settings",
+})
+
+local Tab4 = Window:Tab({
+    Title = "Misc",
+    Icon = "list",
 })
 
 
