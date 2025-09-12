@@ -11,7 +11,7 @@ end
 
 local Window = WindUI:CreateWindow({
     Title = "Seraphin",
-    Icon = "monitor",
+    Icon = "rbxassetid://120248611602330",
     Author = "KirsiaSC | Fish It",
     Folder = "SERAPHIN_HUB",
     Size = UDim2.fromOffset(620, 420),
