@@ -3,10 +3,10 @@ local success, WindUI = pcall(function()
 end)
 
 if not success or not WindUI then
-    warn("⚠️ Windows gagal dimuat!")
+    warn("⚠️ UI failed to load!")
     return
 else
-    print("✓ WindUI berhasil dimuat!")
+    print("✓ UI loaded successfully!")
 end
 
 local Window = WindUI:CreateWindow({
@@ -28,7 +28,7 @@ Window:Tag({
 
 WindUI:Notify({
     Title = "SeraphinHub Loaded",
-    Content = "wait a moment until the UI appears!",
+    Content = "UI loaded successfully!",
     Duration = 3,
     Icon = "bell",
 })
@@ -76,7 +76,7 @@ local Tab4 = Window:Tab({
 })
 
 local Dropdown = Tab4:Dropdown({
-    Title = "Pilih Lokasi",
+    Title = "Select Location",
     Values = {"Spawn", "Market", "Boat", "Fishing Spot 1", "Fishing Spot 2"},
     Multi = false,
     Callback = function(Value)
