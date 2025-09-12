@@ -176,32 +176,35 @@ local Tab3 = Window:Tab({
 })
 
 local Toggle = Tab3:Toggle({
-    Title = "Infinite Oxygen",
-    Desc = "Oxygen will not run out",
+    Title = "Infinite Oxygen (BETA)",
+    Desc = "Oxygen will not be reduced and will not be damaged.",
     Icon = "bird",
     Type = "Checkbox",
     Default = false,
-    Callback = function(state) 
+    Callback = function(state)
         _G.InfiniteOxygen = state
-        if state then
-            task.spawn(function()
-                while _G.InfiniteOxygen do
-                    task.wait(0.3)
-                    local player = game.Players.LocalPlayer
-                    if player and player.Character then
-                        oxygen.Value = oxygen.MaxValue or 100
-                        local oxygen = player.Character:FindFirstChild("Oxygen") 
-                            or player.Character:FindFirstChild("Breath") 
-                            or player:FindFirstChild("Oxygen") 
-                            or player:FindFirstChild("Breath")
+        local player = game.Players.LocalPlayer
 
-                        if oxygen and oxygen.Value then
-                            oxygen.Value = oxygen.MaxValue or 100
-                        end
+        task.spawn(function()
+            while _G.InfiniteOxygen do
+                task.wait(0.2)
+                local char = player.Character
+                if char then
+                    local hum = char:FindFirstChildOfClass("Humanoid")
+                    if hum then
+                        -- Block damage sepenuhnya
+                        hum.TakeDamage = function() end
+                    end
+
+                    -- Lock oxygen bar (kalau ada)
+                    local oxygen = char:FindFirstChild("Oxygen") 
+                        or char:FindFirstChild("Breath")
+                    if oxygen and oxygen.Value then
+                        oxygen.Value = oxygen.MaxValue or 100
                     end
                 end
-            end)
-        end
+            end
+        end)
     end
 })
 
