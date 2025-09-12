@@ -78,14 +78,23 @@ local Input = Tab2:Input({
     Type = "Input",
     Placeholder = "Enter number...",
     Callback = function(input) 
-        local speed = tonumber(16)
+        local speed = tonumber(input)
         if speed and speed >= 16 then
             Humanoid.WalkSpeed = speed
             print("WalkSpeed set to: " .. speed)
         else
             Humanoid.WalkSpeed = 16
-            print("⚠️ Input tidak valid, diset ke default (16)")
+            print("⚠️ Invalid input, set to default (16)")
         end
+    end
+})
+
+Tab2:Button({
+    Title = "Reset Speed",
+    Description = "Return speed to normal (16)",
+    Callback = function()
+        Humanoid.WalkSpeed = 16
+        print("WalkSpeed reset ke default (16)")
     end
 })
 
