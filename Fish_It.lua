@@ -12,7 +12,7 @@ end
 local Window = WindUI:CreateWindow({
     Title = "SeraphinHub",
     Icon = "monitor",
-    Author = "Fish It | v0.0.0.1,
+    Author = "Fish It | v0.0.0.1"
     Folder = "Seraphin_Hub",
     Transparent = true
 })
@@ -22,9 +22,9 @@ local Tab1 = Window:Tab({
     Icon = "house",
 })
 
-Tab1:Button({
+Tab1:AddButton({
     Title = "Hello",
-    Desc = "Test button",
+    Description = "Test button",
     Callback = function()
         print("Button clicked!")
     end
