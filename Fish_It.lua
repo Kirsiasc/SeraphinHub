@@ -233,13 +233,13 @@ local Toggle = Tab:Toggle({
                     local root = char:FindFirstChild("HumanoidRootPart")
                     local hum = char:FindFirstChildOfClass("Humanoid")
                     if root and hum then
+                        -- Raycasting ke bawah untuk deteksi air
                         local ray = Ray.new(root.Position, Vector3.new(0, -50, 0))
                         local hit, pos = workspace:FindPartOnRay(ray, char)
                         if hit and hit.Material == Enum.Material.Water then
-                            root.CFrame = CFrame.new(root.Position.X, pos.Y + 2, root.Position.Z)
-                            hum.PlatformStand = true
-                        else
-                            hum.PlatformStand = false
+                            -- Naikkan sedikit di atas air tapi biarkan Humanoid bisa jalan/lari
+                            local newY = math.max(root.Position.Y, pos.Y + 2)
+                            root.CFrame = CFrame.new(root.Position.X, newY, root.Position.Z)
                         end
                     end
                 end
