@@ -75,6 +75,30 @@ local Tab4 = Window:Tab({
     Icon = "telescope",
 })
 
+local function tpTo(pos)
+    local plr = game.Players.LocalPlayer
+    if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+        plr.Character.HumanoidRootPart.CFrame = pos
+    end
+end
+
+local locations = {
+    ["Spawn Island"] = CFrame.new(0, 10, 0),
+    ["Fishing Shop"] = CFrame.new(150, 10, -50),
+    ["Big Lake"] = CFrame.new(-200, 5, 300),
+    ["Deep Ocean"] = CFrame.new(600, 20, 1000),
+}
+
+for name, cf in pairs(locations) do
+    Tab4:Button({
+        Title = name,
+        Desc = "Teleport ke " .. name,
+        Callback = function()
+            tpTo(cf)
+        end
+    })
+end
+
 local Tab5 = Window:Tab({
     Title = "Settings",
     Icon = "settings",
