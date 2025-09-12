@@ -5,9 +5,9 @@ end)
 if not success or not WindUI then
     warn("⚠️ WindUI failed to load!")
     return
+else
+    print("✓ WindUI loaded successfully!")
 end
-
-print("✓ WindUI loaded successfully!")
 
 local Window = WindUI:CreateWindow({
     Title = "SeraphinHub",
