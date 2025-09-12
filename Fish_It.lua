@@ -16,7 +16,7 @@ local Window = WindUI:CreateWindow({
     Folder = "Seraphin_Hub",
     Size = UDim2.fromOffset(560, 400),
     Transparent = true,
-    Theme = "Amethyst",
+    Theme = "Default",
     SideBarWidth = 170,
     HasOutline = true
 })
