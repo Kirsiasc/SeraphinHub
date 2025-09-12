@@ -78,7 +78,7 @@ local Input = Tab2:Input({
     Type = "Input",
     Placeholder = "Enter number...",
     Callback = function(input) 
-        local speed = tonumber(100)
+        local speed = tonumber(16)
         if speed and speed >= 16 then
             Humanoid.WalkSpeed = speed
             print("WalkSpeed set to: " .. speed)
