@@ -175,6 +175,36 @@ local Tab3 = Window:Tab({
     Icon = "landmark",
 })
 
+local Toggle = Tab3:Toggle({
+    Title = "Infinite Oxygen",
+    Desc = "Oxygen will not run out",
+    Icon = "bird",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state) 
+        _G.InfiniteOxygen = state
+        if state then
+            task.spawn(function()
+                while _G.InfiniteOxygen do
+                    task.wait(0.3)
+                    local player = game.Players.LocalPlayer
+                    if player and player.Character then
+                        oxygen.Value = oxygen.MaxValue or 100
+                        local oxygen = player.Character:FindFirstChild("Oxygen") 
+                            or player.Character:FindFirstChild("Breath") 
+                            or player:FindFirstChild("Oxygen") 
+                            or player:FindFirstChild("Breath")
+
+                        if oxygen and oxygen.Value then
+                            oxygen.Value = oxygen.MaxValue or 100
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
 local Tab4 = Window:Tab({
     Title = "Teleport",
     Icon = "map-pin",
