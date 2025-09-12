@@ -81,11 +81,11 @@ local Dropdown = Tab4:Dropdown({
     Multi = false,
     Callback = function(Value)
         local Locations = {
-            ["Spawn"] = Vector3.new(0, 5, 0),
-            ["Market"] = Vector3.new(100, 5, -50),
-            ["Boat"] = Vector3.new(-200, 5, 300),
-            ["Fishing Spot 1"] = Vector3.new(500, 10, -200),
-            ["Fishing Spot 2"] = Vector3.new(-700, 5, 150),
+            ["Spawn"] = Vector3.new(123, 45, -678),
+            ["Market"] = Vector3.new(456, 50, -890),
+            ["Boat"] = Vector3.new(789, 30, 321),
+            ["Fishing Spot 1"] = Vector3.new(111, 45, -222),
+            ["Fishing Spot 2"] = Vector3.new(333, 40, -444),
         }
 
         local Player = game.Players.LocalPlayer
