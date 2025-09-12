@@ -65,9 +65,33 @@ local Tab2 = Window:Tab({
     Icon = "user",
 })
 
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+
+local Input = Tab2:Input({
+    Title = "WalkSpeed",
+    Desc = "Minimum 16 speed",
+    Value = "16",
+    InputIcon = "bird",
+    Type = "Input",
+    Placeholder = "Enter number...",
+    Callback = function(input) 
+        local speed = tonumber(100)
+        if speed and speed >= 16 then
+            Humanoid.WalkSpeed = speed
+            print("WalkSpeed set to: " .. speed)
+        else
+            Humanoid.WalkSpeed = 16
+            print("⚠️ Input tidak valid, diset ke default (16)")
+        end
+    end
+})
+
 local Tab3 = Window:Tab({
     Title = "Main",
-    Icon = "gamepad-2",
+    Icon = "landmark",
 })
 
 local Tab4 = Window:Tab({
