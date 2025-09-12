@@ -12,13 +12,9 @@ end
 local Window = WindUI:CreateWindow({
     Title = "SeraphinHub",
     Icon = "monitor",
-    Author = "Fish It | v0.0.0.1",
+    Author = "Fish It | v0.0.0.1,
     Folder = "Seraphin_Hub",
-    Size = UDim2.fromOffset(560, 400),
-    Transparent = true,
-    SideBarWidth = 170,
-    HasOutline = true,
-    Theme = "Default",
+    Transparent = true
 })
 
 local Tab1 = Window:Tab({
