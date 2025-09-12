@@ -138,15 +138,14 @@ local Tab4 = Window:Tab({
 
 local Dropdown = Tab4:Dropdown({
     Title = "Select Location",
-    Values = {"Spawn", "Market", "Boat", "Fishing Spot 1", "Fishing Spot 2"},
-    Multi = false,
+    Values = {"Spawn", "Konoha", "Coral Refs", "Volcano", "Sysyphus Statue"},
     Callback = function(Value)
         local Locations = {
-            ["Spawn"] = Vector3.new(123, 45, -678),
-            ["Market"] = Vector3.new(456, 50, -890),
-            ["Boat"] = Vector3.new(789, 30, 321),
-            ["Fishing Spot 1"] = Vector3.new(111, 45, -222),
-            ["Fishing Spot 2"] = Vector3.new(333, 40, -444),
+            ["Spawn"] = Vector3.new(33, 9, 2810),
+            ["Konoha"] = Vector3.new(-603, 3, 719),
+            ["Coral Refs"] = Vector3.new(-2855, 47, 1996),
+            ["Volcano"] = Vector3.new(-632, 55, 197),
+            ["Sysyphus Statue"] = Vector3.new(-3693,-136,-1045),
         }
 
         local Player = game.Players.LocalPlayer
