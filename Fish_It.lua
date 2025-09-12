@@ -133,7 +133,7 @@ local Tab3 = Window:Tab({
 
 local Tab4 = Window:Tab({
     Title = "Teleport",
-    Icon = "telescope",
+    Icon = "map-pin",
 })
 
 local Dropdown = Tab4:Dropdown({
