@@ -89,54 +89,48 @@ local Input = Tab2:Input({
     end
 })
 
-local Toggle = Tab2:Toggle({
-    Title = "Infinite Jump",
-    Desc = "activate to use infinite jump",
-    Icon = "bird",
-    Type = "Checkbox",
-    Default = false,
-    Callback = function(state) 
-        _G.InfiniteJump = state
-        if state then
-            print("✅ Infinite Jump Aktif")
+local Input = Tab2:Input({
+    Title = "Jump Power",
+    Desc = "Minimum 50 jump",
+    Value = "50",
+    InputIcon = "bird",
+    Type = "Input",
+    Placeholder = "Enter number...",
+    Callback = function(input) 
+        local value = tonumber(input)
+        if value then
+            _G.CustomJumpPower = value
+            local humanoid = game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.UseJumpPower = true
+                humanoid.JumpPower = value
+            end
+            print("🔼 Jump Power diatur ke: " .. value)
         else
-            print("❌ Infinite Jump Nonaktif")
+            warn("⚠️ Harus angka, bukan teks!")
         end
     end
 })
 
-local Slider = Tab2:Slider({
-    Title = "Jump Power",
-    Desc = "set the jump height (default is 50)",
-    Default = 50,
-    Min = 50,
-    Max = 500,
-    Callback = function(value)
-        _G.CustomJumpPower = value
+local ResetJumpButton = Tab2:Button({
+    Title = "Reset Jump Power",
+    Desc = "balikkan Jump Power ke default (50)",
+    Callback = function()
+        _G.CustomJumpPower = 50
         local humanoid = game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if humanoid then
             humanoid.UseJumpPower = true
-            humanoid.JumpPower = value
+            humanoid.JumpPower = 50
         end
-        print("🔼 Jump Power diatur ke: " .. value)
+        print("🔄 Jump Power di-reset ke 50")
     end
 })
 
 local Player = game:GetService("Players").LocalPlayer
-local UserInputService = game:GetService("UserInputService")
-
 Player.CharacterAdded:Connect(function(char)
-    char:WaitForChild("Humanoid").UseJumpPower = true
-    char:WaitForChild("Humanoid").JumpPower = _G.CustomJumpPower or 50
-end)
-
-UserInputService.JumpRequest:Connect(function()
-    if _G.InfiniteJump then
-        local Humanoid = Player.Character and Player.Character:FindFirstChildOfClass("Humanoid")
-        if Humanoid then
-            Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-        end
-    end
+    local Humanoid = char:WaitForChild("Humanoid")
+    Humanoid.UseJumpPower = true
+    Humanoid.JumpPower = _G.CustomJumpPower or 50
 end)
 
 Tab2:Button({
