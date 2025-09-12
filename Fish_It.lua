@@ -176,8 +176,8 @@ local Tab3 = Window:Tab({
 })
 
 local Toggle = Tab3:Toggle({
-    Title = "Infinite Oxygen (BETA)",
-    Desc = "Oxygen will not be reduced and will not be damaged.",
+    Title = "Infinite Oxygen Safe (beta)",
+    Desc = "Bar oksigen selalu penuh & tidak kena damage",
     Icon = "bird",
     Type = "Checkbox",
     Default = false,
@@ -192,16 +192,55 @@ local Toggle = Tab3:Toggle({
                 if char then
                     local hum = char:FindFirstChildOfClass("Humanoid")
                     if hum then
-                        -- Block damage sepenuhnya
+                        -- Block semua damage
                         hum.TakeDamage = function() end
+                        hum.Health = hum.MaxHealth -- backup, supaya selalu full
                     end
 
-                    -- Lock oxygen bar (kalau ada)
+                    -- Simulasi bar oksigen penuh
                     local oxygen = char:FindFirstChild("Oxygen") 
                         or char:FindFirstChild("Breath")
                     if oxygen and oxygen.Value then
                         oxygen.Value = oxygen.MaxValue or 100
                     end
+
+                    -- Kalau bar oksigen game pakai GUI sendiri
+                    local guiOxygen = player.PlayerGui:FindFirstChild("OxygenGui") -- contoh
+                    if guiOxygen and guiOxygen:FindFirstChild("Bar") then
+                        guiOxygen.Bar.Size = UDim2.new(1,0,1,0) -- full bar
+                    end
+                end
+            end
+        end)
+    end
+})
+
+local Toggle = Tab3:Toggle({
+    Title = "Walk On Water",
+    Desc = "Jalan di atas permukaan air",
+    Icon = "bird",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        _G.WalkOnWater = state
+
+        task.spawn(function()
+            local player = game.Players.LocalPlayer
+            local char = player.Character
+            if not char then return end
+            local root = char:FindFirstChild("HumanoidRootPart")
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if not root or not hum then return end
+
+            while _G.WalkOnWater do
+                task.wait(0.1)
+                -- Cek ketinggian di atas air (asumsi y < water level)
+                local waterY = 0 -- ubah sesuai level air di game
+                if root.Position.Y < waterY + 2 then
+                    root.CFrame = CFrame.new(root.Position.X, waterY + 2, root.Position.Z)
+                    hum.PlatformStand = true -- biar tidak tenggelam / jatuh
+                else
+                    hum.PlatformStand = false
                 end
             end
         end)
