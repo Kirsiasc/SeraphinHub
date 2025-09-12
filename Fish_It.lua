@@ -29,3 +29,6 @@ Tab1:AddButton({
         print("Button clicked!")
     end
 })
+
+
+myConfig:Load()
