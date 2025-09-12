@@ -1,53 +1,60 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+local success, WindUI = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+end)
 
-local Window = Fluent:CreateWindow({
+if not success or not WindUI then
+    warn("⚠️ WindUI failed to load!")
+    return
+else
+    print("✓ WindUI loaded successfully!")
+end
+
+local Window = WindUI:CreateWindow({
     Title = "SeraphinHub",
-    SubTitle = "Fish It | v0.0.0.1",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true,
-    Theme = "Amethyst",
-    MinimizeKey = Enum.KeyCode.LeftControl
+    Icon = "monitor",
+    Author = "Fish It | v0.00.01",
+    Folder = "Seraphin_Hub",
+    Size = UDim2.fromOffset(560, 400),
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 170,
+    HasOutline = true
 })
 
-local Tabs = {
-    Main = Window:AddTab({ Title = "Main", Icon = "gamepad-2" }),
-    Players = Window:AddTab({ Title = "Playes", Icon = "user" }),
-    Settings = Window:AddTab({ Title = "Settings", Icon = "settings" }),
-    List = Window:AddTab({ Title = "List", Icon = "list" })
-}
+local Tab1 = Window:Tab({
+    Title = "Home",
+    Icon = "house",
+})
 
-local Section = Tab.Main:AddSection("Infomation")
+local Section = Tab1:Section({ 
+    Title = "Info community",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
 
-Tab.Main:AddButton({
+Tab1:Button({
     Title = "Discord",
-    Description = "Join Discord SeraphinHub",
+    Desc = "click to copy link",
     Callback = function()
-        setclipboard("https://discord.gg/wYXXZgmk")
+        if setclipboard then
+            setclipboard("https://discord.gg/jdmX43t5mY")
+        end
     end
 })
 
-SaveManager:SetLibrary(Fluent)
-InterfaceManager:SetLibrary(Fluent)
-
-SaveManager:IgnoreThemeSettings()
-
-SaveManager:SetIgnoreIndexes({})
-
-InterfaceManager:SetFolder("SeraphinHub")
-SaveManager:SetFolder("SeraphinHub/Fish It")
-
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
-
-Window:SelectTab(1)
-
-Fluent:Notify({
-    Title = "SeraphinHub",
-    Content = "SeraphinHub has been loaded.",
-    Duration = 8
+local Tab2 = Window:Tab({
+    Title = "gamepad-2",
+    Icon = "Game",
 })
 
-SaveManager:LoadAutoloadConfig()
+local Tab3 = Window:Tab({
+    Title = "Settings",
+    Icon = "settings",
+})
+
+local Tab4 = Window:Tab({
+    Title = "Misc",
+    Icon = "list",
+})
+
+myConfig:Load()
