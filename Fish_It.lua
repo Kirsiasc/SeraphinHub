@@ -16,9 +16,9 @@ local Window = WindUI:CreateWindow({
     Folder = "Seraphin_Hub",
     Size = UDim2.fromOffset(560, 400),
     Transparent = true,
-    Theme = "Default",
     SideBarWidth = 170,
-    HasOutline = true
+    HasOutline = true,
+    Theme = "Default",
 })
 
 local Tab1 = Window:Tab({
