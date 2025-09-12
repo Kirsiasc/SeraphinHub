@@ -59,13 +59,13 @@ local Tab3 = Window:Tab({
 })
 
 local Tab4 = Window:Tab({
-    Title = "Settings",
-    Icon = "settings",
+    Title = "Teleport",
+    Icon = "telescope",
 })
 
 local Tab5 = Window:Tab({
-    Title = "Misc",
-    Icon = "list",
+    Title = "Settings",
+    Icon = "settings",
 })
 
 
