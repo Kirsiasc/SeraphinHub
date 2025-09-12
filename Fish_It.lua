@@ -10,7 +10,7 @@ else
 end
 
 local Window = WindUI:CreateWindow({
-    Title = "SeraphinHub",
+    Title = "Seraphin",
     Icon = "monitor",
     Author = "KirsiaSC | Fish It",
     Folder = "SERAPHIN_HUB",
