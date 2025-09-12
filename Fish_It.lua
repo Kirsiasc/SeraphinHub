@@ -12,11 +12,11 @@ end
 local Window = WindUI:CreateWindow({
     Title = "SeraphinHub",
     Icon = "monitor",
-    Author = "Fish It | v0.00.01",
+    Author = "Fish It | v0.0.0.1",
     Folder = "Seraphin_Hub",
     Size = UDim2.fromOffset(560, 400),
     Transparent = true,
-    Theme = "Dark",
+    Theme = "Amethyst",
     SideBarWidth = 170,
     HasOutline = true
 })
