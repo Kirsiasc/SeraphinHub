@@ -70,19 +70,27 @@ local Tab3 = Window:Tab({
     Icon = "gamepad-2",
 })
 
+local Tab4 = Window:Tab({
+    Title = "Teleport",
+    Icon = "telescope",
+})
+
 local Dropdown = Tab4:Dropdown({
     Title = "Pilih Lokasi",
-    Desc = "Teleport ke area yang kamu mau",
-    Values = {"Spawn", "Shop", "Pulau Gurita", "Fishing Spot"},
-    Callback = function(value)
-        if value == "Spawn" then
-            TeleportTo(Vector3.new(0, 5, 0))
-        elseif value == "Shop" then
-            TeleportTo(Vector3.new(120, 5, -50))
-        elseif value == "Pulau Gurita" then
-            TeleportTo(Vector3.new(-300, 10, 400))
-        elseif value == "Fishing Spot" then
-            TeleportTo(Vector3.new(200, 5, 200))
+    Values = {"Spawn", "Market", "Boat", "Fishing Spot 1", "Fishing Spot 2"},
+    Multi = false,
+    Callback = function(Value)
+        local Locations = {
+            ["Spawn"] = Vector3.new(0, 5, 0),
+            ["Market"] = Vector3.new(100, 5, -50),
+            ["Boat"] = Vector3.new(-200, 5, 300),
+            ["Fishing Spot 1"] = Vector3.new(500, 10, -200),
+            ["Fishing Spot 2"] = Vector3.new(-700, 5, 150),
+        }
+
+        local Player = game.Players.LocalPlayer
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            Player.Character.HumanoidRootPart.CFrame = CFrame.new(Locations[Value])
         end
     end
 })
