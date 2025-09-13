@@ -389,7 +389,7 @@ local Dropdown = Tab4:Dropdown({
     Values = {"Esoteric Island", "Konoha", "Coral Refs", "Enchant Room", "Tropical Grove", "Weather Machine"},
     Callback = function(Value)
         local Locations = {
-            ["Esoteric Island"] = Vector3.new(1990, 5, 1398)
+            ["Esoteric Island"] = Vector3.new(1990, 5, 1398),
             ["Konoha"] = Vector3.new(-603, 3, 719),
             ["Coral Refs"] = Vector3.new(-2855, 47, 1996),
             ["Enchant Room"] = Vector3.new(3221, -1303, 1406),
@@ -513,5 +513,10 @@ local Colorpicker = Tab5:Colorpicker({
     end
 })
 
+
+local myConfig = WindUI:Config({
+    Folder = "SERAPHIN_HUB",
+    File = "config.json"
+})
 
 myConfig:Load()
