@@ -236,6 +236,35 @@ local Toggle = Tab5:Toggle({
     end
 })
 
+local Toggle = Tab:Toggle({
+    Title = "Auto Reconnect",
+    Desc = "Reconnect otomatis kalau disconnect",
+    Icon = "plug-zap",
+    Default = false,
+    Callback = function(state)
+        _G.AutoReconnect = state
+
+        if state then
+            task.spawn(function()
+                while _G.AutoReconnect do
+                    task.wait(2)
+
+                    local reconnectUI = game:GetService("CoreGui"):FindFirstChild("RobloxPromptGui")
+                    if reconnectUI then
+                        local prompt = reconnectUI:FindFirstChild("promptOverlay")
+                        if prompt then
+                            local button = prompt:FindFirstChild("ButtonPrimary")
+                            if button and button.Visible then
+                                firesignal(button.MouseButton1Click)
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
 local Colorpicker = Tab5:Colorpicker({
     Title = "Colorpicker",
     Desc = "Background Colorpicker",
