@@ -182,6 +182,70 @@ local Section = Tab3:Section({
     TextSize = 17,
 })
 
+local TRY_INTERVAL = 0.5
+
+local function findRemoteByName(name)
+    for _, v in ipairs(game:GetDescendants()) do
+        if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
+            if string.find(string.lower(v.Name), string.lower(name)) then
+                return v
+            end
+        end
+    end
+    return nil
+end
+
+local function safeFire(remote, ...)
+    local success, result = pcall(function()
+        if remote:IsA("RemoteEvent") then
+            remote:FireServer(...)
+        elseif remote:IsA("RemoteFunction") then
+            return remote:InvokeServer(...)
+        end
+    end)
+    return success, result
+end
+
+local ToggleFishing = Tab3:Toggle({
+    Title = "Auto Fishing",
+    Desc = "Fishing v1",
+    Icon = "fish",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        _G.AutoFishing = state
+
+        if state then
+            print("🎣 Auto Fishing Instant ON")
+            if _fishLoop then return end
+            _fishLoop = true
+
+            task.spawn(function()
+                while _G.AutoFishing do
+                    local catchRemote = findRemoteByName("Catch") or findRemoteByName("Reel")
+
+                    if catchRemote then
+                        local success = safeFire(catchRemote)
+                        if success then
+                            print("🐟 Berhasil auto dapat ikan!")
+                        else
+                            warn("⚠️ Gagal memanggil remote catch")
+                        end
+                    else
+                        warn("⚠️ Remote catch tidak ditemukan! Coba scan dulu.")
+                    end
+
+                    task.wait(TRY_INTERVAL)
+                end
+                _fishLoop = false
+                print("❌ Auto Fishing OFF")
+            end)
+        else
+            print("❌ Auto Fishing dimatikan")
+        end
+    end
+})
+
 local Section = Tab3:Section({ 
     Title = "Opsional",
     TextXAlignment = "Left",
