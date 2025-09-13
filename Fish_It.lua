@@ -176,20 +176,40 @@ local Tab3 = Window:Tab({
 })
 
 local Toggle = Tab3:Toggle({
-    Title = "Infinite Oxygen Safe(Beta)",
-    Desc = "Oxygen bar is always full & not damaged",
-    Icon = "bird",
+    Title = "Auto Fishing",
+    Desc = "Lempar, tangkap, tarik otomatis",
+    Icon = "fish",
     Type = "Checkbox",
     Default = false,
     Callback = function(state)
+        _G.AutoFishing = state
+        local rs = game:GetService("ReplicatedStorage")
 
-local Toggle = Tab3:Toggle({
-    Title = "without drowning(Not Work)",
-    Desc = "run/walk in water",
-    Icon = "bird",
-    Type = "Checkbox",
-    Default = false,
-    Callback = function(state)
+        task.spawn(function()
+            while _G.AutoFishing do
+                task.wait(0.5)
+
+                pcall(function()
+                    rs.Remotes.Cast:FireServer()
+                end)
+
+                task.wait(0.5)
+
+                pcall(function()
+                    rs.Remotes.FishCaught:FireServer("Perfect")
+                end)
+
+                task.wait(0.5)
+
+                pcall(function()
+                    rs.Remotes.Reel:FireServer()
+                end)
+
+                task.wait(1)
+            end
+        end)
+    end
+})
 
 local Tab4 = Window:Tab({
     Title = "Teleport",
