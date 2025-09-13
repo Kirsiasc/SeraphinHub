@@ -114,7 +114,7 @@ local Input = Tab2:Input({
 
 local Button = Tab2:Button({
     Title = "Reset Jump Power",
-    Desc = "balikkan Jump Power ke default (50)",
+    Desc = "Return Jump Power to normal (50)",
     Callback = function()
         _G.CustomJumpPower = 50
         local humanoid = game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
@@ -135,7 +135,7 @@ end)
 
 Tab2:Button({
     Title = "Reset Speed",
-    Description = "Return speed to normal (16)",
+    Desc = "Return speed to normal (16)",
     Callback = function()
         Humanoid.WalkSpeed = 16
         print("WalkSpeed reset ke default (16)")
