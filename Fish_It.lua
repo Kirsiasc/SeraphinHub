@@ -311,6 +311,39 @@ local Tab4 = Window:Tab({
     Icon = "map-pin",
 })
 
+local Section = Tab4:Section({ 
+    Title = "Island",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+local Dropdown = Tab4:Dropdown({
+    Title = "Select Location",
+    Values = {"Esoteric Island", "Konoha", "Coral Refs", "Enchant Room", "Tropical Grove", "Weather Machine"},
+    Callback = function(Value)
+        local Locations = {
+            ["Esoteric Island"] = Vector3.new(33, 9, 2810),
+            ["Konoha"] = Vector3.new(-603, 3, 719),
+            ["Coral Refs"] = Vector3.new(-2855, 47, 1996),
+            ["Enchant room"] = Vector3.new(3230, -1303, 1401),
+            ["Treasure Room"] = Vector3.new(-3600, -267, -1575),
+            ["Tropical Grove"] = Vector3.new(-2091, 6, 3703),
+            ["Weather Machine"] = Vector3.new(-1508, 6, 1895),
+        }
+
+        local Player = game.Players.LocalPlayer
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            Player.Character.HumanoidRootPart.CFrame = CFrame.new(Locations[Value])
+        end
+    end
+})
+
+local Section = Tab4:Section({ 
+    Title = "fishing spot",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
 local Dropdown = Tab4:Dropdown({
     Title = "Select Location",
     Values = {"Spawn", "Konoha", "Coral Refs", "Volcano", "Sysyphus Statue"},
@@ -329,6 +362,7 @@ local Dropdown = Tab4:Dropdown({
         end
     end
 })
+
 
 local Tab5 = Window:Tab({
     Title = "Settings",
