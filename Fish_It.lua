@@ -188,7 +188,79 @@ local Section = Tab3:Section({
     TextSize = 17,
 })
 
-local Toggle = Tab3:Toggle({
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+
+local REMOTE_NAME = "FishCaught"
+local TRY_INTERVAL = 1
+
+_G.InstantCatch = false
+local _loopRunning = false
+
+local function scanRemotes()
+    local remotes = {}
+
+    local function checkContainer(container)
+        for _, v in ipairs(container:GetDescendants()) do
+            if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
+                if string.find(string.lower(v.Name), "fish") then
+                    table.insert(remotes, v:GetFullName() .. " (" .. v.ClassName .. ")")
+                end
+            end
+        end
+    end
+
+    checkContainer(ReplicatedStorage)
+    checkContainer(workspace)
+    if player and player:FindFirstChild("PlayerGui") then
+        checkContainer(player.PlayerGui)
+    end
+
+    if #remotes == 0 then
+        warn("⚠️ Tidak ada Remote berhubungan dengan 'fish' ditemukan.")
+    else
+        print("🐟 Remotes ditemukan:")
+        for _, r in ipairs(remotes) do
+            print(" - " .. r)
+        end
+    end
+end
+
+local function findRemote(name)
+    local function search(container)
+        for _, v in ipairs(container:GetDescendants()) do
+            if v.Name == name and (v:IsA("RemoteEvent") or v:IsA("RemoteFunction")) then
+                return v
+            end
+        end
+    end
+
+    return search(ReplicatedStorage)
+        or search(workspace)
+        or (player and player:FindFirstChild("PlayerGui") and search(player.PlayerGui))
+end
+
+local function tryFire(remote)
+    if not remote then return false, "no remote" end
+    local ok, err
+
+    if remote:IsA("RemoteEvent") then
+        ok, err = pcall(function() remote:FireServer("Perfect") end)
+        if ok then return true end
+        ok, err = pcall(function() remote:FireServer() end)
+        return ok, err
+    elseif remote:IsA("RemoteFunction") then
+        ok, err = pcall(function() remote:InvokeServer("Perfect") end)
+        if ok then return true end
+        ok, err = pcall(function() remote:InvokeServer() end)
+        return ok, err
+    end
+
+    return false, "unknown type " .. remote.ClassName
+end
+
+local ToggleCatch = Tab3:Toggle({
     Title = "Instant Catch",
     Desc = "Get fish straight away",
     Icon = "fish",
@@ -196,16 +268,41 @@ local Toggle = Tab3:Toggle({
     Default = false,
     Callback = function(state)
         _G.InstantCatch = state
-        local rs = game:GetService("ReplicatedStorage")
 
-        task.spawn(function()
-            while _G.InstantCatch do
-                task.wait(1)
-                pcall(function()
-                    rs.Remotes.FishCaught:FireServer("Perfect")
-                end)
-            end
-        end)
+        if state then
+            print("✅ Instant Catch ON")
+            if _loopRunning then return end
+            _loopRunning = true
+
+            task.spawn(function()
+                while _G.InstantCatch do
+                    local remote = findRemote(REMOTE_NAME)
+                    if remote then
+                        local success, err = tryFire(remote)
+                        if success then
+                            print("🎣 Instant catch success!")
+                        else
+                            warn("❌ error:", err)
+                        end
+                    else
+                        warn("⚠️ Remote '" .. REMOTE_NAME .. "' tidak ditemukan. Jalankan scanner dulu.")
+                    end
+                    task.wait(TRY_INTERVAL)
+                end
+                _loopRunning = false
+                print("❌ Instant Catch OFF")
+            end)
+        else
+            print("❌ Instant Catch is turned off")
+        end
+    end
+})
+
+local ScanButton = Tab3:Button({
+    Title = "Scan Fish Remotes",
+    Desc = "Search for remote with the word 'fish'",
+    Callback = function()
+        scanRemotes()
     end
 })
 
