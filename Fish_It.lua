@@ -169,6 +169,111 @@ local Section = Tab3:Section({
     TextSize = 17,
 })
 
+local Toggle = Tab3:Toggle({
+    Title = "Auto Fishing",
+    Desc = "Auto Fishing V1",
+    Icon = "fish",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        _G.AutoFishing = state
+        local rs = game:GetService("ReplicatedStorage")
+
+        task.spawn(function()
+            while _G.AutoFishing do
+                task.wait(0.5)
+
+                pcall(function()
+                    rs.Remotes.Cast:FireServer()
+                end)
+
+                task.wait(0.5)
+
+                pcall(function()
+                    rs.Remotes.FishCaught:FireServer("Perfect")
+                end)
+
+                task.wait(0.5)
+
+                pcall(function()
+                    rs.Remotes.Reel:FireServer()
+                end)
+
+                task.wait(1)
+            end
+        end)
+    end
+})
+
+local Section = Tab3:Section({ 
+    Title = "optional",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+local Toggle = Tab3:Toggle({
+    Title = "Auto Cast",
+    Desc = "Automatic fishing rod throw",
+    Icon = "anchor",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        _G.AutoCast = state
+        local rs = game:GetService("ReplicatedStorage")
+
+        task.spawn(function()
+            while _G.AutoCast do
+                task.wait(2)
+                pcall(function()
+                    rs.Remotes.Cast:FireServer()
+                end)
+            end
+        end)
+    end
+})
+
+local Toggle = Tab3:Toggle({
+    Title = "Auto Reel",
+    Desc = "Automatic fishing reel",
+    Icon = "hook",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        _G.AutoReel = state
+        local rs = game:GetService("ReplicatedStorage")
+
+        task.spawn(function()
+            while _G.AutoReel do
+                task.wait(1)
+                pcall(function()
+                    rs.Remotes.Reel:FireServer()
+                end)
+            end
+        end)
+    end
+})
+
+local Toggle = Tab3:Toggle({
+    Title = "Instant Catch",
+    Desc = "Get fish straight away",
+    Icon = "fish",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        _G.InstantCatch = state
+        local rs = game:GetService("ReplicatedStorage")
+
+        task.spawn(function()
+            while _G.InstantCatch do
+                task.wait(1)
+                pcall(function()
+                    rs.Remotes.FishCaught:FireServer("Perfect")
+                end)
+            end
+        end)
+    end
+})
+
 local Tab4 = Window:Tab({
     Title = "Teleport",
     Icon = "map-pin",
