@@ -112,7 +112,7 @@ local Input = Tab2:Input({
     end
 })
 
-local ResetJumpButton = Tab2:Button({
+local Button = Tab2:Button({
     Title = "Reset Jump Power",
     Desc = "balikkan Jump Power ke default (50)",
     Callback = function()
@@ -142,7 +142,7 @@ Tab2:Button({
     end
 })
 
-local InfiniteJumpToggle = Tab2:Toggle({
+local Toggle = Tab2:Toggle({
     Title = "Infinite Jump",
     Desc = "activate to use infinite jump",
     Icon = "bird",
@@ -215,7 +215,7 @@ local Toggle = Tab3:Toggle({
     end
 })
 
-local Toggle = Tab:Toggle({
+local Toggle = Tab3:Toggle({
     Title = "Walk/Run On Water",
     Desc = "Jalan atau lari di atas air otomatis",
     Icon = "bird",
