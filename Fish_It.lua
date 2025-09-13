@@ -142,6 +142,9 @@ Tab2:Button({
     end
 })
 
+local UserInputService = game:GetService("UserInputService")
+local Player = game.Players.LocalPlayer
+
 local Toggle = Tab2:Toggle({
     Title = "Infinite Jump",
     Desc = "activate to use infinite jump",
@@ -157,6 +160,16 @@ local Toggle = Tab2:Toggle({
         end
     end
 })
+
+UserInputService.JumpRequest:Connect(function()
+    if _G.InfiniteJump then
+        local character = Player.Character or Player.CharacterAdded:Wait()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
 
 local Tab3 = Window:Tab({
     Title = "Main",
