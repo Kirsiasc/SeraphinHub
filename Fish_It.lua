@@ -236,14 +236,13 @@ local Toggle = Tab5:Toggle({
     end
 })
 
-local Toggle = Tab:Toggle({
+local Toggle = Tab5:Toggle({
     Title = "Auto Reconnect",
-    Desc = "Reconnect otomatis kalau disconnect",
+    Desc = "Automatic reconnect if disconnected",
     Icon = "plug-zap",
     Default = false,
     Callback = function(state)
         _G.AutoReconnect = state
-
         if state then
             task.spawn(function()
                 while _G.AutoReconnect do
