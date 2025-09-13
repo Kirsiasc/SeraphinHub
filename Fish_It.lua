@@ -182,14 +182,20 @@ local Section = Tab3:Section({
     TextSize = 17,
 })
 
-local TRY_INTERVAL = 0.5
-local _fishLoop = false
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
 
-local function findRemoteByName(name)
+local CAST_NAMES = {"Cast", "CastLine", "StartFishing"}
+local CATCH_NAMES = {"Catch", "Reel", "FishCaught", "StopFishing"}
+local TRY_INTERVAL = 0.5
+
+local function findRemoteByKeywords(keywords)
     for _, v in ipairs(game:GetDescendants()) do
         if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
-            if string.find(string.lower(v.Name), string.lower(name)) then
-                return v
+            for _, keyword in ipairs(keywords) do
+                if string.find(string.lower(v.Name), string.lower(keyword)) then
+                    return v
+                end
             end
         end
     end
@@ -197,61 +203,46 @@ local function findRemoteByName(name)
 end
 
 local function safeFire(remote, ...)
-    if not remote then return false, "remote not found" end
-    local success, result = pcall(function()
+    pcall(function()
         if remote:IsA("RemoteEvent") then
             remote:FireServer(...)
         elseif remote:IsA("RemoteFunction") then
-            return remote:InvokeServer(...)
+            remote:InvokeServer(...)
         end
     end)
-    if not success then
-        warn("⚠️ Remote error:", result)
-    end
-    return success, result
 end
 
-local ToggleFishing = Tab3:Toggle({
-    Title = "Auto Fishing (Cast + Catch)",
-    Desc = "Lempar pancing lalu tarik otomatis",
+_G.AutoFish = false
+local loopRunning = false
+
+local function startFishingLoop()
+    if loopRunning then return end
+    loopRunning = true
+    task.spawn(function()
+        while _G.AutoFish do
+            local castRemote = findRemoteByKeywords(CAST_NAMES)
+            local catchRemote = findRemoteByKeywords(CATCH_NAMES)
+            if castRemote and catchRemote then
+                safeFire(castRemote)
+                task.wait(0.2)
+                safeFire(catchRemote)
+            end
+            task.wait(TRY_INTERVAL)
+        end
+        loopRunning = false
+    end)
+end
+
+local ToggleCatch = Tab3:Toggle({
+    Title = "Auto Fish",
+    Desc = "Auto lempar + tarik ikan langsung dapat",
     Icon = "fish",
     Type = "Checkbox",
     Default = false,
     Callback = function(state)
-        _G.AutoFishing = state
-
+        _G.AutoFish = state
         if state then
-            print("🎣 Auto Fishing ON")
-            if _fishLoop then return end
-            _fishLoop = true
-
-            task.spawn(function()
-                while _G.AutoFishing do
-                    local castRemote = findRemoteByName("Cast")
-                    local catchRemote = findRemoteByName("Catch") or findRemoteByName("Reel")
-
-                    if castRemote then
-                        safeFire(castRemote)
-                        print("🎯 Lempar pancing...")
-                        task.wait(0.2)
-                    else
-                        warn("⚠️ Remote 'Cast' tidak ditemukan")
-                    end
-
-                    if catchRemote then
-                        safeFire(catchRemote)
-                        print("🐟 Tarik ikan!")
-                    else
-                        warn("⚠️ Remote 'Catch/Reel' tidak ditemukan")
-                    end
-
-                    task.wait(TRY_INTERVAL)
-                end
-                _fishLoop = false
-                print("❌ Auto Fishing OFF")
-            end)
-        else
-            print("❌ Auto Fishing dimatikan")
+            startFishingLoop()
         end
     end
 })
