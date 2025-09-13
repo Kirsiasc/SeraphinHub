@@ -186,28 +186,29 @@ local Toggle = Tab3:Toggle({
         local player = game.Players.LocalPlayer
 
         task.spawn(function()
-            while _G.InfiniteOxygen do
-                task.wait(0.2)
+            while _G.InfiniteOxygen and task.wait(0.2) do
                 local char = player.Character
                 if char then
                     local hum = char:FindFirstChildOfClass("Humanoid")
                     if hum then
-                        -- Block semua damage
-                        hum.TakeDamage = function() end
-                        hum.Health = hum.MaxHealth -- backup, supaya selalu full
+                        -- selalu isi darah full
+                        hum.Health = hum.MaxHealth
                     end
 
-                    -- Simulasi bar oksigen penuh
-                    local oxygen = char:FindFirstChild("Oxygen") 
-                        or char:FindFirstChild("Breath")
-                    if oxygen and oxygen.Value then
+                    -- cari oxygen di character
+                    local oxygen = char:FindFirstChild("Oxygen") or char:FindFirstChild("Breath")
+                    if oxygen and oxygen:IsA("NumberValue") then
+                        -- isi terus biar gak habis
                         oxygen.Value = oxygen.MaxValue or 100
                     end
 
-                    -- Kalau bar oksigen game pakai GUI sendiri
-                    local guiOxygen = player.PlayerGui:FindFirstChild("OxygenGui") -- contoh
-                    if guiOxygen and guiOxygen:FindFirstChild("Bar") then
-                        guiOxygen.Bar.Size = UDim2.new(1,0,1,0) -- full bar
+                    -- GUI bar oksigen kalau ada
+                    local guiOxygen = player:FindFirstChild("PlayerGui")
+                    if guiOxygen and guiOxygen:FindFirstChild("OxygenGui") then
+                        local bar = guiOxygen.OxygenGui:FindFirstChild("Bar")
+                        if bar and bar:IsA("Frame") then
+                            bar.Size = UDim2.new(1, 0, 1, 0) -- full bar
+                        end
                     end
                 end
             end
