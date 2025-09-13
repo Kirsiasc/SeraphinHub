@@ -182,49 +182,78 @@ local Toggle = Tab3:Toggle({
     Type = "Checkbox",
     Default = false,
     Callback = function(state)
-        -- variable lokal untuk kontrol thread
-        local player = game.Players.LocalPlayer
-        local hum   = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
-        local oxygenObj = player:FindFirstChild("Oxygen")
+        -- // Configuration
+local CONFIG = {
+    TITLE = "Infinite Oxygen Safe (beta)",
+    DESCRIPTION = "Bar oksigen selalu penuh & tidak kena damage",
+    ICON = "bird",
+    TYPE = "Checkbox",
+    DEFAULT = false,
+}
 
-        -- stop thread lama (jika ada)
-        if _G.oxyThread then
-            _G.oxyThread:Disconnect()
-            _G.oxyThread = nil
-        end
+---
 
-        if not state then return end   -- toggle dimatikan
+-- // Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Player = Players.LocalPlayer
 
-        -- backup health & block damage
-        if hum then
-            hum.Health = hum.MaxHealth
-            -- block health-drop
-            _G.oxyThread = hum.HealthChanged:Connect(function(newHealth)
-                if newHealth < hum.MaxHealth then
-                    hum.Health = hum.MaxHealth
-                end
-            end)
-        end
+---
 
-        -- loop isi oksigen
-        while state and task.wait(0.15) do
-            -- pastikan masih hidup & referensi masih valid
-            if not player or not player.Parent then break end
-            oxygenObj = player:FindFirstChild("Oxygen")
-            hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+-- // State
+local infiniteOxygenEnabled = false
+local healthChangedConnection
 
-            -- isi ulang oxygen
-            if oxygenObj and oxygenObj.Value then
-                oxygenObj.Value = oxygenObj.MaxValue or 100
-            end
+---
 
-            -- restore health (kalau-kalau)
-            if hum and hum.Health < hum.MaxHealth then
-                hum.Health = hum.MaxHealth
-            end
+-- // Functions
+local function enableInfiniteOxygen(state)
+    infiniteOxygenEnabled = state
+    if state then
+        healthChangedConnection = Player.Character.Humanoid.HealthChanged:Connect(function()
+            Player.Character.Humanoid.Health = Player.Character.Humanoid.MaxHealth
+        end)
+    else
+        if healthChangedConnection then
+            healthChangedConnection:Disconnect()
+            healthChangedConnection = nil
         end
     end
-})
+end
+
+local function onOxygenChanged(value)
+    if infiniteOxygenEnabled then
+        Player.Character.Oxygen.Value = Player.Character.Oxygen.MaxValue
+    end
+end
+
+local function onPlayerAdded(player)
+    player.CharacterAdded:Connect(function(character)
+        if infiniteOxygenEnabled then
+            -- Handle character re-spawns
+            local humanoid = character:WaitForChild("Humanoid")
+            healthChangedConnection = humanoid.HealthChanged:Connect(function()
+                humanoid.Health = humanoid.MaxHealth
+            end)
+            local oxygen = character:WaitForChild("Oxygen")
+            oxygen.Changed:Connect(onOxygenChanged)
+        end
+    end)
+end
+
+---
+
+-- // Initialization
+onPlayerAdded(Player)
+
+local Toggle = Tab3:Toggle({
+    Title = "Infinite Oxygen Safe",
+    Desc = "Bar oksigen selalu penuh & tidak kena damage",
+    Icon = "bird",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
 
 local Tab4 = Window:Tab({
     Title = "Teleport",
