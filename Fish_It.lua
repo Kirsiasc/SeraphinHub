@@ -236,7 +236,7 @@ local Toggle = Tab5:Toggle({
     end
 })
 
-local Colorpicker = Tab3:Colorpicker({
+local Colorpicker = Tab5:Colorpicker({
     Title = "Colorpicker",
     Desc = "Background Colorpicker",
     Default = Color3.fromRGB(0, 255, 0),
