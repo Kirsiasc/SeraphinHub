@@ -183,6 +183,7 @@ local Section = Tab3:Section({
 })
 
 local TRY_INTERVAL = 0.5
+local _fishLoop = false
 
 local function findRemoteByName(name)
     for _, v in ipairs(game:GetDescendants()) do
@@ -196,7 +197,7 @@ local function findRemoteByName(name)
 end
 
 local function safeFire(remote, ...)
-    if not remote then return false end
+    if not remote then return false, "remote not found" end
     local success, result = pcall(function()
         if remote:IsA("RemoteEvent") then
             remote:FireServer(...)
@@ -204,6 +205,9 @@ local function safeFire(remote, ...)
             return remote:InvokeServer(...)
         end
     end)
+    if not success then
+        warn("⚠️ Remote error:", result)
+    end
     return success, result
 end
 
@@ -226,16 +230,19 @@ local ToggleFishing = Tab3:Toggle({
                     local castRemote = findRemoteByName("Cast")
                     local catchRemote = findRemoteByName("Catch") or findRemoteByName("Reel")
 
-                    if castRemote and catchRemote then
+                    if castRemote then
                         safeFire(castRemote)
                         print("🎯 Lempar pancing...")
-
                         task.wait(0.2)
+                    else
+                        warn("⚠️ Remote 'Cast' tidak ditemukan")
+                    end
 
+                    if catchRemote then
                         safeFire(catchRemote)
                         print("🐟 Tarik ikan!")
                     else
-                        warn("⚠️ Remote Cast/Catch tidak ditemukan")
+                        warn("⚠️ Remote 'Catch/Reel' tidak ditemukan")
                     end
 
                     task.wait(TRY_INTERVAL)
