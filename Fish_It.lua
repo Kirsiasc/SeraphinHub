@@ -176,45 +176,56 @@ local Tab3 = Window:Tab({
 })
 
 local Toggle = Tab3:Toggle({
-    Title = "Infinite Oxygen Safe (beta)",
-    Desc = "Bar oksigen selalu penuh & tidak kena damage",
+    Title = "Infinite Oxygen Safe",
+    Desc = "Oxygen bar is always full & not damaged",
     Icon = "bird",
     Type = "Checkbox",
     Default = false,
     Callback = function(state)
-        _G.InfiniteOxygen = state
+        -- variable lokal untuk kontrol thread
         local player = game.Players.LocalPlayer
+        local hum   = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+        local oxygenObj = player:FindFirstChild("Oxygen")
 
-        task.spawn(function()
-            while _G.InfiniteOxygen and task.wait(0.2) do
-                local char = player.Character
-                if char then
-                    local hum = char:FindFirstChildOfClass("Humanoid")
-                    if hum then
-                        -- selalu isi darah full
-                        hum.Health = hum.MaxHealth
-                    end
+        -- stop thread lama (jika ada)
+        if _G.oxyThread then
+            _G.oxyThread:Disconnect()
+            _G.oxyThread = nil
+        end
 
-                    -- cari oxygen di character
-                    local oxygen = char:FindFirstChild("Oxygen") or char:FindFirstChild("Breath")
-                    if oxygen and oxygen:IsA("NumberValue") then
-                        -- isi terus biar gak habis
-                        oxygen.Value = oxygen.MaxValue or 100
-                    end
+        if not state then return end   -- toggle dimatikan
 
-                    -- GUI bar oksigen kalau ada
-                    local guiOxygen = player:FindFirstChild("PlayerGui")
-                    if guiOxygen and guiOxygen:FindFirstChild("OxygenGui") then
-                        local bar = guiOxygen.OxygenGui:FindFirstChild("Bar")
-                        if bar and bar:IsA("Frame") then
-                            bar.Size = UDim2.new(1, 0, 1, 0) -- full bar
-                        end
-                    end
+        -- backup health & block damage
+        if hum then
+            hum.Health = hum.MaxHealth
+            -- block health-drop
+            _G.oxyThread = hum.HealthChanged:Connect(function(newHealth)
+                if newHealth < hum.MaxHealth then
+                    hum.Health = hum.MaxHealth
                 end
+            end)
+        end
+
+        -- loop isi oksigen
+        while state and task.wait(0.15) do
+            -- pastikan masih hidup & referensi masih valid
+            if not player or not player.Parent then break end
+            oxygenObj = player:FindFirstChild("Oxygen")
+            hum = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+
+            -- isi ulang oxygen
+            if oxygenObj and oxygenObj.Value then
+                oxygenObj.Value = oxygenObj.MaxValue or 100
             end
-        end)
+
+            -- restore health (kalau-kalau)
+            if hum and hum.Health < hum.MaxHealth then
+                hum.Health = hum.MaxHealth
+            end
+        end
     end
 })
+
 
 local Toggle = Tab3:Toggle({
     Title = "Walk/Run On Water",
