@@ -196,6 +196,7 @@ local function findRemoteByName(name)
 end
 
 local function safeFire(remote, ...)
+    if not remote then return false end
     local success, result = pcall(function()
         if remote:IsA("RemoteEvent") then
             remote:FireServer(...)
@@ -207,8 +208,8 @@ local function safeFire(remote, ...)
 end
 
 local ToggleFishing = Tab3:Toggle({
-    Title = "Auto Fishing",
-    Desc = "Fishing v1",
+    Title = "Auto Fishing (Cast + Catch)",
+    Desc = "Lempar pancing lalu tarik otomatis",
     Icon = "fish",
     Type = "Checkbox",
     Default = false,
@@ -216,23 +217,25 @@ local ToggleFishing = Tab3:Toggle({
         _G.AutoFishing = state
 
         if state then
-            print("🎣 Auto Fishing Instant ON")
+            print("🎣 Auto Fishing ON")
             if _fishLoop then return end
             _fishLoop = true
 
             task.spawn(function()
                 while _G.AutoFishing do
+                    local castRemote = findRemoteByName("Cast")
                     local catchRemote = findRemoteByName("Catch") or findRemoteByName("Reel")
 
-                    if catchRemote then
-                        local success = safeFire(catchRemote)
-                        if success then
-                            print("🐟 Berhasil auto dapat ikan!")
-                        else
-                            warn("⚠️ Gagal memanggil remote catch")
-                        end
+                    if castRemote and catchRemote then
+                        safeFire(castRemote)
+                        print("🎯 Lempar pancing...")
+
+                        task.wait(0.2)
+
+                        safeFire(catchRemote)
+                        print("🐟 Tarik ikan!")
                     else
-                        warn("⚠️ Remote catch tidak ditemukan! Coba scan dulu.")
+                        warn("⚠️ Remote Cast/Catch tidak ditemukan")
                     end
 
                     task.wait(TRY_INTERVAL)
