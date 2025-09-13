@@ -67,14 +67,9 @@ local Tab2 = Window:Tab({
 
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
 
--- Safe function untuk ambil Humanoid
-local function GetHumanoid()
-    local char = Player.Character or Player.CharacterAdded:Wait()
-    return char:FindFirstChildOfClass("Humanoid")
-end
-
--- Input untuk WalkSpeed
 local Input = Tab2:Input({
     Title = "WalkSpeed",
     Desc = "Minimum 16 speed",
@@ -82,24 +77,18 @@ local Input = Tab2:Input({
     InputIcon = "bird",
     Type = "Input",
     Placeholder = "Enter number...",
-    Callback = function(input)
+    Callback = function(input) 
         local speed = tonumber(input)
-        local humanoid = GetHumanoid()
-        if humanoid then
-            if speed and speed >= 16 then
-                humanoid.WalkSpeed = speed
-                print("WalkSpeed set to: " .. speed)
-            else
-                humanoid.WalkSpeed = 16
-                print("⚠️ Invalid input, set to default (16)")
-            end
+        if speed and speed >= 16 then
+            Humanoid.WalkSpeed = speed
+            print("WalkSpeed set to: " .. speed)
         else
-            warn("⚠️ Humanoid tidak ditemukan!")
+            Humanoid.WalkSpeed = 16
+            print("⚠️ Invalid input, set to default (16)")
         end
     end
 })
 
--- Input untuk Jump Power
 local Input = Tab2:Input({
     Title = "Jump Power",
     Desc = "Minimum 50 jump",
@@ -109,61 +98,53 @@ local Input = Tab2:Input({
     Placeholder = "Enter number...",
     Callback = function(input) 
         local value = tonumber(input)
-        local humanoid = GetHumanoid()
-        if humanoid and value then
+        if value then
             _G.CustomJumpPower = value
-            humanoid.UseJumpPower = true
-            humanoid.JumpPower = value
+            local humanoid = game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.UseJumpPower = true
+                humanoid.JumpPower = value
+            end
             print("🔼 Jump Power diatur ke: " .. value)
         else
-            warn("⚠️ Harus angka valid dan Humanoid ada!")
+            warn("⚠️ Harus angka, bukan teks!")
         end
     end
 })
 
--- Tombol reset Jump Power
 local Button = Tab2:Button({
     Title = "Reset Jump Power",
-    Desc = "Balikkan Jump Power ke default (50)",
+    Desc = "balikkan Jump Power ke default (50)",
     Callback = function()
         _G.CustomJumpPower = 50
-        local humanoid = GetHumanoid()
+        local humanoid = game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if humanoid then
             humanoid.UseJumpPower = true
             humanoid.JumpPower = 50
-            print("🔄 Jump Power di-reset ke 50")
-        else
-            warn("⚠️ Humanoid tidak ditemukan!")
         end
+        print("🔄 Jump Power di-reset ke 50")
     end
 })
 
--- Update JumpPower otomatis saat respawn
+local Player = game:GetService("Players").LocalPlayer
 Player.CharacterAdded:Connect(function(char)
     local Humanoid = char:WaitForChild("Humanoid")
     Humanoid.UseJumpPower = true
     Humanoid.JumpPower = _G.CustomJumpPower or 50
 end)
 
--- Tombol reset WalkSpeed
 Tab2:Button({
     Title = "Reset Speed",
-    Desc = "Return speed to normal (16)",
+    Description = "Return speed to normal (16)",
     Callback = function()
-        local humanoid = GetHumanoid()
-        if humanoid then
-            humanoid.WalkSpeed = 16
-            print("WalkSpeed reset ke default (16)")
-        else
-            warn("⚠️ Humanoid tidak ditemukan!")
-        end
+        Humanoid.WalkSpeed = 16
+        print("WalkSpeed reset ke default (16)")
     end
 })
 
--- Toggle Infinite Jump
 local Toggle = Tab2:Toggle({
     Title = "Infinite Jump",
-    Desc = "Activate to use infinite jump",
+    Desc = "activate to use infinite jump",
     Icon = "bird",
     Type = "Checkbox",
     Default = false,
@@ -177,17 +158,6 @@ local Toggle = Tab2:Toggle({
     end
 })
 
--- Handle JumpRequest untuk Infinite Jump
-local UserInputService = game:GetService("UserInputService")
-UserInputService.JumpRequest:Connect(function()
-    if _G.InfiniteJump then
-        local humanoid = GetHumanoid()
-        if humanoid then
-            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-        end
-    end
-end)
-
 local Tab3 = Window:Tab({
     Title = "Main",
     Icon = "landmark",
@@ -197,48 +167,6 @@ local Section = Tab3:Section({
     Title = "Main",
     TextXAlignment = "Left",
     TextSize = 17,
-})
-
-local Toggle = Tab3:Toggle({
-    Title = "Auto Reel",
-    Desc = "Automatic fishing reel",
-    Icon = "hook",
-    Type = "Checkbox",
-    Default = false,
-    Callback = function(state)
-        _G.AutoReel = state
-        local rs = game:GetService("ReplicatedStorage")
-
-        task.spawn(function()
-            while _G.AutoReel do
-                task.wait(1)
-                pcall(function()
-                    rs.Remotes.Reel:FireServer()
-                end)
-            end
-        end)
-    end
-})
-
-local Toggle = Tab3:Toggle({
-    Title = "Instant Catch",
-    Desc = "Get fish straight away",
-    Icon = "fish",
-    Type = "Checkbox",
-    Default = false,
-    Callback = function(state)
-        _G.InstantCatch = state
-        local rs = game:GetService("ReplicatedStorage")
-
-        task.spawn(function()
-            while _G.InstantCatch do
-                task.wait(1)
-                pcall(function()
-                    rs.Remotes.FishCaught:FireServer("Perfect")
-                end)
-            end
-        end)
-    end
 })
 
 local Tab4 = Window:Tab({
