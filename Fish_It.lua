@@ -176,80 +176,16 @@ local Tab3 = Window:Tab({
 })
 
 local Toggle = Tab3:Toggle({
-    Title = "Infinite Oxygen Safe",
-    Desc = "Bar oksigen selalu penuh & tidak kena damage",
+    Title = "Infinite Oxygen Safe(Beta)",
+    Desc = "Oxygen bar is always full & not damaged",
     Icon = "bird",
     Type = "Checkbox",
     Default = false,
     Callback = function(state)
-        -- // Configuration
-local CONFIG = {
-    TITLE = "Infinite Oxygen Safe (beta)",
-    DESCRIPTION = "Bar oksigen selalu penuh & tidak kena damage",
-    ICON = "bird",
-    TYPE = "Checkbox",
-    DEFAULT = false,
-}
-
----
-
--- // Services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Player = Players.LocalPlayer
-
----
-
--- // State
-local infiniteOxygenEnabled = false
-local healthChangedConnection
-
----
-
--- // Functions
-local function enableInfiniteOxygen(state)
-    infiniteOxygenEnabled = state
-    if state then
-        healthChangedConnection = Player.Character.Humanoid.HealthChanged:Connect(function()
-            Player.Character.Humanoid.Health = Player.Character.Humanoid.MaxHealth
-        end)
-    else
-        if healthChangedConnection then
-            healthChangedConnection:Disconnect()
-            healthChangedConnection = nil
-        end
-    end
-end
-
-local function onOxygenChanged(value)
-    if infiniteOxygenEnabled then
-        Player.Character.Oxygen.Value = Player.Character.Oxygen.MaxValue
-    end
-end
-
-local function onPlayerAdded(player)
-    player.CharacterAdded:Connect(function(character)
-        if infiniteOxygenEnabled then
-            -- Handle character re-spawns
-            local humanoid = character:WaitForChild("Humanoid")
-            healthChangedConnection = humanoid.HealthChanged:Connect(function()
-                humanoid.Health = humanoid.MaxHealth
-            end)
-            local oxygen = character:WaitForChild("Oxygen")
-            oxygen.Changed:Connect(onOxygenChanged)
-        end
-    end)
-end
-
----
-
--- // Initialization
-onPlayerAdded(Player)
 
 local Toggle = Tab3:Toggle({
-    Title = "Infinite Oxygen Safe",
-    Desc = "Bar oksigen selalu penuh & tidak kena damage",
+    Title = "without drowning(Not Work)",
+    Desc = "run/walk in water",
     Icon = "bird",
     Type = "Checkbox",
     Default = false,
@@ -282,6 +218,17 @@ local Dropdown = Tab4:Dropdown({
 local Tab5 = Window:Tab({
     Title = "Settings",
     Icon = "settings",
+})
+
+local Colorpicker = Tab3:Colorpicker({
+    Title = "Colorpicker",
+    Desc = "Colorpicker Description",
+    Default = Color3.fromRGB(0, 255, 0),
+    Transparency = 0,
+    Locked = false,
+    Callback = function(color) 
+        print("Background color: " .. tostring(color))
+    end
 })
 
 
