@@ -294,3 +294,13 @@ Tab5:Colorpicker({
         print("Background color: " .. tostring(color))
     end
 })
+
+
+local player = game.Players.LocalPlayer
+local thumb = game.Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+Tab2:AddImage({
+    Title = player.DisplayName .. " (@" .. player.Name .. ")",
+    Desc = "UserId: " .. player.UserId,
+    Image = thumb,
+    ImageSize = Vector2.new(100,100)
+})
