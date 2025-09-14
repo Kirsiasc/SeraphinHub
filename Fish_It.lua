@@ -49,7 +49,7 @@ Tab1:Button({
     Desc = "click to copy link",
     Callback = function()
         if setclipboard then
-            setclipboard("https://discord.gg/getseraphin")
+            setclipboard("discord.gg/getseraphin")
         end
     end
 })
