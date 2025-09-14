@@ -71,6 +71,64 @@ local Section = Tab2:Section({
     TextSize = 17,
 })
 
+local Players = { "1", "2", "3", "4", "5", "6" }
+local Maps = { "Saluran", "Sekolah", "Carnaval" }
+local Modes = { "Normal", "Hard", "Nightmare" }
+
+_G.SelectedPlayers = 6
+_G.SelectedMap = "Sekolah"
+_G.SelectedMode = "Normal"
+
+local PlayerDropdown = Tab2:Dropdown({
+    Title = "Player",
+    Values = Players,
+    Value = "6",
+    Callback = function(option)
+        _G.SelectedPlayers = tonumber(option)
+    end
+})
+
+local MapDropdown = Tab2:Dropdown({
+    Title = "Select Map",
+    Values = Maps,
+    Value = "Sekolah",
+    Callback = function(option)
+        _G.SelectedMap = option
+    end
+})
+
+local ModeDropdown = Tab2:Dropdown({
+    Title = "Select Mode",
+    Values = Modes,
+    Value = "Normal",
+    Callback = function(option)
+        _G.SelectedMode = option
+    end
+})
+
+local JoinButton = Tab2:Button({
+    Title = "Auto Join Match",
+    Callback = function()
+        print("Join Match Request")
+        print("Players: " .. tostring(_G.SelectedPlayers))
+        print("Map: " .. tostring(_G.SelectedMap))
+        print("Mode: " .. tostring(_G.SelectedMode))
+
+        local rs = game:GetService("ReplicatedStorage")
+
+        local remote = rs:FindFirstChild("JoinMatch") or rs:FindFirstChild("Remotes"):FindFirstChild("JoinMatch")
+        if remote then
+            remote:FireServer({
+                Players = _G.SelectedPlayers,
+                Map = _G.SelectedMap,
+                Mode = _G.SelectedMode
+            })
+        else
+            warn("⚠️ Remote JoinMatch tidak ditemukan, cek nama remotenya di game!")
+        end
+    end
+})
+
 local Section = Tab2:Section({ 
     Title = "Main",
     TextXAlignment = "Left",
