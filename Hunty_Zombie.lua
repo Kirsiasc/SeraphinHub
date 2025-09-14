@@ -73,18 +73,17 @@ local Section = Tab2:Section({
 })
 
 local Players = { "1", "2", "3", "4", "5", "6" }
-local Players = { "1", "2", "3", "4", "5", "6" }
-local Maps = { "Sewers", "Sekolah", "Carnaval" }
+local Maps = { "Sewers", "School", "Carnaval" }
 local Modes = { "Normal", "Hard", "Nightmare" }
 
-_G.SelectedPlayers = 6
-_G.SelectedMap = "Sekolah"
+_G.SelectedPlayers = 1
+_G.SelectedMap = "School"
 _G.SelectedMode = "Normal"
 
 local PlayerDropdown = Tab2:Dropdown({
-    Title = "Player",
+    Title = "Players",
     Values = Players,
-    Value = "6",
+    Value = "1",
     Callback = function(option)
         _G.SelectedPlayers = tonumber(option)
     end
@@ -93,7 +92,7 @@ local PlayerDropdown = Tab2:Dropdown({
 local MapDropdown = Tab2:Dropdown({
     Title = "Select Map",
     Values = Maps,
-    Value = "Sekolah",
+    Value = "School",
     Callback = function(option)
         _G.SelectedMap = option
     end
@@ -120,21 +119,26 @@ local JoinButton = Tab2:Button({
         local success = false
 
         for _, obj in ipairs(rs:GetDescendants()) do
-            if obj:IsA("RemoteEvent") and obj.Name:lower():find("join") or obj.Name:lower():find("start") then
+            if obj:IsA("RemoteEvent") and (obj.Name:lower():find("join") or obj.Name:lower():find("start")) then
                 print("➡️ Mencoba Remote:", obj:GetFullName())
-                pcall(function()
+                local ok, err = pcall(function()
                     obj:FireServer({
                         Players = _G.SelectedPlayers,
                         Map = _G.SelectedMap,
                         Mode = _G.SelectedMode
                     })
-                    success = true
                 end)
+                if ok then
+                    success = true
+                    break
+                else
+                    warn("⚠️ Error saat kirim remote:", err)
+                end
             end
         end
 
         if not success then
-            warn("⚠️ Tidak ada remote yang cocok ditemukan. Cek nama Remote di game.")
+            warn("⚠️ Tidak ada RemoteEvent yang cocok ditemukan. Cek nama Remote di game.")
         else
             print("✅ Request Join dikirim!")
         end
