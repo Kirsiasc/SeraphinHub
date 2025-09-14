@@ -184,7 +184,7 @@ local Section = Tab3:Section({
 
 local Toggle = Tab3:Toggle({
     Title = "Auto Sell",
-    Desc = "Jual ikan otomatis",
+    Desc = "Automatic fish sales",
     Icon = "coins",
     Type = "Checkbox",
     Default = false,
