@@ -1,12 +1,401 @@
-local v0,v1=pcall(function() return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))();end);if ( not v0 or  not v1) then local v55=0;local v56;while true do if (v55==(1265 -(243 + 1022))) then v56=0;while true do if (v56==(0 -0)) then local v79=0;while true do if (v79==(0 + 0)) then warn("âš ï¸ UI failed to load!");return;end end end end break;end end else print("âœ“ UI loaded successfully!");end local v2=v1:CreateWindow({Title="Seraphin",Icon="rbxassetid://120248611602330",Author="KirsiaSC | Fish It",Folder="SERAPHIN_HUB",Size=UDim2.fromOffset(1450 -(1123 + 57) ,300),Transparent=true,Theme="Dark",SideBarWidth=170,HasOutline=true});v2:Tag({Title="v0.0.0.1",Color=Color3.fromHex("#9b4dff")});v1:Notify({Title="SeraphinHub Loaded",Content="UI loaded successfully!",Duration=3 + 0 ,Icon="bell"});local v3=v2:Tab({Title="Home",Icon="house"});local v4=v3:Section({Title="Community Support",TextXAlignment="Left",TextSize=271 -(163 + 91) });v3:Button({Title="Discord",Desc="click to copy link",Callback=function() if setclipboard then setclipboard("discord.gg/getseraphin");end end});local v4=v3:Section({Title="Every time there is a game update or someone reports something, I will fix it as soon as possible.",TextXAlignment="Left",TextSize=1947 -(1869 + 61) });local v5=v2:Tab({Title="Players",Icon="user"});local v6=game:GetService("Players");local v7=v6.LocalPlayer;local v8=v7.Character or v7.CharacterAdded:Wait() ;local v9=v8:WaitForChild("Humanoid");local v10=v5:Input({Title="WalkSpeed",Desc="Minimum 16 speed",Value="16",InputIcon="bird",Type="Input",Placeholder="Enter number...",Callback=function(v21) local v22=tonumber(v21);if (v22 and (v22>=(5 + 11))) then local v57=0 -0 ;while true do if (v57==(0 -0)) then v9.WalkSpeed=v22;print("WalkSpeed set to: "   .. v22 );break;end end else v9.WalkSpeed=16;print("âš ï¸ Invalid input, set to default (16)");end end});local v10=v5:Input({Title="Jump Power",Desc="Minimum 50 jump",Value="50",InputIcon="bird",Type="Input",Placeholder="Enter number...",Callback=function(v23) local v24=0 + 0 ;local v25;while true do if (v24==(0 -0)) then v25=tonumber(v23);if v25 then local v67=0 + 0 ;local v68;while true do if (v67==1) then if v68 then local v88=1474 -(1329 + 145) ;local v89;while true do if (v88==0) then v89=0;while true do if (v89==(971 -(140 + 831))) then v68.UseJumpPower=true;v68.JumpPower=v25;break;end end break;end end end print("ðŸ”¼ Jump Power diatur ke: "   .. v25 );break;end if (v67==(1850 -(1409 + 441))) then _G.CustomJumpPower=v25;v68=game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid") ;v67=719 -(15 + 703) ;end end else warn("âš ï¸ Harus angka, bukan teks!");end break;end end end});local v11=v5:Button({Title="Reset Jump Power",Desc="Return Jump Power to normal (50)",Callback=function() local v26=0;local v27;while true do if (v26==(1 + 0)) then if v27 then local v69=438 -(262 + 176) ;while true do if ((1721 -(345 + 1376))==v69) then v27.UseJumpPower=true;v27.JumpPower=738 -(198 + 490) ;break;end end end print("ðŸ”„ Jump Power di-reset ke 50");break;end if (v26==(0 -0)) then _G.CustomJumpPower=119 -69 ;v27=game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid") ;v26=1207 -(696 + 510) ;end end end});local v7=game:GetService("Players").LocalPlayer;v7.CharacterAdded:Connect(function(v28) local v29=0 -0 ;local v30;while true do if ((1262 -(1091 + 171))==v29) then local v62=0 + 0 ;while true do if (v62==(0 -0)) then v30=v28:WaitForChild("Humanoid");v30.UseJumpPower=true;v62=3 -2 ;end if (v62==(375 -(123 + 251))) then v29=4 -3 ;break;end end end if (v29==(699 -(208 + 490))) then v30.JumpPower=_G.CustomJumpPower or (5 + 45) ;break;end end end);v5:Button({Title="Reset Speed",Desc="Return speed to normal (16)",Callback=function() local v31=0 + 0 ;while true do if (v31==0) then v9.WalkSpeed=852 -(660 + 176) ;print("WalkSpeed reset ke default (16)");break;end end end});local v12=game:GetService("UserInputService");local v7=game.Players.LocalPlayer;local v13=v5:Toggle({Title="Infinite Jump",Desc="activate to use infinite jump",Icon="bird",Type="Checkbox",Default=false,Callback=function(v32) local v33=0 + 0 ;while true do if (v33==(202 -(14 + 188))) then _G.InfiniteJump=v32;if v32 then print("âœ… Infinite Jump Aktif");else print("âŒ Infinite Jump Nonaktif");end break;end end end});v12.JumpRequest:Connect(function() if _G.InfiniteJump then local v59=675 -(534 + 141) ;local v60;local v61;while true do if (v59==0) then v60=v7.Character or v7.CharacterAdded:Wait() ;v61=v60:FindFirstChildOfClass("Humanoid");v59=1;end if (v59==(1 + 0)) then if v61 then v61:ChangeState(Enum.HumanoidStateType.Jumping);end break;end end end end);local v14=v2:Tab({Title="Main",Icon="landmark"});local v4=v14:Section({Title="Main",TextXAlignment="Left",TextSize=16 + 1 });local v13=v14:Toggle({Title="Auto Sell",Desc="Automatic fish sales",Icon="coins",Type="Checkbox",Default=false,Callback=function(v34) local v35=0;while true do if (v35==(0 + 0)) then _G.AutoSell=v34;task.spawn(function() while _G.AutoSell do task.wait(0.5 -0 );local v70=game:GetService("ReplicatedStorage");for v75,v76 in pairs(v70:GetDescendants()) do if (v76:IsA("RemoteEvent") and v76.Name:lower():find("sell")) then v76:FireServer();elseif (v76:IsA("RemoteFunction") and v76.Name:lower():find("sell")) then pcall(function() v76:InvokeServer();end);end end end end);break;end end end});local v4=v14:Section({Title="Opsional",TextXAlignment="Left",TextSize=26 -9 });local v15=v14:Toggle({Title="Instant Catch",Desc="Get fish straight away (Need Update)",Icon="fish",Type="Checkbox",Default=false,Callback=function(v36) local v37=0;while true do if (v37==0) then _G.InstantCatch=v36;if v36 then local v71=0 -0 ;local v72;while true do if (v71==(0 + 0)) then v72=0 + 0 ;while true do if (v72==(397 -(115 + 281))) then _loopRunning=true;task.spawn(function() local v90=0 -0 ;while true do if (v90==(1 + 0)) then print("âŒ Instant Catch OFF");break;end if (0==v90) then while _G.InstantCatch do local v96=0 -0 ;local v97;while true do if (v96==(3 -2)) then task.wait(TRY_INTERVAL);break;end if (v96==0) then local v98=867 -(550 + 317) ;while true do if (v98==(1 -0)) then v96=1 -0 ;break;end if (v98==(0 -0)) then v97=findRemote(REMOTE_NAME);if v97 then local v99=285 -(134 + 151) ;local v100;local v101;local v102;while true do if (v99==1) then v102=nil;while true do if (v100==(1665 -(970 + 695))) then v101,v102=tryFire(v97);if v101 then print("ðŸŽ£ Instant catch success!");else warn("âŒ error:",v102);end break;end end break;end if (v99==0) then v100=0;v101=nil;v99=1;end end else warn("âš ï¸ Remote '"   .. REMOTE_NAME   .. "' tidak ditemukan. Jalankan scanner dulu." );end v98=1 -0 ;end end end end end _loopRunning=false;v90=1991 -(582 + 1408) ;end end end);break;end if (v72==(0 -0)) then print("âœ… Instant Catch ON");if _loopRunning then return;end v72=1;end end break;end end else print("âŒ Instant Catch is turned off");end break;end end end});local v16=v14:Button({Title="Scan Fish Remotes",Desc="Search for remote with the word 'fish'(Need Update)",Callback=function() scanRemotes();end});local v17=v2:Tab({Title="Teleport",Icon="map-pin"});local v4=v17:Section({Title="Island",TextXAlignment="Left",TextSize=17});local v18=v17:Dropdown({Title="Select Location",Values={"Esoteric Island","Konoha","Coral Refs","Enchant Room","Tropical Grove","Weather Machine"},Callback=function(v38) local v39=1824 -(1195 + 629) ;local v40;local v41;local v42;while true do if (v39==(1 -0)) then v42=nil;while true do if (v40==1) then if (v42.Character and v42.Character:FindFirstChild("HumanoidRootPart")) then v42.Character.HumanoidRootPart.CFrame=CFrame.new(v41[v38]);end break;end if (v40==(241 -(187 + 54))) then v41={["Esoteric Island"]=Vector3.new(1990,785 -(162 + 618) ,1398),Konoha=Vector3.new( -(423 + 180),2 + 1 ,1532 -813 ),["Coral Refs"]=Vector3.new( -2855,78 -31 ,157 + 1839 ),["Enchant Room"]=Vector3.new(4857 -(1373 + 263) , -(2303 -(451 + 549)),444 + 962 ),["Treasure Room"]=Vector3.new( -(5602 -2002), -267, -(2647 -1072)),["Tropical Grove"]=Vector3.new( -(3475 -(746 + 638)),6,1394 + 2309 ),["Weather Machine"]=Vector3.new( -1508,8 -2 ,1895)};v42=game.Players.LocalPlayer;v40=342 -(218 + 123) ;end end break;end if (v39==(1581 -(1535 + 46))) then v40=0 + 0 ;v41=nil;v39=1 + 0 ;end end end});local v4=v17:Section({Title="fishing spot",TextXAlignment="Left",TextSize=577 -(306 + 254) });local v18=v17:Dropdown({Title="Select Location",Values={"Spawn","Konoha","Coral Refs","Volcano","Sysyphus Statue"},Callback=function(v43) local v44=0;local v45;local v46;local v47;while true do if ((1 + 0)==v44) then v47=nil;while true do if (v45==(0 -0)) then v46={Spawn=Vector3.new(33,612 -(268 + 335) ,3100 -(60 + 230) ),Konoha=Vector3.new( -(1175 -(426 + 146)),3,719),["Coral Refs"]=Vector3.new( -(343 + 2512),47,3452 -(282 + 1174) ),Volcano=Vector3.new( -(1443 -(569 + 242)),158 -103 ,12 + 185 ),["Sysyphus Statue"]=Vector3.new( -(4717 -(706 + 318)), -(1387 -(721 + 530)), -1045)};v47=game.Players.LocalPlayer;v45=1272 -(945 + 326) ;end if ((2 -1)==v45) then if (v47.Character and v47.Character:FindFirstChild("HumanoidRootPart")) then v47.Character.HumanoidRootPart.CFrame=CFrame.new(v46[v43]);end break;end end break;end if (v44==(0 + 0)) then v45=700 -(271 + 429) ;v46=nil;v44=1 + 0 ;end end end});local v19=v2:Tab({Title="Settings",Icon="settings"});local v13=v19:Toggle({Title="AntiAFK",Desc="Prevent Roblox from kicking you when idle",Icon="shield",Type="Checkbox",Default=false,Callback=function(v48) local v49=1500 -(1408 + 92) ;local v50;local v51;while true do if (v49==0) then _G.AntiAFK=v48;v50=game:GetService("VirtualUser");v49=1087 -(461 + 625) ;end if (v49==(1290 -(993 + 295))) then if v48 then game:GetService("StarterGui"):SetCore("SendNotification",{Title="AntiAFK loaded!",Text="Coded By Kirsiasc",Button1="Okey",Duration=1 + 4 });else game:GetService("StarterGui"):SetCore("SendNotification",{Title="AntiAFK Disabled",Text="Stopped AntiAFK",Duration=3});end break;end if (v49==(1172 -(418 + 753))) then v51=game:GetService("Players").LocalPlayer;task.spawn(function() while _G.AntiAFK do local v73=0 + 0 ;while true do if (v73==0) then task.wait(7 + 53 );pcall(function() local v86=0 + 0 ;local v87;while true do if (v86==(0 + 0)) then v87=0;while true do if (v87==(529 -(406 + 123))) then v50:CaptureController();v50:ClickButton2(Vector2.new());break;end end break;end end end);break;end end end end);v49=2;end end end});local v13=v19:Toggle({Title="Auto Reconnect",Desc="Automatic reconnect if disconnected",Icon="plug-zap",Default=false,Callback=function(v52) local v53=1769 -(1749 + 20) ;while true do if (v53==(0 + 0)) then _G.AutoReconnect=v52;if v52 then task.spawn(function() while _G.AutoReconnect do local v80=1322 -(1249 + 73) ;local v81;while true do if (v80==(1 + 0)) then if v81 then local v91=v81:FindFirstChild("promptOverlay");if v91 then local v92=0;local v93;while true do if (v92==(1145 -(466 + 679))) then v93=v91:FindFirstChild("ButtonPrimary");if (v93 and v93.Visible) then firesignal(v93.MouseButton1Click);end break;end end end end break;end if (v80==0) then task.wait(4 -2 );v81=game:GetService("CoreGui"):FindFirstChild("RobloxPromptGui");v80=2 -1 ;end end end end);end break;end end end});local v20=v19:Colorpicker({Title="Colorpicker",Desc="Background Colorpicker (need update)",Default=Color3.fromRGB(0,255,1900 -(106 + 1794) ),Transparency=0 + 0 ,Locked=false,Callback=function(v54) print("Background color: "   .. tostring(v54) );end});
--- âš ï¸ WARNING: integrity protected!
---[[
- .____                  ________ ___.    _____                           __                
- |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
- |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
- |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
- |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
-         \/          \/         \/    \/                \/     \/     \/                   
-          \_Welcome to LuaObfuscator.com   (Alpha 0.10.9) ~  Much Love, Ferib 
+local success, WindUI = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+end)
 
-]]--
+if not success or not WindUI then
+    warn("⚠️ UI failed to load!")
+    return
+else
+    print("✓ UI loaded successfully!")
+end
+
+local Window = WindUI:CreateWindow({
+    Title = "Seraphin",
+    Icon = "rbxassetid://120248611602330",
+    Author = "KirsiaSC | Fish It",
+    Folder = "SERAPHIN_HUB",
+    Size = UDim2.fromOffset(270, 300),
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 170,
+    HasOutline = true
+})
+
+Window:Tag({
+    Title = "v0.0.0.1",
+    Color = Color3.fromHex("#9b4dff")
+})
+
+WindUI:Notify({
+    Title = "SeraphinHub Loaded",
+    Content = "UI loaded successfully!",
+    Duration = 3,
+    Icon = "bell",
+})
+
+local Tab1 = Window:Tab({
+    Title = "Home",
+    Icon = "house",
+})
+
+local Section = Tab1:Section({ 
+    Title = "Community Support",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+Tab1:Button({
+    Title = "Discord",
+    Desc = "click to copy link",
+    Callback = function()
+        if setclipboard then
+            setclipboard("discord.gg/getseraphin")
+        end
+    end
+})
+
+local Section = Tab1:Section({ 
+    Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible.",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+local Tab2 = Window:Tab({
+    Title = "Players",
+    Icon = "user",
+})
+
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+
+local Input = Tab2:Input({
+    Title = "WalkSpeed",
+    Desc = "Minimum 16 speed",
+    Value = "16",
+    InputIcon = "bird",
+    Type = "Input",
+    Placeholder = "Enter number...",
+    Callback = function(input) 
+        local speed = tonumber(input)
+        if speed and speed >= 16 then
+            Humanoid.WalkSpeed = speed
+            print("WalkSpeed set to: " .. speed)
+        else
+            Humanoid.WalkSpeed = 16
+            print("⚠️ Invalid input, set to default (16)")
+        end
+    end
+})
+
+local Input = Tab2:Input({
+    Title = "Jump Power",
+    Desc = "Minimum 50 jump",
+    Value = "50",
+    InputIcon = "bird",
+    Type = "Input",
+    Placeholder = "Enter number...",
+    Callback = function(input) 
+        local value = tonumber(input)
+        if value then
+            _G.CustomJumpPower = value
+            local humanoid = game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.UseJumpPower = true
+                humanoid.JumpPower = value
+            end
+            print("🔼 Jump Power diatur ke: " .. value)
+        else
+            warn("⚠️ Harus angka, bukan teks!")
+        end
+    end
+})
+
+local Button = Tab2:Button({
+    Title = "Reset Jump Power",
+    Desc = "Return Jump Power to normal (50)",
+    Callback = function()
+        _G.CustomJumpPower = 50
+        local humanoid = game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.UseJumpPower = true
+            humanoid.JumpPower = 50
+        end
+        print("🔄 Jump Power di-reset ke 50")
+    end
+})
+
+local Player = game:GetService("Players").LocalPlayer
+Player.CharacterAdded:Connect(function(char)
+    local Humanoid = char:WaitForChild("Humanoid")
+    Humanoid.UseJumpPower = true
+    Humanoid.JumpPower = _G.CustomJumpPower or 50
+end)
+
+Tab2:Button({
+    Title = "Reset Speed",
+    Desc = "Return speed to normal (16)",
+    Callback = function()
+        Humanoid.WalkSpeed = 16
+        print("WalkSpeed reset ke default (16)")
+    end
+})
+
+local UserInputService = game:GetService("UserInputService")
+local Player = game.Players.LocalPlayer
+
+local Toggle = Tab2:Toggle({
+    Title = "Infinite Jump",
+    Desc = "activate to use infinite jump",
+    Icon = "bird",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state) 
+        _G.InfiniteJump = state
+        if state then
+            print("✅ Infinite Jump Aktif")
+        else
+            print("❌ Infinite Jump Nonaktif")
+        end
+    end
+})
+
+UserInputService.JumpRequest:Connect(function()
+    if _G.InfiniteJump then
+        local character = Player.Character or Player.CharacterAdded:Wait()
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+local Tab3 = Window:Tab({
+    Title = "Main",
+    Icon = "landmark",
+})
+
+local Section = Tab3:Section({ 
+    Title = "Main",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+local Toggle = Tab3:Toggle({
+    Title = "Auto Sell",
+    Desc = "Automatic fish sales",
+    Icon = "coins",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        _G.AutoSell = state
+        task.spawn(function()
+            while _G.AutoSell do
+                task.wait(0.5)
+                local rs = game:GetService("ReplicatedStorage")
+                for _, v in pairs(rs:GetDescendants()) do
+                    if v:IsA("RemoteEvent") and v.Name:lower():find("sell") then
+                        v:FireServer()
+                    elseif v:IsA("RemoteFunction") and v.Name:lower():find("sell") then
+                        pcall(function()
+                            v:InvokeServer()
+                        end)
+                    end
+                end
+            end
+        end)
+    end
+})
+
+local Section = Tab3:Section({ 
+    Title = "Opsional",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+local ToggleCatch = Tab3:Toggle({
+    Title = "Instant Catch",
+    Desc = "Get fish straight away",
+    Icon = "fish",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        _G.InstantCatch = state
+
+        if state then
+            print("✅ Instant Catch ON")
+            if _loopRunning then return end
+            _loopRunning = true
+
+            task.spawn(function()
+                while _G.InstantCatch do
+                    local remote = findRemote(REMOTE_NAME)
+                    if remote then
+                        local success, err = tryFire(remote)
+                        if success then
+                            print("🎣 Instant catch success!")
+                        else
+                            warn("❌ error:", err)
+                        end
+                    else
+                        warn("⚠️ Remote '" .. REMOTE_NAME .. "' tidak ditemukan. Jalankan scanner dulu.")
+                    end
+                    task.wait(TRY_INTERVAL)
+                end
+                _loopRunning = false
+                print("❌ Instant Catch OFF")
+            end)
+        else
+            print("❌ Instant Catch is turned off")
+        end
+    end
+})
+
+local ScanButton = Tab3:Button({
+    Title = "Scan Fish Remotes",
+    Desc = "Search for remote with the word 'fish'",
+    Callback = function()
+        scanRemotes()
+    end
+})
+
+local Tab4 = Window:Tab({
+    Title = "Teleport",
+    Icon = "map-pin",
+})
+
+local Section = Tab4:Section({ 
+    Title = "Island",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+local Dropdown = Tab4:Dropdown({
+    Title = "Select Location",
+    Values = {"Esoteric Island", "Konoha", "Coral Refs", "Enchant Room", "Tropical Grove", "Weather Machine"},
+    Callback = function(Value)
+        local Locations = {
+            ["Esoteric Island"] = Vector3.new(1990, 5, 1398),
+            ["Konoha"] = Vector3.new(-603, 3, 719),
+            ["Coral Refs"] = Vector3.new(-2855, 47, 1996),
+            ["Enchant Room"] = Vector3.new(3221, -1303, 1406),
+            ["Treasure Room"] = Vector3.new(-3600, -267, -1575),
+            ["Tropical Grove"] = Vector3.new(-2091, 6, 3703),
+            ["Weather Machine"] = Vector3.new(-1508, 6, 1895),
+        }
+
+        local Player = game.Players.LocalPlayer
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            Player.Character.HumanoidRootPart.CFrame = CFrame.new(Locations[Value])
+        end
+    end
+})
+
+local Section = Tab4:Section({ 
+    Title = "fishing spot",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+local Dropdown = Tab4:Dropdown({
+    Title = "Select Location",
+    Values = {"Spawn", "Konoha", "Coral Refs", "Volcano", "Sysyphus Statue"},
+    Callback = function(Value)
+        local Locations = {
+            ["Spawn"] = Vector3.new(33, 9, 2810),
+            ["Konoha"] = Vector3.new(-603, 3, 719),
+            ["Coral Refs"] = Vector3.new(-2855, 47, 1996),
+            ["Volcano"] = Vector3.new(-632, 55, 197),
+            ["Sysyphus Statue"] = Vector3.new(-3693,-136,-1045),
+        }
+
+        local Player = game.Players.LocalPlayer
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            Player.Character.HumanoidRootPart.CFrame = CFrame.new(Locations[Value])
+        end
+    end
+})
+
+
+local Tab5 = Window:Tab({
+    Title = "Settings",
+    Icon = "settings",
+})
+
+local Toggle = Tab5:Toggle({
+    Title = "AntiAFK",
+    Desc = "Prevent Roblox from kicking you when idle",
+    Icon = "shield",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        _G.AntiAFK = state
+        local VirtualUser = game:GetService("VirtualUser")
+        local player = game:GetService("Players").LocalPlayer
+
+        task.spawn(function()
+            while _G.AntiAFK do
+                task.wait(60)
+                pcall(function()
+                    VirtualUser:CaptureController()
+                    VirtualUser:ClickButton2(Vector2.new())
+                end)
+            end
+        end)
+
+        if state then
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "AntiAFK loaded!",
+                Text = "Coded By Kirsiasc",
+                Button1 = "Okey",
+                Duration = 5
+            })
+        else
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "AntiAFK Disabled",
+                Text = "Stopped AntiAFK",
+                Duration = 3
+            })
+        end
+    end
+})
+
+local Toggle = Tab5:Toggle({
+    Title = "Auto Reconnect",
+    Desc = "Automatic reconnect if disconnected",
+    Icon = "plug-zap",
+    Default = false,
+    Callback = function(state)
+        _G.AutoReconnect = state
+        if state then
+            task.spawn(function()
+                while _G.AutoReconnect do
+                    task.wait(2)
+
+                    local reconnectUI = game:GetService("CoreGui"):FindFirstChild("RobloxPromptGui")
+                    if reconnectUI then
+                        local prompt = reconnectUI:FindFirstChild("promptOverlay")
+                        if prompt then
+                            local button = prompt:FindFirstChild("ButtonPrimary")
+                            if button and button.Visible then
+                                firesignal(button.MouseButton1Click)
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+local Colorpicker = Tab5:Colorpicker({
+    Title = "Colorpicker",
+    Desc = "Background Colorpicker (need update)",
+    Default = Color3.fromRGB(0, 255, 0),
+    Transparency = 0,
+    Locked = false,
+    Callback = function(color) 
+        print("Background color: " .. tostring(color))
+    end
+}
