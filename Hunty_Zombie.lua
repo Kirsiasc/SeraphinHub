@@ -73,7 +73,8 @@ local Section = Tab2:Section({
 })
 
 local Players = { "1", "2", "3", "4", "5", "6" }
-local Maps = { "Saluran", "Sekolah", "Carnaval" }
+local Players = { "1", "2", "3", "4", "5", "6" }
+local Maps = { "Sewers", "Sekolah", "Carnaval" }
 local Modes = { "Normal", "Hard", "Nightmare" }
 
 _G.SelectedPlayers = 6
@@ -110,22 +111,32 @@ local ModeDropdown = Tab2:Dropdown({
 local JoinButton = Tab2:Button({
     Title = "Auto Join Match",
     Callback = function()
-        print("Join Match Request")
-        print("Players: " .. tostring(_G.SelectedPlayers))
-        print("Map: " .. tostring(_G.SelectedMap))
-        print("Mode: " .. tostring(_G.SelectedMode))
+        print("🔄 Mencoba Join Match...")
+        print("Players:", _G.SelectedPlayers)
+        print("Map:", _G.SelectedMap)
+        print("Mode:", _G.SelectedMode)
 
         local rs = game:GetService("ReplicatedStorage")
+        local success = false
 
-        local remote = rs:FindFirstChild("JoinMatch") or rs:FindFirstChild("Remotes"):FindFirstChild("JoinMatch")
-        if remote then
-            remote:FireServer({
-                Players = _G.SelectedPlayers,
-                Map = _G.SelectedMap,
-                Mode = _G.SelectedMode
-            })
+        for _, obj in ipairs(rs:GetDescendants()) do
+            if obj:IsA("RemoteEvent") and obj.Name:lower():find("join") or obj.Name:lower():find("start") then
+                print("➡️ Mencoba Remote:", obj:GetFullName())
+                pcall(function()
+                    obj:FireServer({
+                        Players = _G.SelectedPlayers,
+                        Map = _G.SelectedMap,
+                        Mode = _G.SelectedMode
+                    })
+                    success = true
+                end)
+            end
+        end
+
+        if not success then
+            warn("⚠️ Tidak ada remote yang cocok ditemukan. Cek nama Remote di game.")
         else
-            warn("⚠️ Remote JoinMatch tidak ditemukan, cek nama remotenya di game!")
+            print("✅ Request Join dikirim!")
         end
     end
 })
