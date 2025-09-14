@@ -61,12 +61,12 @@ local Section = Tab1:Section({
 })
 
 
-local Tab3 = Window:Tab({
+local Tab2 = Window:Tab({
     Title = "Main",
     Icon = "landmark",
 })
 
-local Section = Tab3:Section({ 
+local Section = Tab2:Section({ 
     Title = "Main",
     TextXAlignment = "Left",
     TextSize = 17,
