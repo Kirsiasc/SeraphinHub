@@ -60,53 +60,6 @@ local Section = Tab1:Section({
     TextSize = 17,
 })
 
-
-local Tab2 = Window:Tab({
-    Title = "Main",
-    Icon = "landmark",
-})
-
-local Section = Tab2:Section({ 
-    Title = "Lobby",
-    TextXAlignment = "Left",
-    TextSize = 17,
-})
-
-local Players = { "1", "2", "3", "4", "5", "6" }
-local Maps = { "Sewers", "School", "Carnaval" }
-local Modes = { "Normal", "Hard", "Nightmare" }
-
-_G.SelectedPlayers = 1
-_G.SelectedMap = "School"
-_G.SelectedMode = "Normal"
-
-local PlayerDropdown = Tab2:Dropdown({
-    Title = "Players",
-    Values = Players,
-    Value = "1",
-    Callback = function(option)
-        _G.SelectedPlayers = tonumber(option)
-    end
-})
-
-local MapDropdown = Tab2:Dropdown({
-    Title = "Select Map",
-    Values = Maps,
-    Value = "School",
-    Callback = function(option)
-        _G.SelectedMap = option
-    end
-})
-
-local ModeDropdown = Tab2:Dropdown({
-    Title = "Select Mode",
-    Values = Modes,
-    Value = "Normal",
-    Callback = function(option)
-        _G.SelectedMode = option
-    end
-})
-
 local Tab2 = Window:Tab({
     Title = "Main",
     Icon = "landmark",
