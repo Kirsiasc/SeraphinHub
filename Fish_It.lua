@@ -182,148 +182,12 @@ local Section = Tab3:Section({
     TextSize = 17,
 })
 
-local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
-
-local CAST_NAMES = {"Cast", "CastLine", "StartFishing"}
-local CATCH_NAMES = {"Catch", "Reel", "FishCaught", "StopFishing"}
-local TRY_INTERVAL = 0.5
-
-local function findRemoteByKeywords(keywords)
-    for _, v in ipairs(game:GetDescendants()) do
-        if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
-            for _, keyword in ipairs(keywords) do
-                if string.find(string.lower(v.Name), string.lower(keyword)) then
-                    return v
-                end
-            end
-        end
-    end
-    return nil
-end
-
-local function safeFire(remote, ...)
-    pcall(function()
-        if remote:IsA("RemoteEvent") then
-            remote:FireServer(...)
-        elseif remote:IsA("RemoteFunction") then
-            remote:InvokeServer(...)
-        end
-    end)
-end
-
-_G.AutoFish = false
-local loopRunning = false
-
-local function startFishingLoop()
-    if loopRunning then return end
-    loopRunning = true
-    task.spawn(function()
-        while _G.AutoFish do
-            local castRemote = findRemoteByKeywords(CAST_NAMES)
-            local catchRemote = findRemoteByKeywords(CATCH_NAMES)
-            if castRemote and catchRemote then
-                safeFire(castRemote)
-                task.wait(0.2)
-                safeFire(catchRemote)
-            end
-            task.wait(TRY_INTERVAL)
-        end
-        loopRunning = false
-    end)
-end
-
-local ToggleCatch = Tab3:Toggle({
-    Title = "Auto Fish",
-    Desc = "Auto lempar + tarik ikan langsung dapat",
-    Icon = "fish",
-    Type = "Checkbox",
-    Default = false,
-    Callback = function(state)
-        _G.AutoFish = state
-        if state then
-            startFishingLoop()
-        end
-    end
-})
 
 local Section = Tab3:Section({ 
     Title = "Opsional",
     TextXAlignment = "Left",
     TextSize = 17,
 })
-
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local player = Players.LocalPlayer
-
-local REMOTE_NAME = "FishCaught"
-local TRY_INTERVAL = 1
-
-_G.InstantCatch = false
-local _loopRunning = false
-
-local function scanRemotes()
-    local remotes = {}
-
-    local function checkContainer(container)
-        for _, v in ipairs(container:GetDescendants()) do
-            if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
-                if string.find(string.lower(v.Name), "fish") then
-                    table.insert(remotes, v:GetFullName() .. " (" .. v.ClassName .. ")")
-                end
-            end
-        end
-    end
-
-    checkContainer(ReplicatedStorage)
-    checkContainer(workspace)
-    if player and player:FindFirstChild("PlayerGui") then
-        checkContainer(player.PlayerGui)
-    end
-
-    if #remotes == 0 then
-        warn("⚠️ Tidak ada Remote berhubungan dengan 'fish' ditemukan.")
-    else
-        print("🐟 Remotes ditemukan:")
-        for _, r in ipairs(remotes) do
-            print(" - " .. r)
-        end
-    end
-end
-
-local function findRemote(name)
-    local function search(container)
-        for _, v in ipairs(container:GetDescendants()) do
-            if v.Name == name and (v:IsA("RemoteEvent") or v:IsA("RemoteFunction")) then
-                return v
-            end
-        end
-    end
-
-    return search(ReplicatedStorage)
-        or search(workspace)
-        or (player and player:FindFirstChild("PlayerGui") and search(player.PlayerGui))
-end
-
-local function tryFire(remote)
-    if not remote then return false, "no remote" end
-    local ok, err
-
-    if remote:IsA("RemoteEvent") then
-        ok, err = pcall(function() remote:FireServer("Perfect") end)
-        if ok then return true end
-        ok, err = pcall(function() remote:FireServer() end)
-        return ok, err
-    elseif remote:IsA("RemoteFunction") then
-        ok, err = pcall(function() remote:InvokeServer("Perfect") end)
-        if ok then return true end
-        ok, err = pcall(function() remote:InvokeServer() end)
-        return ok, err
-    end
-
-    return false, "unknown type " .. remote.ClassName
-end
 
 local ToggleCatch = Tab3:Toggle({
     Title = "Instant Catch",
@@ -511,10 +375,5 @@ local Colorpicker = Tab5:Colorpicker({
     end
 })
 
-
-local myConfig = WindUI:Config({
-    Folder = "SERAPHIN_HUB",
-    File = "config.json"
-})
 
 myConfig:Load()
