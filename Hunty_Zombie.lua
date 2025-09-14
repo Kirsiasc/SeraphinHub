@@ -80,7 +80,7 @@ _G.SelectedMap = "School"
 _G.SelectedMode = "Normal"
 
 Tab2:Dropdown({
-    Title = "Player",
+    Title = "Players",
     Values = Players,
     Value = "1",
     Callback = function(option)
@@ -106,45 +106,41 @@ Tab2:Dropdown({
     end
 })
 
+local function FindBox(mapName)
+    local ws = game.Workspace
+    for _, obj in ipairs(ws:GetDescendants()) do
+        if obj:IsA("BasePart") then
+            if string.lower(obj.Name):find(string.lower(mapName)) then
+                return obj
+            end
+        end
+    end
+    return nil
+end
+
+local function TeleportToBox(mapName)
+    local player = game.Players.LocalPlayer
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    local box = FindBox(mapName)
+    if box then
+        hrp.CFrame = box.CFrame + Vector3.new(0, 5, 0)
+        print("✅ Teleport ke kotak:", box.Name)
+    else
+        warn("⚠️ Kotak untuk map", mapName, "tidak ditemukan di Workspace!")
+    end
+end
+
 Tab2:Button({
     Title = "Auto Join Match",
     Callback = function()
-        print("🔄 Mencoba Join Match...")
+        print("🔄 Mencoba join match...")
         print("Players:", _G.SelectedPlayers)
         print("Map:", _G.SelectedMap)
         print("Mode:", _G.SelectedMode)
 
-        local rs = game:GetService("ReplicatedStorage")
-        local found = false
-
-        for _, obj in ipairs(rs:GetDescendants()) do
-            if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
-                print("🔍 Remote ditemukan:", obj:GetFullName(), "("..obj.ClassName..")")
-                pcall(function()
-                    if obj:IsA("RemoteEvent") then
-                        obj:FireServer({
-                            Players = _G.SelectedPlayers,
-                            Map = _G.SelectedMap,
-                            Mode = _G.SelectedMode
-                        })
-                    else
-                        obj:InvokeServer({
-                            Players = _G.SelectedPlayers,
-                            Map = _G.SelectedMap,
-                            Mode = _G.SelectedMode
-                        })
-                    end
-                    print("✅ Dicoba:", obj.Name)
-                    found = true
-                end)
-            end
-        end
-
-        if not found then
-            warn("⚠️ Tidak ada RemoteEvent/Function yang cocok ditemukan.")
-        else
-            print("✅ Request Join sudah dicoba ke semua remote!")
-        end
+        TeleportToBox(_G.SelectedMap)
     end
 })
 
