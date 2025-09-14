@@ -182,6 +182,31 @@ local Section = Tab3:Section({
     TextSize = 17,
 })
 
+local Toggle = Tab3:Toggle({
+    Title = "Auto Sell",
+    Desc = "Jual ikan otomatis",
+    Icon = "coins",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        _G.AutoSell = state
+        task.spawn(function()
+            while _G.AutoSell do
+                task.wait(0.5)
+                local rs = game:GetService("ReplicatedStorage")
+                for _, v in pairs(rs:GetDescendants()) do
+                    if v:IsA("RemoteEvent") and v.Name:lower():find("sell") then
+                        v:FireServer()
+                    elseif v:IsA("RemoteFunction") and v.Name:lower():find("sell") then
+                        pcall(function()
+                            v:InvokeServer()
+                        end)
+                    end
+                end
+            end
+        end)
+    end
+})
 
 local Section = Tab3:Section({ 
     Title = "Opsional",
@@ -366,7 +391,7 @@ local Toggle = Tab5:Toggle({
 
 local Colorpicker = Tab5:Colorpicker({
     Title = "Colorpicker",
-    Desc = "Background Colorpicker",
+    Desc = "Background Colorpicker (need update)",
     Default = Color3.fromRGB(0, 255, 0),
     Transparency = 0,
     Locked = false,
