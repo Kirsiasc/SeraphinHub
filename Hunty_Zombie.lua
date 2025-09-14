@@ -20,18 +20,6 @@ local Window = WindUI:CreateWindow({
     HasOutline = true
 })
 
-WindUI:AddTheme({
-    Name = "Purple",
-    Accent = "#7c3aed",
-    Dialog = "#6d28d9",
-    Outline = "#c4b5fd", 
-    Text = "#faf5ff",
-    Placeholder = "#a78bfa",
-    Background = "#581c87",
-    Button = "#8b5cf6",
-    Icon = "#c4b5fd",
-})
-
 Window:Tag({
     Title = "v0.0.0.1",
     Color = Color3.fromHex("#9b4dff")
