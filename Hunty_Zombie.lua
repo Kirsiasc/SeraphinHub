@@ -61,7 +61,7 @@ local Section = Tab1:Section({
 })
 
 
-local Tab2 = Window:Tab({
+local Tab3 = Window:Tab({
     Title = "Main",
     Icon = "landmark",
 })
