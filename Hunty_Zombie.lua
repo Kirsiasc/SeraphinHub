@@ -107,41 +107,65 @@ local ModeDropdown = Tab2:Dropdown({
     end
 })
 
-local JoinButton = Tab2:Button({
-    Title = "Auto Join Match",
+local Tab2 = Window:Tab({
+    Title = "Main",
+    Icon = "landmark",
+})
+
+local Section = Tab2:Section({ 
+    Title = "Lobby",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+local Players = { "1", "2", "3", "4", "5", "6" }
+local Maps = { "Sewers", "School", "Carnaval" }
+local Modes = { "Normal", "Hard", "Nightmare" }
+
+_G.SelectedPlayers = 1
+_G.SelectedMap = "School"
+_G.SelectedMode = "Normal"
+
+local PlayerDropdown = Tab2:Dropdown({
+    Title = "Players",
+    Values = Players,
+    Value = "1",
+    Callback = function(option)
+        _G.SelectedPlayers = tonumber(option)
+    end
+})
+
+local MapDropdown = Tab2:Dropdown({
+    Title = "Select Map",
+    Values = Maps,
+    Value = "School",
+    Callback = function(option)
+        _G.SelectedMap = option
+    end
+})
+
+local ModeDropdown = Tab2:Dropdown({
+    Title = "Select Mode",
+    Values = Modes,
+    Value = "Normal",
+    Callback = function(option)
+        _G.SelectedMode = option
+    end
+})
+
+local ScanButton = Tab2:Button({
+    Title = "🔍 Scan RemoteEvent",
     Callback = function()
-        print("🔄 Mencoba Join Match...")
-        print("Players:", _G.SelectedPlayers)
-        print("Map:", _G.SelectedMap)
-        print("Mode:", _G.SelectedMode)
-
         local rs = game:GetService("ReplicatedStorage")
-        local success = false
-
+        print("=======================================")
+        print("🔍 Daftar RemoteEvent di ReplicatedStorage:")
         for _, obj in ipairs(rs:GetDescendants()) do
-            if obj:IsA("RemoteEvent") and (obj.Name:lower():find("join") or obj.Name:lower():find("start")) then
-                print("➡️ Mencoba Remote:", obj:GetFullName())
-                local ok, err = pcall(function()
-                    obj:FireServer({
-                        Players = _G.SelectedPlayers,
-                        Map = _G.SelectedMap,
-                        Mode = _G.SelectedMode
-                    })
-                end)
-                if ok then
-                    success = true
-                    break
-                else
-                    warn("⚠️ Error saat kirim remote:", err)
-                end
+            if obj:IsA("RemoteEvent") then
+                print("📌 RemoteEvent ditemukan:", obj:GetFullName())
             end
         end
-
-        if not success then
-            warn("⚠️ Tidak ada RemoteEvent yang cocok ditemukan. Cek nama Remote di game.")
-        else
-            print("✅ Request Join dikirim!")
-        end
+        print("=======================================")
+        print("✅ Scan selesai. Cek nama Remote di atas.")
     end
 })
 
