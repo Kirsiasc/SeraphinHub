@@ -65,7 +65,7 @@ local Tab2 = Window:Tab({
     Icon = "landmark",
 })
 
-local Section = Tab2:Section({ 
+local Section = Tab2:Section({
     Title = "Lobby",
     TextXAlignment = "Left",
     TextSize = 17,
@@ -75,20 +75,20 @@ local Players = { "1", "2", "3", "4", "5", "6" }
 local Maps = { "Sewers", "School", "Carnaval" }
 local Modes = { "Normal", "Hard", "Nightmare" }
 
-_G.SelectedPlayers = 1
+_G.SelectedPlayers = "1"
 _G.SelectedMap = "School"
 _G.SelectedMode = "Normal"
 
-local PlayerDropdown = Tab2:Dropdown({
-    Title = "Players",
+Tab2:Dropdown({
+    Title = "Player",
     Values = Players,
     Value = "1",
     Callback = function(option)
-        _G.SelectedPlayers = tonumber(option)
+        _G.SelectedPlayers = option
     end
 })
 
-local MapDropdown = Tab2:Dropdown({
+Tab2:Dropdown({
     Title = "Select Map",
     Values = Maps,
     Value = "School",
@@ -97,7 +97,7 @@ local MapDropdown = Tab2:Dropdown({
     end
 })
 
-local ModeDropdown = Tab2:Dropdown({
+Tab2:Dropdown({
     Title = "Select Mode",
     Values = Modes,
     Value = "Normal",
@@ -106,19 +106,45 @@ local ModeDropdown = Tab2:Dropdown({
     end
 })
 
-local ScanButton = Tab2:Button({
-    Title = "🔍 Scan RemoteEvent",
+Tab2:Button({
+    Title = "Auto Join Match",
     Callback = function()
+        print("🔄 Mencoba Join Match...")
+        print("Players:", _G.SelectedPlayers)
+        print("Map:", _G.SelectedMap)
+        print("Mode:", _G.SelectedMode)
+
         local rs = game:GetService("ReplicatedStorage")
-        print("=======================================")
-        print("🔍 Daftar RemoteEvent di ReplicatedStorage:")
+        local found = false
+
         for _, obj in ipairs(rs:GetDescendants()) do
-            if obj:IsA("RemoteEvent") then
-                print("📌 RemoteEvent ditemukan:", obj:GetFullName())
+            if obj:IsA("RemoteEvent") or obj:IsA("RemoteFunction") then
+                print("🔍 Remote ditemukan:", obj:GetFullName(), "("..obj.ClassName..")")
+                pcall(function()
+                    if obj:IsA("RemoteEvent") then
+                        obj:FireServer({
+                            Players = _G.SelectedPlayers,
+                            Map = _G.SelectedMap,
+                            Mode = _G.SelectedMode
+                        })
+                    else
+                        obj:InvokeServer({
+                            Players = _G.SelectedPlayers,
+                            Map = _G.SelectedMap,
+                            Mode = _G.SelectedMode
+                        })
+                    end
+                    print("✅ Dicoba:", obj.Name)
+                    found = true
+                end)
             end
         end
-        print("=======================================")
-        print("✅ Scan selesai. Cek nama Remote di atas.")
+
+        if not found then
+            warn("⚠️ Tidak ada RemoteEvent/Function yang cocok ditemukan.")
+        else
+            print("✅ Request Join sudah dicoba ke semua remote!")
+        end
     end
 })
 
