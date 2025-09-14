@@ -9,10 +9,22 @@ else
     print("✓ UI loaded successfully!")
 end
 
+WindUI:AddTheme({
+    Name = "Purple",
+    Accent = "#7c3aed",
+    Dialog = "#6d28d9",
+    Outline = "#c4b5fd", 
+    Text = "#faf5ff",
+    Placeholder = "#a78bfa",
+    Background = "#581c87",
+    Button = "#8b5cf6",
+    Icon = "#c4b5fd",
+})
+
 local Window = WindUI:CreateWindow({
     Title = "Seraphin",
     Icon = "rbxassetid://120248611602330",
-    Author = "Hunty Zombie",
+    Author = "KirsiaSC | Hunty Zombie",
     Folder = "SERAPHIN_HUB",
     Size = UDim2.fromOffset(270, 300),
     Transparent = true,
