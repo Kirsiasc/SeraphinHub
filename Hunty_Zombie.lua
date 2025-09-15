@@ -112,10 +112,14 @@ local Button = Tab2:Button({
     Locked = false,
     Callback = function()
         local rs = game:GetService("ReplicatedStorage")
-        local CreateRoom = rs.Remotes.CreateRoom
-        pcall(function()
-            CreateRoom:FireServer(_G.SelectedMap, _G.SelectedMode, tonumber(_G.SelectedPlayers), false)
-        end)
+        local CreateRoom = rs:WaitForChild("Remotes"):FindFirstChild("CreateRoom")
+        if CreateRoom then
+            pcall(function()
+                CreateRoom:FireServer(_G.SelectedMap, _G.SelectedMode, tonumber(_G.SelectedPlayers), false)
+            end)
+        else
+            warn("CreateRoom remote not found!")
+        end
     end
 })
 
