@@ -75,20 +75,21 @@ local Players = { "1", "2", "3", "4", "5", "6" }
 local Maps = { "Sewers", "School", "Carnaval" }
 local Modes = { "Normal", "Hard", "Nightmare" }
 
-_G.SelectedPlayers = "1"
+_G.SelectedPlayers = 1
 _G.SelectedMap = "School"
 _G.SelectedMode = "Normal"
+_G.AutoJoin = false
 
-Tab2:Dropdown({
-    Title = "Players",
+local PlayerDropdown = Tab2:Dropdown({
+    Title = "Player",
     Values = Players,
     Value = "1",
     Callback = function(option)
-        _G.SelectedPlayers = option
+        _G.SelectedPlayers = tonumber(option)
     end
 })
 
-Tab2:Dropdown({
+local MapDropdown = Tab2:Dropdown({
     Title = "Select Map",
     Values = Maps,
     Value = "School",
@@ -97,7 +98,7 @@ Tab2:Dropdown({
     end
 })
 
-Tab2:Dropdown({
+local ModeDropdown = Tab2:Dropdown({
     Title = "Select Mode",
     Values = Modes,
     Value = "Normal",
@@ -106,41 +107,31 @@ Tab2:Dropdown({
     end
 })
 
-local function FindBox(mapName)
-    local ws = game.Workspace
-    for _, obj in ipairs(ws:GetDescendants()) do
-        if obj:IsA("BasePart") then
-            if string.lower(obj.Name):find(string.lower(mapName)) then
-                return obj
-            end
+local ToggleAuto = Tab2:Toggle({
+    Title = "Auto Create Room",
+    Default = false,
+    Callback = function(state)
+        _G.AutoJoin = state
+        if state then
+            task.spawn(function()
+                while _G.AutoJoin do
+                    local rs = game:GetService("ReplicatedStorage")
+                    for _, obj in ipairs(rs:GetDescendants()) do
+                        if obj:IsA("RemoteEvent") and obj.Name:lower():find("create") then
+                            pcall(function()
+                                obj:FireServer({
+                                    Players = _G.SelectedPlayers,
+                                    Map = _G.SelectedMap,
+                                    Mode = _G.SelectedMode
+                                })
+                                print("✅ Auto Join Request:", _G.SelectedPlayers, _G.SelectedMap, _G.SelectedMode)
+                            end)
+                        end
+                    end
+                    task.wait(1)
+                end
+            end)
         end
-    end
-    return nil
-end
-
-local function TeleportToBox(mapName)
-    local player = game.Players.LocalPlayer
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hrp = char:WaitForChild("HumanoidRootPart")
-
-    local box = FindBox(mapName)
-    if box then
-        hrp.CFrame = box.CFrame + Vector3.new(0, 5, 0)
-        print("✅ Teleport ke kotak:", box.Name)
-    else
-        warn("⚠️ Kotak untuk map", mapName, "tidak ditemukan di Workspace!")
-    end
-end
-
-Tab2:Button({
-    Title = "Auto Join Match",
-    Callback = function()
-        print("🔄 Mencoba join match...")
-        print("Players:", _G.SelectedPlayers)
-        print("Map:", _G.SelectedMap)
-        print("Mode:", _G.SelectedMode)
-
-        TeleportToBox(_G.SelectedMap)
     end
 })
 
