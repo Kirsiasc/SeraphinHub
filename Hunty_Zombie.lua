@@ -79,6 +79,27 @@ _G.SelectedPlayers = 1
 _G.SelectedMap = "School"
 _G.SelectedMode = "Normal"
 _G.AutoJoin = false
+_G.JoinRemote = nil
+
+local mt = getrawmetatable(game)
+local old = mt.__namecall
+setreadonly(mt, false)
+mt.__namecall = newcclosure(function(self, ...)
+    local args = {...}
+    local method = getnamecallmethod()
+    if method == "FireServer" and self:IsA("RemoteEvent") then
+        warn("📡 RemoteEvent detected:", self:GetFullName())
+        for i,v in ipairs(args) do
+            warn("   Arg["..i.."] =", v)
+        end
+        if tostring(self):lower():find("create") or tostring(self):lower():find("room") or tostring(self):lower():find("start") then
+            _G.JoinRemote = self
+            warn("✅ AutoJoin remote saved:", self:GetFullName())
+        end
+    end
+    return old(self, ...)
+end)
+setreadonly(mt, true)
 
 local PlayerDropdown = Tab2:Dropdown({
     Title = "Player",
@@ -115,30 +136,23 @@ local ToggleAuto = Tab2:Toggle({
         if state then
             task.spawn(function()
                 while _G.AutoJoin do
-                    local rs = game:GetService("ReplicatedStorage")
-                    for _, obj in ipairs(rs:GetDescendants()) do
-                        if obj:IsA("RemoteEvent") and obj.Name:lower():find("create") then
-                            pcall(function()
-                                obj:FireServer({
-                                    Players = _G.SelectedPlayers,
-                                    Map = _G.SelectedMap,
-                                    Mode = _G.SelectedMode
-                                })
-                                print("✅ Auto Join Request:", _G.SelectedPlayers, _G.SelectedMap, _G.SelectedMode)
-                            end)
-                        end
+                    if _G.JoinRemote and _G.JoinRemote:IsA("RemoteEvent") then
+                        pcall(function()
+                            _G.JoinRemote:FireServer({
+                                Players = _G.SelectedPlayers,
+                                Map = _G.SelectedMap,
+                                Mode = _G.SelectedMode
+                            })
+                            print("✅ Auto Join Request:", _G.SelectedPlayers, _G.SelectedMap, _G.SelectedMode)
+                        end)
+                    else
+                        warn("⚠️ Remote belum ketemu, silakan klik Create Room manual dulu supaya tersimpan.")
                     end
                     task.wait(1)
                 end
             end)
         end
     end
-})
-
-local Section = Tab2:Section({ 
-    Title = "Main",
-    TextXAlignment = "Left",
-    TextSize = 17,
 })
 
 local Tab3 = Window:Tab({
@@ -200,7 +214,6 @@ local Toggle = Tab4:Toggle({
             task.spawn(function()
                 while _G.AutoReconnect do
                     task.wait(2)
-
                     local reconnectUI = game:GetService("CoreGui"):FindFirstChild("RobloxPromptGui")
                     if reconnectUI then
                         local prompt = reconnectUI:FindFirstChild("promptOverlay")
