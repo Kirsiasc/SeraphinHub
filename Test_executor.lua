@@ -11,10 +11,10 @@ local widgetInfo = DockWidgetPluginGuiInfo.new(
     560,
     300
 )
+
 local widget = plugin:CreateDockWidgetPluginGui("SeraphinEditorWidget", widgetInfo)
 widget.Title = "Seraphin - Windows"
 
--- root
 local root = Instance.new("Frame")
 root.Size = UDim2.new(1,0,1,0)
 root.BackgroundColor3 = Color3.fromRGB(18,18,20)
