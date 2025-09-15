@@ -66,32 +66,31 @@ local Tab2 = Window:Tab({
 })
 
 local Section = Tab2:Section({
-    Title = "Lobby Auto Join",
+    Title = "Lobby",
     TextXAlignment = "Left",
     TextSize = 17,
 })
 
-local Players = { "1", "2", "3", "4", "5", "6" }
-local Maps = { "Sewers", "School", "Carnaval" }
-local Modes = { "Normal", "Hard", "Nightmare" }
+local PlayersList = { "1", "2", "3", "4", "5", "6" }
+local MapsList = { "School", "Sewers", "Carnaval" }
+local ModesList = { "Normal", "Hard", "Nightmare" }
 
-_G.SelectedPlayers = 1
+_G.SelectedPlayers = "5"
 _G.SelectedMap = "School"
 _G.SelectedMode = "Normal"
-_G.AutoJoin = true
 
 local PlayerDropdown = Tab2:Dropdown({
-    Title = "Player",
-    Values = Players,
-    Value = "1",
+    Title = "Players",
+    Values = PlayersList,
+    Value = "5",
     Callback = function(option)
-        _G.SelectedPlayers = tonumber(option)
+        _G.SelectedPlayers = option
     end
 })
 
 local MapDropdown = Tab2:Dropdown({
     Title = "Select Map",
-    Values = Maps,
+    Values = MapsList,
     Value = "School",
     Callback = function(option)
         _G.SelectedMap = option
@@ -100,32 +99,25 @@ local MapDropdown = Tab2:Dropdown({
 
 local ModeDropdown = Tab2:Dropdown({
     Title = "Select Mode",
-    Values = Modes,
+    Values = ModesList,
     Value = "Normal",
     Callback = function(option)
         _G.SelectedMode = option
     end
 })
 
-task.spawn(function()
-    while task.wait(1) do
-        if _G.AutoJoin then
-            local rs = game:GetService("ReplicatedStorage")
-            for _, obj in ipairs(rs:GetDescendants()) do
-                if obj:IsA("RemoteEvent") and (obj.Name:lower():find("create") or obj.Name:lower():find("join") or obj.Name:lower():find("start")) then
-                    pcall(function()
-                        obj:FireServer({
-                            Players = _G.SelectedPlayers,
-                            Map = _G.SelectedMap,
-                            Mode = _G.SelectedMode
-                        })
-                        print("✅ Auto Join:", _G.SelectedPlayers, _G.SelectedMap, _G.SelectedMode)
-                    end)
-                end
-            end
-        end
+local Button = Tab2:Button({
+    Title = "Auto Create Room",
+    Desc = "This is for the room to start the game",
+    Locked = false,
+    Callback = function()
+        local rs = game:GetService("ReplicatedStorage")
+        local CreateRoom = rs.Remotes.CreateRoom
+        pcall(function()
+            CreateRoom:FireServer(_G.SelectedMap, _G.SelectedMode, tonumber(_G.SelectedPlayers), false)
+        end)
     end
-end)
+})
 
 local Tab3 = Window:Tab({
     Title = "Players",
