@@ -44,7 +44,7 @@ local Section = Tab1:Section({
     TextSize = 17,
 })
 
-Tab1:Button({
+local Button = Tab1:Button({
     Title = "Discord",
     Desc = "click to copy invite discord",
     Callback = function()
@@ -54,7 +54,7 @@ Tab1:Button({
     end
 })
 
-local Section = Tab1:Section({
+Tab1:Section({
     Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible.",
     TextXAlignment = "Left",
     TextSize = 17,
@@ -79,7 +79,7 @@ _G.SelectedPlayers = "5"
 _G.SelectedMap = "School"
 _G.SelectedMode = "Normal"
 
-local PlayerDropdown = Tab2:Dropdown({
+local Dropdown = Tab2:Dropdown({
     Title = "Players",
     Values = PlayersList,
     Value = "5",
@@ -88,7 +88,7 @@ local PlayerDropdown = Tab2:Dropdown({
     end
 })
 
-local MapDropdown = Tab2:Dropdown({
+local Dropdown = Tab2:Dropdown({
     Title = "Select Map",
     Values = MapsList,
     Value = "School",
@@ -97,7 +97,7 @@ local MapDropdown = Tab2:Dropdown({
     end
 })
 
-local ModeDropdown = Tab2:Dropdown({
+local Dropdown = Tab2:Dropdown({
     Title = "Select Mode",
     Values = ModesList,
     Value = "Normal",
@@ -121,7 +121,7 @@ local Button = Tab2:Button({
     end
 })
 
-local Section = Tab2:Section({
+Tab2:Section({
     Title = "Main",
     TextXAlignment = "Left",
     TextSize = 17,
@@ -147,7 +147,7 @@ local SkillRemotes = {
     findRemote("skill3") or findRemote("skill_3") or findRemote("3"),
 }
 
-local AutoCompleteToggle = Tab2:Toggle({
+local Toggle = Tab2:Toggle({
     Title = "Auto Complete",
     Default = false,
     Callback = function(state)
@@ -163,7 +163,7 @@ local AutoCompleteToggle = Tab2:Toggle({
     end
 })
 
-local KillAuraToggle = Tab2:Toggle({
+local Toggle = Tab2:Toggle({
     Title = "Kill Aura",
     Default = false,
     Callback = function(state)
@@ -183,10 +183,10 @@ local KillAuraToggle = Tab2:Toggle({
     end
 })
 
-local SkillDropdown = Tab2:Dropdown({
+local Dropdown = Tab2:Dropdown({
     Title = "Select Skill",
-    Values = { "Skill1", "Skill2", "Skill3" },
-    Value = { "Skill1" },
+    Values = { "Skill 1", "Skill 2", "Skill 3" },
+    Value = { "Skill 1" },
     Multi = true,
     AllowNone = true,
     Callback = function(option)
@@ -194,7 +194,7 @@ local SkillDropdown = Tab2:Dropdown({
     end
 })
 
-local AutoSkillToggle = Tab2:Toggle({
+local Toggle = Tab2:Toggle({
     Title = "Auto Skill",
     Default = false,
     Callback = function(state)
@@ -227,12 +227,10 @@ local Toggle = Tab4:Toggle({
     Title = "AntiAFK",
     Desc = "Prevent Roblox from kicking you when idle",
     Icon = "shield",
-    Type = false,
     Default = false,
     Callback = function(state)
         _G.AntiAFK = state
         local VirtualUser = game:GetService("VirtualUser")
-        local player = game:GetService("Players").LocalPlayer
         task.spawn(function()
             while _G.AntiAFK do
                 task.wait(60)
@@ -242,20 +240,6 @@ local Toggle = Tab4:Toggle({
                 end)
             end
         end)
-        if state then
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "AntiAFK loaded!",
-                Text = "Coded By Kirsiasc",
-                Button1 = "Okey",
-                Duration = 5
-            })
-        else
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "AntiAFK Disabled",
-                Text = "Stopped AntiAFK",
-                Duration = 3
-            })
-        end
     end
 })
 
