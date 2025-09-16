@@ -143,7 +143,6 @@ local Toggle = Tab4:Toggle({
     Title = "AntiAFK",
     Desc = "Prevent Roblox from kicking you when idle",
     Icon = "shield",
-    Type = "Checkbox",
     Default = false,
     Callback = function(state)
         _G.AntiAFK = state
