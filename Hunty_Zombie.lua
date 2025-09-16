@@ -66,9 +66,10 @@ Tab1:Section({
     TextSize = 14,
 })
 
-Tab1:Label({
-    Text = "If you encounter any issues, please report them on our Discord server.",
+Tab1:Section({
+    Title = "If you encounter any issues, please report them on our Discord server.",
     TextXAlignment = "Left",
+    TextSize = 12,
 })
 
 local Tab2 = Window:Tab({
@@ -414,6 +415,9 @@ Tab3:Toggle({
             local character = game.Players.LocalPlayer.Character
             if character then
                 for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = not state
+                    end
                     if part:IsA("BasePart") then
                         part.CanCollide = not state
                     end
