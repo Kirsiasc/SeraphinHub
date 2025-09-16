@@ -34,8 +34,8 @@ WindUI:Notify({
 })
 
 local Tab1 = Window:Tab({
-    Title = "Home",
-    Icon = "house",
+    Title = "Information",
+    Icon = "info",
 })
 
 local Section = Tab1:Section({ 
@@ -121,6 +121,12 @@ local Button = Tab2:Button({
             warn("CreateRoom remote not found!")
         end
     end
+})
+
+local Section = Tab2:Section({
+    Title = "Main",
+    TextXAlignment = "Left",
+    TextSize = 17,
 })
 
 local Tab3 = Window:Tab({
