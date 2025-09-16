@@ -46,10 +46,10 @@ local Section = Tab1:Section({
 
 Tab1:Button({
     Title = "Discord",
-    Desc = "click to copy link",
+    Desc = "click to copy invite discord",
     Callback = function()
         if setclipboard then
-            setclipboard("discord.gg/getseraphin")
+            setclipboard("https://discord.gg/getseraphin")
         end
     end
 })
@@ -130,8 +130,8 @@ local Section = Tab2:Section({
 })
 
 local Tab3 = Window:Tab({
-    Title = "Players",
-    Icon = "user",
+    Title = "Utility",
+    Icon = "wrench",
 })
 
 local Tab4 = Window:Tab({
