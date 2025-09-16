@@ -38,7 +38,7 @@ local Tab1 = Window:Tab({
     Icon = "info",
 })
 
-local Section = Tab1:Section({ 
+local Section = Tab1:Section({
     Title = "Community Support",
     TextXAlignment = "Left",
     TextSize = 17,
@@ -54,7 +54,7 @@ Tab1:Button({
     end
 })
 
-local Section = Tab1:Section({ 
+local Section = Tab1:Section({
     Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible.",
     TextXAlignment = "Left",
     TextSize = 17,
@@ -117,8 +117,6 @@ local Button = Tab2:Button({
             pcall(function()
                 CreateRoom:FireServer(_G.SelectedMap, _G.SelectedMode, tonumber(_G.SelectedPlayers), false)
             end)
-        else
-            warn("CreateRoom remote not found!")
         end
     end
 })
@@ -127,6 +125,92 @@ local Section = Tab2:Section({
     Title = "Main",
     TextXAlignment = "Left",
     TextSize = 17,
+})
+
+local rs = game:GetService("ReplicatedStorage")
+local remotes = rs:WaitForChild("Remotes")
+
+local function findRemote(keyword)
+    for _, r in pairs(remotes:GetChildren()) do
+        if string.find(r.Name:lower(), keyword:lower()) then
+            return r
+        end
+    end
+    return nil
+end
+
+local CompleteRemote = findRemote("complete") or findRemote("finish") or findRemote("end")
+local DamageRemote = findRemote("damage") or findRemote("attack") or findRemote("hit")
+local SkillRemotes = {
+    findRemote("skill1") or findRemote("skill_1") or findRemote("1"),
+    findRemote("skill2") or findRemote("skill_2") or findRemote("2"),
+    findRemote("skill3") or findRemote("skill_3") or findRemote("3"),
+}
+
+local AutoCompleteToggle = Tab2:Toggle({
+    Title = "Auto Complete",
+    Default = false,
+    Callback = function(state)
+        _G.AutoComplete = state
+        while _G.AutoComplete do
+            task.wait(2)
+            pcall(function()
+                if CompleteRemote then
+                    CompleteRemote:FireServer()
+                end
+            end)
+        end
+    end
+})
+
+local KillAuraToggle = Tab2:Toggle({
+    Title = "Kill Aura",
+    Default = false,
+    Callback = function(state)
+        _G.KillAura = state
+        while _G.KillAura do
+            task.wait(0.3)
+            pcall(function()
+                if DamageRemote and workspace:FindFirstChild("Mobs") then
+                    for _, mob in pairs(workspace.Mobs:GetChildren()) do
+                        if mob:FindFirstChild("HumanoidRootPart") then
+                            DamageRemote:FireServer(mob)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+local SkillDropdown = Tab2:Dropdown({
+    Title = "Select Skill",
+    Values = { "Skill1", "Skill2", "Skill3" },
+    Value = { "Skill1" },
+    Multi = true,
+    AllowNone = true,
+    Callback = function(option)
+        _G.SelectedSkills = option
+    end
+})
+
+local AutoSkillToggle = Tab2:Toggle({
+    Title = "Auto Skill",
+    Default = false,
+    Callback = function(state)
+        _G.AutoSkill = state
+        while _G.AutoSkill do
+            task.wait(2)
+            pcall(function()
+                for _, skill in pairs(_G.SelectedSkills or {}) do
+                    local index = tonumber(skill:match("%d+"))
+                    if index and SkillRemotes[index] then
+                        SkillRemotes[index]:FireServer()
+                    end
+                end
+            end)
+        end
+    end
 })
 
 local Tab3 = Window:Tab({
@@ -149,7 +233,6 @@ local Toggle = Tab4:Toggle({
         _G.AntiAFK = state
         local VirtualUser = game:GetService("VirtualUser")
         local player = game:GetService("Players").LocalPlayer
-
         task.spawn(function()
             while _G.AntiAFK do
                 task.wait(60)
@@ -159,7 +242,6 @@ local Toggle = Tab4:Toggle({
                 end)
             end
         end)
-
         if state then
             game:GetService("StarterGui"):SetCore("SendNotification", {
                 Title = "AntiAFK loaded!",
