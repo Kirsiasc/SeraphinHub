@@ -46,10 +46,10 @@ local Section = Tab1:Section({
 
 Tab1:Button({
     Title = "Discord",
-    Desc = "click to copy link",
+    Desc = "Click To Copy Link Discord",
     Callback = function()
         if setclipboard then
-            setclipboard("discord.gg/getseraphin")
+            setclipboard("https://discord.gg/getseraphin")
         end
     end
 })
