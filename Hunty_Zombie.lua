@@ -174,23 +174,59 @@ Tab2:Toggle({
                 Duration = 3,
                 Icon = "coins",
             })
-        end
-        
-        while _G.AutoFarmCoins and task.wait(0.5) do
-            pcall(function()
-                local enemies = workspace:FindFirstChild("Zombies") or workspace:FindFirstChild("Enemies")
-                if enemies then
-                    for _, enemy in pairs(enemies:GetChildren()) do
-                        if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                            local hrp = enemy:FindFirstChild("HumanoidRootPart")
-                            if hrp then
-                                game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(CFrame.new(hrp.Position))
-                                task.wait(0.2)
+            
+            spawn(function()
+                while _G.AutoFarmCoins do
+                    pcall(function()
+                        local enemies = workspace:FindFirstChild("Zombies") or workspace:FindFirstChild("Enemies") or workspace:FindFirstChild("Mobs")
+                        local character = game.Players.LocalPlayer.Character
+                        
+                        if enemies and character then
+                            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                            
+                            if humanoidRootPart then
+                                for _, enemy in pairs(enemies:GetChildren()) do
+                                    if not _G.AutoFarmCoins then break end
+                                    
+                                    if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                                        local enemyRoot = enemy:FindFirstChild("HumanoidRootPart") or enemy:FindFirstChild("Head")
+                                        
+                                        if enemyRoot then
+                                            humanoidRootPart.CFrame = CFrame.new(enemyRoot.Position + Vector3.new(0, 3, 0))
+                                            task.wait(0.2)
+                                            
+                                            local args = {
+                                                [1] = enemy,
+                                                [2] = enemy:FindFirstChild("Head") or enemyRoot,
+                                                [3] = 100,
+                                                [4] = game.Players.LocalPlayer
+                                            }
+                                            
+                                            local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+                                            if remote then
+                                                local damageRemote = remote:FindFirstChild("Damage") or remote:FindFirstChild("Hit") or remote:FindFirstChild("Attack")
+                                                if damageRemote then
+                                                    damageRemote:FireServer(unpack(args))
+                                                end
+                                            end
+                                            
+                                            task.wait(0.3)
+                                        end
+                                    end
+                                end
                             end
                         end
-                    end
+                    end)
+                    task.wait(0.5)
                 end
             end)
+        else
+            WindUI:Notify({
+                Title = "Auto Farm",
+                Content = "Disabled",
+                Duration = 3,
+                Icon = "coins",
+            })
         end
     end
 })
@@ -208,23 +244,34 @@ Tab2:Toggle({
                 Duration = 3,
                 Icon = "check-circle",
             })
-        end
-        
-        while _G.AutoComplete and task.wait(2) do
-            pcall(function()
-                local rs = game:GetService("ReplicatedStorage")
-                local remotes = rs:FindFirstChild("Remotes")
-                
-                if remotes then
-                    local completeRemote = remotes:FindFirstChild("CompleteQuest") or 
-                                          remotes:FindFirstChild("FinishObjective") or
-                                          remotes:FindFirstChild("CompleteObjective")
-                    
-                    if completeRemote then
-                        completeRemote:FireServer()
-                    end
+            
+            spawn(function()
+                while _G.AutoComplete do
+                    pcall(function()
+                        local rs = game:GetService("ReplicatedStorage")
+                        local remotes = rs:FindFirstChild("Remotes")
+                        
+                        if remotes then
+                            local completeRemote = remotes:FindFirstChild("CompleteQuest") or 
+                                                  remotes:FindFirstChild("FinishObjective") or
+                                                  remotes:FindFirstChild("CompleteObjective") or
+                                                  remotes:FindFirstChild("Complete")
+                            
+                            if completeRemote then
+                                completeRemote:FireServer()
+                            end
+                        end
+                    end)
+                    task.wait(2)
                 end
             end)
+        else
+            WindUI:Notify({
+                Title = "Auto Complete",
+                Content = "Disabled",
+                Duration = 3,
+                Icon = "check-circle",
+            })
         end
     end
 })
@@ -242,28 +289,45 @@ Tab2:Toggle({
                 Duration = 3,
                 Icon = "zap",
             })
-        end
-        
-        while _G.KillAura and task.wait(0.3) do
-            pcall(function()
-                local rs = game:GetService("ReplicatedStorage")
-                local remotes = rs:FindFirstChild("Remotes")
-                
-                if remotes then
-                    local damageRemote = remotes:FindFirstChild("DamageZombie") or 
-                                        remotes:FindFirstChild("Attack") or
-                                        remotes:FindFirstChild("Hit")
-                    
-                    local enemies = workspace:FindFirstChild("Zombies") or workspace:FindFirstChild("Enemies")
-                    if damageRemote and enemies then
-                        for _, enemy in pairs(enemies:GetChildren()) do
-                            if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
-                                damageRemote:FireServer(enemy)
+            
+            spawn(function()
+                while _G.KillAura do
+                    pcall(function()
+                        local enemies = workspace:FindFirstChild("Zombies") or workspace:FindFirstChild("Enemies") or workspace:FindFirstChild("Mobs")
+                        
+                        if enemies then
+                            for _, enemy in pairs(enemies:GetChildren()) do
+                                if not _G.KillAura then break end
+                                
+                                if enemy:FindFirstChild("Humanoid") and enemy.Humanoid.Health > 0 then
+                                    local args = {
+                                        [1] = enemy,
+                                        [2] = enemy:FindFirstChild("Head") or enemy:FindFirstChild("HumanoidRootPart"),
+                                        [3] = 9999,
+                                        [4] = game.Players.LocalPlayer
+                                    }
+                                    
+                                    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Remotes")
+                                    if remote then
+                                        local damageRemote = remote:FindFirstChild("Damage") or remote:FindFirstChild("Hit") or remote:FindFirstChild("Attack")
+                                        if damageRemote then
+                                            damageRemote:FireServer(unpack(args))
+                                        end
+                                    end
+                                end
                             end
                         end
-                    end
+                    end)
+                    task.wait(0.1)
                 end
             end)
+        else
+            WindUI:Notify({
+                Title = "Kill Aura",
+                Content = "Disabled",
+                Duration = 3,
+                Icon = "zap",
+            })
         end
     end
 })
@@ -326,6 +390,33 @@ Tab2:Toggle({
                 Duration = 3,
                 Icon = "crosshair",
             })
+            
+            spawn(function()
+                while _G.InfiniteAmmo do
+                    pcall(function()
+                        local player = game.Players.LocalPlayer
+                        local character = player.Character
+                        
+                        if character then
+                            local tool = character:FindFirstChildOfClass("Tool")
+                            if tool then
+                                local ammo = tool:FindFirstChild("Ammo") or tool:FindFirstChild("Clip") or tool:FindFirstChild("Bullets")
+                                if ammo and ammo:IsA("IntValue") then
+                                    ammo.Value = math.huge
+                                end
+                            end
+                        end
+                    end)
+                    task.wait(0.5)
+                end
+            end)
+        else
+            WindUI:Notify({
+                Title = "Infinite Ammo",
+                Content = "Disabled",
+                Duration = 3,
+                Icon = "crosshair",
+            })
         end
     end
 })
@@ -340,6 +431,13 @@ Tab2:Toggle({
             WindUI:Notify({
                 Title = "No Recoil",
                 Content = "Enabled",
+                Duration = 3,
+                Icon = "target",
+            })
+        else
+            WindUI:Notify({
+                Title = "No Recoil",
+                Content = "Disabled",
                 Duration = 3,
                 Icon = "target",
             })
@@ -409,21 +507,14 @@ Tab3:Toggle({
                 Duration = 3,
                 Icon = "git-commit",
             })
+        else
+            WindUI:Notify({
+                Title = "Noclip",
+                Content = "Disabled",
+                Duration = 3,
+                Icon = "git-commit",
+            })
         end
-        
-        pcall(function()
-            local character = game.Players.LocalPlayer.Character
-            if character then
-                for _, part in pairs(character:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.CanCollide = not state
-                    end
-                    if part:IsA("BasePart") then
-                        part.CanCollide = not state
-                    end
-                end
-            end
-        end)
     end
 })
 
@@ -456,6 +547,12 @@ Tab3:Toggle({
             if _G.InfiniteJumpConnection then
                 _G.InfiniteJumpConnection:Disconnect()
             end
+            WindUI:Notify({
+                Title = "Infinite Jump",
+                Content = "Disabled",
+                Duration = 3,
+                Icon = "arrow-up",
+            })
         end
     end
 })
@@ -579,6 +676,12 @@ Tab4:Toggle({
             if _G.AntiAFKConnection then
                 _G.AntiAFKConnection:Disconnect()
             end
+            WindUI:Notify({
+                Title = "AntiAFK",
+                Content = "Disabled",
+                Duration = 3,
+                Icon = "check-circle",
+            })
         end
     end
 })
@@ -623,6 +726,12 @@ Tab4:Toggle({
             if _G.ReconnectLoop then
                 _G.ReconnectLoop:Disconnect()
             end
+            WindUI:Notify({
+                Title = "Auto Reconnect",
+                Content = "Disabled",
+                Duration = 3,
+                Icon = "check-circle",
+            })
         end
     end
 })
