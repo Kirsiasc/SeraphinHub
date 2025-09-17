@@ -9,62 +9,6 @@ else
     print("✓ UI loaded successfully!")
 end
 
-Button.Name = 'niellx'
-Button.Parent = niel
-Button.BackgroundTransparency = 0
-Button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-Button.Size = UDim2.new(0, 40, 0, 40)
-Button.Position = UDim2.new(0, 10, 0, 50)
-Button.Image = 'rbxassetid://120248611602330'
-Button.Draggable = true
-
-Corner.CornerRadius = UDim.new(0, 8)
-Corner.Parent = Button
-Scale.Scale = 1
-Scale.Parent = Button
-
-local TweenService = game:GetService("TweenService")
-Button.MouseEnter:Connect(function()
-    TweenService:Create(Scale, TweenInfo.new(0.1), { Scale = 1.2 }):Play()
-end)
-Button.MouseLeave:Connect(function()
-    TweenService:Create(Scale, TweenInfo.new(0.1), { Scale = 1 }):Play()
-end)
-
-Stroke.Thickness = 4
-Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-Stroke.LineJoinMode = Enum.LineJoinMode.Round
-Stroke.Color = Color3.fromRGB(145, 110, 255)
-Stroke.Parent = Button
-
-Gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(90, 0, 130)),
-    ColorSequenceKeypoint.new(0.15, Color3.fromRGB(70, 0, 110)),
-    ColorSequenceKeypoint.new(0.30, Color3.fromRGB(50, 0, 80)),
-    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(30, 0, 50)),
-    ColorSequenceKeypoint.new(0.70, Color3.fromRGB(10, 0, 20)),
-    ColorSequenceKeypoint.new(0.85, Color3.fromRGB(0, 0, 0)),
-    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(90, 0, 130))
-})
-
-Gradient.Rotation = 0
-Gradient.Parent = Stroke
-
-local isWindowOpen = true
-Button.MouseButton1Click:Connect(function()
-    if isWindowOpen then
-        Window:Close()
-    else
-        Window:Open()
-    end
-    isWindowOpen = not isWindowOpen
-end)
-
-Window:OnDestroy(function()
-    if niel then
-        niel:Destroy()
-    end
-end)
 
 Window:Tag({
     Title = "v0.0.0.1",
