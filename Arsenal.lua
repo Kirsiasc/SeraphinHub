@@ -9,6 +9,17 @@ else
     print("✓ UI loaded successfully!")
 end
 
+local Window = WindUI:CreateWindow({
+    Title = "Seraphin",
+    Icon = "rbxassetid://120248611602330",
+    Author = "KirsiaSC | Arsenal",
+    Folder = "SERAPHIN_HUB",
+    Size = UDim2.fromOffset(270, 300),
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 170,
+    HasOutline = true
+})
 
 Window:Tag({
     Title = "v0.0.0.1",
