@@ -22,7 +22,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:Tag({
-    Title = "v0.0.0.1",
+    Title = "v0.0.1",
     Color = Color3.fromHex("#9b4dff")
 })
 
@@ -33,17 +33,7 @@ WindUI:Notify({
     Icon = "bell",
 })
 
-local Tab1 = Window:Tab({
-    Title = "Home",
-    Icon = "house",
-})
-
-local Section = Tab1:Section({ 
-    Title = "Community Support",
-    TextXAlignment = "Left",
-    TextSize = 17,
-})
-
+local Tab1 = Window:Tab({ Title = "Home", Icon = "house" })
 Tab1:Button({
     Title = "Discord",
     Desc = "Click To Copy Link Discord",
@@ -54,153 +44,85 @@ Tab1:Button({
     end
 })
 
-local Section = Tab1:Section({ 
-    Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible.",
-    TextXAlignment = "Left",
-    TextSize = 17,
-})
+local Tab2 = Window:Tab({ Title = "Combat", Icon = "sword" })
 
-local Tab2 = Window:Tab({
-    Title = "Players",
-    Icon = "user",
-})
-
-local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-
-local Input = Tab2:Input({
-    Title = "WalkSpeed",
-    Desc = "Minimum 16 speed",
-    Value = "16",
-    InputIcon = "bird",
-    Type = "Input",
-    Placeholder = "Enter number...",
-    Callback = function(input) 
-        local speed = tonumber(input)
-        if speed and speed >= 16 then
-            Humanoid.WalkSpeed = speed
-            print("WalkSpeed set to: " .. speed)
-        else
-            Humanoid.WalkSpeed = 16
-            print("⚠️ Invalid input, set to default (16)")
-        end
-    end
-})
-
-local Input = Tab2:Input({
-    Title = "Jump Power",
-    Desc = "Minimum 50 jump",
-    Value = "50",
-    InputIcon = "bird",
-    Type = "Input",
-    Placeholder = "Enter number...",
-    Callback = function(input) 
-        local value = tonumber(input)
-        if value then
-            _G.CustomJumpPower = value
-            local humanoid = game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            if humanoid then
-                humanoid.UseJumpPower = true
-                humanoid.JumpPower = value
-            end
-            print("🔼 Jump Power diatur ke: " .. value)
-        else
-            warn("⚠️ Harus angka, bukan teks!")
-        end
-    end
-})
-
-local Button = Tab2:Button({
-    Title = "Reset Jump Power",
-    Desc = "Return Jump Power to normal (50)",
-    Callback = function()
-        _G.CustomJumpPower = 50
-        local humanoid = game:GetService("Players").LocalPlayer.Character and game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid.UseJumpPower = true
-            humanoid.JumpPower = 50
-        end
-        print("🔄 Jump Power di-reset ke 50")
-    end
-})
-
-local Player = game:GetService("Players").LocalPlayer
-Player.CharacterAdded:Connect(function(char)
-    local Humanoid = char:WaitForChild("Humanoid")
-    Humanoid.UseJumpPower = true
-    Humanoid.JumpPower = _G.CustomJumpPower or 50
-end)
-
-Tab2:Button({
-    Title = "Reset Speed",
-    Desc = "Return speed to normal (16)",
-    Callback = function()
-        Humanoid.WalkSpeed = 16
-        print("WalkSpeed reset ke default (16)")
-    end
-})
-
-local UserInputService = game:GetService("UserInputService")
-local Player = game.Players.LocalPlayer
-
-local Toggle = Tab2:Toggle({
-    Title = "Infinite Jump",
-    Desc = "activate to use infinite jump",
-    Icon = "bird",
-    Type = "Checkbox",
-    Default = false,
-    Callback = function(state) 
-        _G.InfiniteJump = state
-        if state then
-            print("✅ Infinite Jump Aktif")
-        else
-            print("❌ Infinite Jump Nonaktif")
-        end
-    end
-})
-
-UserInputService.JumpRequest:Connect(function()
-    if _G.InfiniteJump then
-        local character = Player.Character or Player.CharacterAdded:Wait()
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-        end
-    end
-end)
-
-local Tab3 = Window:Tab({
-    Title = "Main",
-    Icon = "landmark",
-})
-
-local Section = Tab3:Section({ 
-    Title = "Main",
-    TextXAlignment = "Left",
-    TextSize = 17,
-})
-
-local Toggle = Tab3:Toggle({
-    Title = "Auto Sell",
-    Desc = "Automatic fish sales",
-    Icon = "coins",
-    Type = "Checkbox",
+Tab2:Toggle({
+    Title = "Silent Aim",
+    Desc = "Auto lock target",
     Default = false,
     Callback = function(state)
-        _G.AutoSell = state
+        _G.SilentAim = state
+    end
+})
+
+Tab2:Toggle({
+    Title = "No Recoil",
+    Desc = "Remove gun recoil",
+    Default = false,
+    Callback = function(state)
+        _G.NoRecoil = state
+    end
+})
+
+Tab2:Toggle({
+    Title = "No Spread",
+    Desc = "Remove bullet spread",
+    Default = false,
+    Callback = function(state)
+        _G.NoSpread = state
+    end
+})
+
+Tab2:Toggle({
+    Title = "Auto Aim",
+    Desc = "Lock camera to nearest enemy",
+    Default = false,
+    Callback = function(state)
+        _G.AutoAim = state
         task.spawn(function()
-            while _G.AutoSell do
-                task.wait(0.5)
-                local rs = game:GetService("ReplicatedStorage")
-                for _, v in pairs(rs:GetDescendants()) do
-                    if v:IsA("RemoteEvent") and v.Name:lower():find("sell") then
-                        v:FireServer()
-                    elseif v:IsA("RemoteFunction") and v.Name:lower():find("sell") then
-                        pcall(function()
-                            v:InvokeServer()
-                        end)
+            while _G.AutoAim do
+                task.wait()
+                local players = game:GetService("Players")
+                local lp = players.LocalPlayer
+                local cam = workspace.CurrentCamera
+                local nearest, dist = nil, math.huge
+                for _,plr in pairs(players:GetPlayers()) do
+                    if plr ~= lp and plr.Team ~= lp.Team and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                        local pos, vis = cam:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
+                        if vis then
+                            local mag = (Vector2.new(pos.X,pos.Y)-Vector2.new(cam.ViewportSize.X/2,cam.ViewportSize.Y/2)).Magnitude
+                            if mag < dist then
+                                dist = mag
+                                nearest = plr
+                            end
+                        end
+                    end
+                end
+                if nearest then
+                    cam.CFrame = CFrame.new(cam.CFrame.Position, nearest.Character.HumanoidRootPart.Position)
+                end
+            end
+        end)
+    end
+})
+
+Tab2:Toggle({
+    Title = "Auto TP Enemy",
+    Desc = "Teleport enemy in front of you",
+    Default = false,
+    Callback = function(state)
+        _G.AutoTP = state
+        task.spawn(function()
+            while _G.AutoTP do
+                task.wait(1)
+                local players = game:GetService("Players")
+                local lp = players.LocalPlayer
+                local char = lp.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    for _,plr in pairs(players:GetPlayers()) do
+                        if plr ~= lp and plr.Team ~= lp.Team and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                            plr.Character.HumanoidRootPart.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0,0,-5)
+                        end
                     end
                 end
             end
@@ -208,132 +130,121 @@ local Toggle = Tab3:Toggle({
     end
 })
 
-local Section = Tab3:Section({ 
-    Title = "Opsional",
-    TextXAlignment = "Left",
-    TextSize = 17,
-})
+local Tab3 = Window:Tab({ Title = "Visuals", Icon = "eye" })
 
-local ToggleCatch = Tab3:Toggle({
-    Title = "Instant Catch",
-    Desc = "Get fish straight away",
-    Icon = "fish",
-    Type = "Checkbox",
+Tab3:Toggle({
+    Title = "ESP",
+    Desc = "Show enemy through walls",
     Default = false,
     Callback = function(state)
-        _G.InstantCatch = state
-
+        _G.ESPEnabled = state
         if state then
-            print("✅ Instant Catch ON")
-            if _loopRunning then return end
-            _loopRunning = true
-
-            task.spawn(function()
-                while _G.InstantCatch do
-                    local remote = findRemote(REMOTE_NAME)
-                    if remote then
-                        local success, err = tryFire(remote)
-                        if success then
-                            print("🎣 Instant catch success!")
-                        else
-                            warn("❌ error:", err)
-                        end
-                    else
-                        warn("⚠️ Remote '" .. REMOTE_NAME .. "' tidak ditemukan. Jalankan scanner dulu.")
-                    end
-                    task.wait(TRY_INTERVAL)
+            for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+                if player ~= game:GetService("Players").LocalPlayer then
+                    local highlight = Instance.new("Highlight")
+                    highlight.Name = "SeraphinESP"
+                    highlight.FillColor = Color3.fromRGB(0,255,0)
+                    highlight.OutlineColor = Color3.fromRGB(255,255,255)
+                    highlight.Parent = player.Character or player.CharacterAdded:Wait()
                 end
-                _loopRunning = false
-                print("❌ Instant Catch OFF")
-            end)
+            end
         else
-            print("❌ Instant Catch is turned off")
+            for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("SeraphinESP") then
+                    player.Character.SeraphinESP:Destroy()
+                end
+            end
         end
     end
 })
 
-local ScanButton = Tab3:Button({
-    Title = "Scan Fish Remotes",
-    Desc = "Search for remote with the word 'fish'",
-    Callback = function()
-        scanRemotes()
-    end
-})
+game:GetService("Players").PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function(char)
+        if _G.ESPEnabled then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "SeraphinESP"
+            highlight.FillColor = Color3.fromRGB(0,255,0)
+            highlight.OutlineColor = Color3.fromRGB(255,255,255)
+            highlight.Parent = char
+        end
+    end)
+end)
 
-local Tab4 = Window:Tab({
-    Title = "Teleport",
-    Icon = "map-pin",
-})
+local Tab4 = Window:Tab({ Title = "Movement", Icon = "move" })
+local Player = game:GetService("Players").LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
 
-local Section = Tab4:Section({ 
-    Title = "Island",
-    TextXAlignment = "Left",
-    TextSize = 17,
-})
-
-local Dropdown = Tab4:Dropdown({
-    Title = "Select Location",
-    Values = {"Esoteric Island", "Konoha", "Coral Refs", "Enchant Room", "Tropical Grove", "Weather Machine"},
-    Callback = function(Value)
-        local Locations = {
-            ["Esoteric Island"] = Vector3.new(1990, 5, 1398),
-            ["Konoha"] = Vector3.new(-603, 3, 719),
-            ["Coral Refs"] = Vector3.new(-2855, 47, 1996),
-            ["Enchant Room"] = Vector3.new(3221, -1303, 1406),
-            ["Treasure Room"] = Vector3.new(-3600, -267, -1575),
-            ["Tropical Grove"] = Vector3.new(-2091, 6, 3703),
-            ["Weather Machine"] = Vector3.new(-1508, 6, 1895),
-        }
-
-        local Player = game.Players.LocalPlayer
-        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            Player.Character.HumanoidRootPart.CFrame = CFrame.new(Locations[Value])
+Tab4:Input({
+    Title = "WalkSpeed",
+    Value = "16",
+    Callback = function(input)
+        local speed = tonumber(input)
+        if speed and speed >= 16 then
+            Humanoid.WalkSpeed = speed
+        else
+            Humanoid.WalkSpeed = 16
         end
     end
 })
 
-local Section = Tab4:Section({ 
-    Title = "fishing spot",
-    TextXAlignment = "Left",
-    TextSize = 17,
-})
-
-local Dropdown = Tab4:Dropdown({
-    Title = "Select Location",
-    Values = {"Spawn", "Konoha", "Coral Refs", "Volcano", "Sysyphus Statue"},
-    Callback = function(Value)
-        local Locations = {
-            ["Spawn"] = Vector3.new(33, 9, 2810),
-            ["Konoha"] = Vector3.new(-603, 3, 719),
-            ["Coral Refs"] = Vector3.new(-2855, 47, 1996),
-            ["Volcano"] = Vector3.new(-632, 55, 197),
-            ["Sysyphus Statue"] = Vector3.new(-3693,-136,-1045),
-        }
-
-        local Player = game.Players.LocalPlayer
-        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            Player.Character.HumanoidRootPart.CFrame = CFrame.new(Locations[Value])
+Tab4:Input({
+    Title = "JumpPower",
+    Value = "50",
+    Callback = function(input)
+        local value = tonumber(input)
+        if value then
+            Humanoid.UseJumpPower = true
+            Humanoid.JumpPower = value
+            _G.CustomJumpPower = value
         end
     end
 })
 
-
-local Tab5 = Window:Tab({
-    Title = "Settings",
-    Icon = "settings",
+Tab4:Toggle({
+    Title = "Infinite Jump",
+    Default = false,
+    Callback = function(state)
+        _G.InfiniteJump = state
+    end
 })
 
-local Toggle = Tab5:Toggle({
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if _G.InfiniteJump then
+        local char = Player.Character or Player.CharacterAdded:Wait()
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+Tab4:Toggle({
+    Title = "Fly",
+    Default = false,
+    Callback = function(state)
+        _G.Fly = state
+        local hum = Humanoid
+        if state then
+            task.spawn(function()
+                while _G.Fly do
+                    task.wait()
+                    hum:ChangeState(Enum.HumanoidStateType.Physics)
+                    hum.Parent:FindFirstChild("HumanoidRootPart").Velocity = hum.Parent:FindFirstChild("HumanoidRootPart").CFrame.LookVector * 50
+                end
+            end)
+        end
+    end
+})
+
+local Tab5 = Window:Tab({ Title = "Settings", Icon = "settings" })
+
+Tab5:Toggle({
     Title = "AntiAFK",
-    Desc = "Prevent Roblox from kicking you when idle",
-    Icon = "shield",
-    Type = "Checkbox",
     Default = false,
     Callback = function(state)
         _G.AntiAFK = state
         local VirtualUser = game:GetService("VirtualUser")
-        local player = game:GetService("Players").LocalPlayer
-
         task.spawn(function()
             while _G.AntiAFK do
                 task.wait(60)
@@ -343,28 +254,11 @@ local Toggle = Tab5:Toggle({
                 end)
             end
         end)
-
-        if state then
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "AntiAFK loaded!",
-                Text = "Coded By Kirsiasc",
-                Button1 = "Okey",
-                Duration = 5
-            })
-        else
-            game:GetService("StarterGui"):SetCore("SendNotification", {
-                Title = "AntiAFK Disabled",
-                Text = "Stopped AntiAFK",
-                Duration = 3
-            })
-        end
     end
 })
 
-local Toggle = Tab5:Toggle({
+Tab5:Toggle({
     Title = "Auto Reconnect",
-    Desc = "Automatic reconnect if disconnected",
-    Icon = "plug-zap",
     Default = false,
     Callback = function(state)
         _G.AutoReconnect = state
@@ -372,7 +266,6 @@ local Toggle = Tab5:Toggle({
             task.spawn(function()
                 while _G.AutoReconnect do
                     task.wait(2)
-
                     local reconnectUI = game:GetService("CoreGui"):FindFirstChild("RobloxPromptGui")
                     if reconnectUI then
                         local prompt = reconnectUI:FindFirstChild("promptOverlay")
@@ -389,13 +282,11 @@ local Toggle = Tab5:Toggle({
     end
 })
 
-local Colorpicker = Tab5:Colorpicker({
-    Title = "Colorpicker",
-    Desc = "Background Colorpicker (need update)",
-    Default = Color3.fromRGB(0, 255, 0),
+Tab5:Colorpicker({
+    Title = "UI Color",
+    Default = Color3.fromRGB(0,255,0),
     Transparency = 0,
-    Locked = false,
-    Callback = function(color) 
-        print("Background color: " .. tostring(color))
+    Callback = function(color)
+        print("Background color: "..tostring(color))
     end
 })
