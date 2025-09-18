@@ -142,7 +142,8 @@ Combat:Toggle({
                     if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                         local mag = (LocalPlayer.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
                         if mag <= knifeRange then
-                            mouse1click()
+                            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 1)
                         end
                     end
                 end
@@ -153,109 +154,22 @@ Combat:Toggle({
 
 local Visuals = Window:Tab({ Title = "Visuals", Icon = "eye" })
 
-local circle = Drawing.new("Circle")
-circle.Thickness = 2
-circle.NumSides = 100
-circle.Radius = 100
-circle.Filled = false
-circle.Color = Color3.fromRGB(255,255,255)
-circle.Transparency = 1
-circle.Visible = false
-
-RunService.RenderStepped:Connect(function()
-    circle.Position = UserInputService:GetMouseLocation()
-end)
-
-Visuals:Toggle({
-    Title = "Aim Circle",
-    Default = false,
-    Callback = function(state)
-        circle.Visible = state
-    end
-})
-
-local function addESP(player, mode)
-    if player == LocalPlayer or player.Team == LocalPlayer.Team then return end
-    local char = player.Character or player.CharacterAdded:Wait()
-
-    if mode == "Highlight" and not char:FindFirstChild("SeraphinESP_HL") then
-        local hl = Instance.new("Highlight")
-        hl.Name = "SeraphinESP_HL"
-        hl.FillColor = Color3.fromRGB(180,0,255)
-        hl.OutlineColor = Color3.fromRGB(255,255,255)
-        hl.Parent = char
-    end
-
-    if mode == "Name" and not char:FindFirstChild("SeraphinESP_Name") then
-        local billboard = Instance.new("BillboardGui", char)
-        billboard.Name = "SeraphinESP_Name"
-        billboard.Size = UDim2.new(0,200,0,50)
-        billboard.AlwaysOnTop = true
-        billboard.StudsOffset = Vector3.new(0,3,0)
-
-        local nameLabel = Instance.new("TextLabel", billboard)
-        nameLabel.Size = UDim2.new(1,0,1,0)
-        nameLabel.BackgroundTransparency = 1
-        nameLabel.TextColor3 = Color3.fromRGB(180,0,255)
-        nameLabel.TextStrokeTransparency = 0
-        nameLabel.Font = Enum.Font.SourceSansBold
-        nameLabel.TextSize = 14
-        nameLabel.Text = player.Name
-    end
-
-    if mode == "Studs" and not char:FindFirstChild("SeraphinESP_Studs") then
-        local billboard = Instance.new("BillboardGui", char)
-        billboard.Name = "SeraphinESP_Studs"
-        billboard.Size = UDim2.new(0,200,0,50)
-        billboard.AlwaysOnTop = true
-        billboard.StudsOffset = Vector3.new(0,5,0)
-
-        local infoLabel = Instance.new("TextLabel", billboard)
-        infoLabel.Size = UDim2.new(1,0,1,0)
-        infoLabel.BackgroundTransparency = 1
-        infoLabel.TextColor3 = Color3.fromRGB(255,255,255)
-        infoLabel.TextStrokeTransparency = 0
-        infoLabel.Font = Enum.Font.SourceSansBold
-        infoLabel.TextSize = 12
-
-        RunService.RenderStepped:Connect(function()
-            if player.Character and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = math.floor((LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude)
-                infoLabel.Text = dist.." studs"
-            end
-        end)
-    end
-
-    if mode == "Line" and not char:FindFirstChild("SeraphinESP_Line") then
-        local line = Drawing.new("Line")
-        line.Color = Color3.fromRGB(180,0,255)
-        line.Thickness = 1
-        line.Transparency = 1
-
-        RunService.RenderStepped:Connect(function()
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                local pos,vis = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
-                if vis then
-                    line.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y)
-                    line.To = Vector2.new(pos.X,pos.Y)
-                    line.Visible = true
-                else
-                    line.Visible = false
-                end
-            else
-                line.Visible = false
-            end
-        end)
-    end
-end
-
 Visuals:Toggle({
     Title = "ESP Highlight",
     Default = false,
     Callback = function(state)
         if state then
             for _,plr in pairs(Players:GetPlayers()) do
-                addESP(plr,"Highlight")
+                if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
+                    local char = plr.Character or plr.CharacterAdded:Wait()
+                    if not char:FindFirstChild("SeraphinESP_HL") then
+                        local hl = Instance.new("Highlight")
+                        hl.Name = "SeraphinESP_HL"
+                        hl.FillColor = Color3.fromRGB(180,0,255)
+                        hl.OutlineColor = Color3.fromRGB(255,255,255)
+                        hl.Parent = char
+                    end
+                end
             end
         else
             for _,plr in pairs(Players:GetPlayers()) do
@@ -273,7 +187,25 @@ Visuals:Toggle({
     Callback = function(state)
         if state then
             for _,plr in pairs(Players:GetPlayers()) do
-                addESP(plr,"Name")
+                if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
+                    local char = plr.Character or plr.CharacterAdded:Wait()
+                    if not char:FindFirstChild("SeraphinESP_Name") then
+                        local billboard = Instance.new("BillboardGui", char)
+                        billboard.Name = "SeraphinESP_Name"
+                        billboard.Size = UDim2.new(0,200,0,50)
+                        billboard.AlwaysOnTop = true
+                        billboard.StudsOffset = Vector3.new(0,3,0)
+
+                        local nameLabel = Instance.new("TextLabel", billboard)
+                        nameLabel.Size = UDim2.new(1,0,1,0)
+                        nameLabel.BackgroundTransparency = 1
+                        nameLabel.TextColor3 = Color3.fromRGB(180,0,255)
+                        nameLabel.TextStrokeTransparency = 0
+                        nameLabel.Font = Enum.Font.SourceSansBold
+                        nameLabel.TextSize = 14
+                        nameLabel.Text = plr.Name
+                    end
+                end
             end
         else
             for _,plr in pairs(Players:GetPlayers()) do
@@ -281,38 +213,6 @@ Visuals:Toggle({
                     plr.Character.SeraphinESP_Name:Destroy()
                 end
             end
-        end
-    end
-})
-
-Visuals:Toggle({
-    Title = "ESP Studs",
-    Default = false,
-    Callback = function(state)
-        if state then
-            for _,plr in pairs(Players:GetPlayers()) do
-                addESP(plr,"Studs")
-            end
-        else
-            for _,plr in pairs(Players:GetPlayers()) do
-                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Studs") then
-                    plr.Character.SeraphinESP_Studs:Destroy()
-                end
-            end
-        end
-    end
-})
-
-Visuals:Toggle({
-    Title = "ESP Line",
-    Default = false,
-    Callback = function(state)
-        if state then
-            for _,plr in pairs(Players:GetPlayers()) do
-                addESP(plr,"Line")
-            end
-        else
-            print("ESP Line disabled")
         end
     end
 })
@@ -406,9 +306,12 @@ Settings:Toggle({
                 if reconnectUI then
                     local prompt = reconnectUI:FindFirstChild("promptOverlay")
                     if prompt then
-                        local button = prompt:FindFirstChild("ButtonPrimary")
-                        if button and button.Visible then
-                            firesignal(button.MouseButton1Click)
+                        local button = prompt:FindFirstChild("ErrorPrompt")
+                        if button then
+                            local confirmButton = button:FindFirstChild("ConfirmButton")
+                            if confirmButton then
+                                firesignal(confirmButton.MouseButton1Click)
+                            end
                         end
                     end
                 end
