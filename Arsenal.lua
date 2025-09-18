@@ -5,7 +5,8 @@ end)
 if not success or not WindUI then
     warn("⚠️ UI failed to load!")
     return
-    print("✓ UI loaded successfully")
+else
+    print("✓ UI loaded successfully!")
 end
 
 local Window = WindUI:CreateWindow({
@@ -34,11 +35,13 @@ WindUI:Notify({
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
-local Tab1 = Window:Tab({ Title = "Home", Icon = "house" })
-Tab1:Button({
+local Home = Window:Tab({ Title = "Home", Icon = "house" })
+
+Home:Button({
     Title = "Discord",
     Desc = "Click to copy Discord link",
     Callback = function()
@@ -48,9 +51,9 @@ Tab1:Button({
     end
 })
 
-local Tab2 = Window:Tab({ Title = "Combat", Icon = "sword" })
+local Combat = Window:Tab({ Title = "Combat", Icon = "sword" })
 
-Tab2:Toggle({
+Combat:Toggle({
     Title = "Silent Aim",
     Default = false,
     Callback = function(state)
@@ -58,7 +61,7 @@ Tab2:Toggle({
     end
 })
 
-Tab2:Toggle({
+Combat:Toggle({
     Title = "Aimbot",
     Default = false,
     Callback = function(state)
@@ -66,36 +69,15 @@ Tab2:Toggle({
     end
 })
 
-RunService.RenderStepped:Connect(function()
-    if _G.Aimbot then
-        local nearest, dist = nil, math.huge
-        for _,plr in pairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                local pos,vis = Camera:WorldToViewportPoint(plr.Character.HumanoidRootPart.Position)
-                if vis then
-                    local mag = (Vector2.new(pos.X,pos.Y)-Vector2.new(Camera.ViewportSize.X/2,Camera.ViewportSize.Y/2)).Magnitude
-                    if mag < dist then
-                        dist = mag
-                        nearest = plr
-                    end
-                end
-            end
-        end
-        if nearest then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, nearest.Character.HumanoidRootPart.Position)
-        end
-    end
-end)
-
-Tab2:Toggle({
-    Title = "Auto Aim",
+Combat:Toggle({
+    Title = "Auto Aim (Head)",
     Default = false,
     Callback = function(state)
         _G.AutoAim = state
     end
 })
 
-Tab2:Toggle({
+Combat:Toggle({
     Title = "No Recoil",
     Default = false,
     Callback = function(state)
@@ -103,7 +85,7 @@ Tab2:Toggle({
     end
 })
 
-Tab2:Toggle({
+Combat:Toggle({
     Title = "No Spread",
     Default = false,
     Callback = function(state)
@@ -111,7 +93,7 @@ Tab2:Toggle({
     end
 })
 
-Tab2:Toggle({
+Combat:Toggle({
     Title = "Teleport to Enemy",
     Default = false,
     Callback = function(state)
@@ -138,7 +120,8 @@ Tab2:Toggle({
 })
 
 local knifeRange = 10
-Tab2:Input({
+
+Combat:Input({
     Title = "Knife Range",
     Value = "10",
     Callback = function(val)
@@ -147,7 +130,7 @@ Tab2:Input({
     end
 })
 
-Tab2:Toggle({
+Combat:Toggle({
     Title = "Auto Knife",
     Default = false,
     Callback = function(state)
@@ -168,39 +151,67 @@ Tab2:Toggle({
     end
 })
 
-local Tab3 = Window:Tab({ Title = "Visuals", Icon = "eye" })
+local Visuals = Window:Tab({ Title = "Visuals", Icon = "eye" })
 
-local function addESP(player)
+local circle = Drawing.new("Circle")
+circle.Thickness = 2
+circle.NumSides = 100
+circle.Radius = 100
+circle.Filled = false
+circle.Color = Color3.fromRGB(255,255,255)
+circle.Transparency = 1
+circle.Visible = false
+
+RunService.RenderStepped:Connect(function()
+    circle.Position = UserInputService:GetMouseLocation()
+end)
+
+Visuals:Toggle({
+    Title = "Aim Circle",
+    Default = false,
+    Callback = function(state)
+        circle.Visible = state
+    end
+})
+
+local function addESP(player, mode)
     if player == LocalPlayer or player.Team == LocalPlayer.Team then return end
     local char = player.Character or player.CharacterAdded:Wait()
 
-    if not char:FindFirstChild("SeraphinESP") then
-        local highlight = Instance.new("Highlight")
-        highlight.Name = "SeraphinESP"
-        highlight.FillColor = Color3.fromRGB(180,0,255)
-        highlight.OutlineColor = Color3.fromRGB(255,255,255)
-        highlight.Parent = char
+    if mode == "Highlight" and not char:FindFirstChild("SeraphinESP_HL") then
+        local hl = Instance.new("Highlight")
+        hl.Name = "SeraphinESP_HL"
+        hl.FillColor = Color3.fromRGB(180,0,255)
+        hl.OutlineColor = Color3.fromRGB(255,255,255)
+        hl.Parent = char
     end
 
-    if not char:FindFirstChild("BillboardGui") then
+    if mode == "Name" and not char:FindFirstChild("SeraphinESP_Name") then
         local billboard = Instance.new("BillboardGui", char)
-        billboard.Name = "ESPBillboard"
+        billboard.Name = "SeraphinESP_Name"
         billboard.Size = UDim2.new(0,200,0,50)
         billboard.AlwaysOnTop = true
         billboard.StudsOffset = Vector3.new(0,3,0)
 
         local nameLabel = Instance.new("TextLabel", billboard)
-        nameLabel.Size = UDim2.new(1,0,0.5,0)
+        nameLabel.Size = UDim2.new(1,0,1,0)
         nameLabel.BackgroundTransparency = 1
         nameLabel.TextColor3 = Color3.fromRGB(180,0,255)
         nameLabel.TextStrokeTransparency = 0
         nameLabel.Font = Enum.Font.SourceSansBold
         nameLabel.TextSize = 14
         nameLabel.Text = player.Name
+    end
+
+    if mode == "Studs" and not char:FindFirstChild("SeraphinESP_Studs") then
+        local billboard = Instance.new("BillboardGui", char)
+        billboard.Name = "SeraphinESP_Studs"
+        billboard.Size = UDim2.new(0,200,0,50)
+        billboard.AlwaysOnTop = true
+        billboard.StudsOffset = Vector3.new(0,5,0)
 
         local infoLabel = Instance.new("TextLabel", billboard)
-        infoLabel.Size = UDim2.new(1,0,0.5,0)
-        infoLabel.Position = UDim2.new(0,0,0.5,0)
+        infoLabel.Size = UDim2.new(1,0,1,0)
         infoLabel.BackgroundTransparency = 1
         infoLabel.TextColor3 = Color3.fromRGB(255,255,255)
         infoLabel.TextStrokeTransparency = 0
@@ -208,50 +219,110 @@ local function addESP(player)
         infoLabel.TextSize = 12
 
         RunService.RenderStepped:Connect(function()
-            if player.Character and player.Character:FindFirstChild("Humanoid") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local hum = player.Character.Humanoid
+            if player.Character and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                 local dist = math.floor((LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude)
-                infoLabel.Text = "HP: "..math.floor(hum.Health).. " | "..dist.." studs"
+                infoLabel.Text = dist.." studs"
+            end
+        end)
+    end
+
+    if mode == "Line" and not char:FindFirstChild("SeraphinESP_Line") then
+        local line = Drawing.new("Line")
+        line.Color = Color3.fromRGB(180,0,255)
+        line.Thickness = 1
+        line.Transparency = 1
+
+        RunService.RenderStepped:Connect(function()
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local pos,vis = Camera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+                if vis then
+                    line.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y)
+                    line.To = Vector2.new(pos.X,pos.Y)
+                    line.Visible = true
+                else
+                    line.Visible = false
+                end
+            else
+                line.Visible = false
             end
         end)
     end
 end
 
-Tab3:Toggle({
-    Title = "ESP",
+Visuals:Toggle({
+    Title = "ESP Highlight",
     Default = false,
     Callback = function(state)
-        _G.ESPEnabled = state
         if state then
             for _,plr in pairs(Players:GetPlayers()) do
-                addESP(plr)
+                addESP(plr,"Highlight")
             end
         else
             for _,plr in pairs(Players:GetPlayers()) do
-                if plr.Character and plr.Character:FindFirstChild("SeraphinESP") then
-                    plr.Character.SeraphinESP:Destroy()
-                end
-                if plr.Character and plr.Character:FindFirstChild("ESPBillboard") then
-                    plr.Character.ESPBillboard:Destroy()
+                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_HL") then
+                    plr.Character.SeraphinESP_HL:Destroy()
                 end
             end
         end
     end
 })
 
-Players.PlayerAdded:Connect(function(plr)
-    plr.CharacterAdded:Connect(function()
-        if _G.ESPEnabled then
-            addESP(plr)
+Visuals:Toggle({
+    Title = "ESP Name",
+    Default = false,
+    Callback = function(state)
+        if state then
+            for _,plr in pairs(Players:GetPlayers()) do
+                addESP(plr,"Name")
+            end
+        else
+            for _,plr in pairs(Players:GetPlayers()) do
+                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Name") then
+                    plr.Character.SeraphinESP_Name:Destroy()
+                end
+            end
         end
-    end)
-end)
+    end
+})
 
-local Tab4 = Window:Tab({ Title = "Movement", Icon = "move" })
+Visuals:Toggle({
+    Title = "ESP Studs",
+    Default = false,
+    Callback = function(state)
+        if state then
+            for _,plr in pairs(Players:GetPlayers()) do
+                addESP(plr,"Studs")
+            end
+        else
+            for _,plr in pairs(Players:GetPlayers()) do
+                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Studs") then
+                    plr.Character.SeraphinESP_Studs:Destroy()
+                end
+            end
+        end
+    end
+})
+
+Visuals:Toggle({
+    Title = "ESP Line",
+    Default = false,
+    Callback = function(state)
+        if state then
+            for _,plr in pairs(Players:GetPlayers()) do
+                addESP(plr,"Line")
+            end
+        else
+            print("ESP Line disabled")
+        end
+    end
+})
+
+local Movement = Window:Tab({ Title = "Movement", Icon = "move" })
+
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 
-Tab4:Input({
+Movement:Input({
     Title = "WalkSpeed",
     Value = "16",
     Callback = function(val)
@@ -260,7 +331,7 @@ Tab4:Input({
     end
 })
 
-Tab4:Input({
+Movement:Input({
     Title = "JumpPower",
     Value = "50",
     Callback = function(val)
@@ -272,7 +343,7 @@ Tab4:Input({
     end
 })
 
-Tab4:Toggle({
+Movement:Toggle({
     Title = "Infinite Jump",
     Default = false,
     Callback = function(state)
@@ -280,7 +351,7 @@ Tab4:Toggle({
     end
 })
 
-game:GetService("UserInputService").JumpRequest:Connect(function()
+UserInputService.JumpRequest:Connect(function()
     if _G.InfiniteJump then
         local char = LocalPlayer.Character
         if char and char:FindFirstChildOfClass("Humanoid") then
@@ -289,7 +360,7 @@ game:GetService("UserInputService").JumpRequest:Connect(function()
     end
 end)
 
-Tab4:Toggle({
+Movement:Toggle({
     Title = "Fly",
     Default = false,
     Callback = function(state)
@@ -305,9 +376,9 @@ Tab4:Toggle({
     end
 })
 
-local Tab5 = Window:Tab({ Title = "Settings", Icon = "settings" })
+local Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
 
-Tab5:Toggle({
+Settings:Toggle({
     Title = "AntiAFK",
     Default = false,
     Callback = function(state)
@@ -323,7 +394,7 @@ Tab5:Toggle({
     end
 })
 
-Tab5:Toggle({
+Settings:Toggle({
     Title = "Auto Reconnect",
     Default = false,
     Callback = function(state)
@@ -346,7 +417,7 @@ Tab5:Toggle({
     end
 })
 
-Tab5:Colorpicker({
+Settings:Colorpicker({
     Title = "UI Color",
     Default = Color3.fromRGB(180,0,255),
     Transparency = 0,
