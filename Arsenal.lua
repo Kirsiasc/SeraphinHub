@@ -23,7 +23,7 @@ local Window = WindUI:CreateWindow({
 
 Window:Tag({
     Title = "v0.0.1",
-    Color = Color3.fromRGB(180,0,255)
+    Color = Color3.fromRGB(180, 0, 255)
 })
 
 WindUI:Notify({
@@ -159,8 +159,8 @@ Combat:Toggle({
         task.spawn(function()
             while _G.TeleportEnemy do
                 task.wait(1)
-                local nearest,dist = nil,math.huge
-                for _,plr in pairs(Players:GetPlayers()) do
+                local nearest, dist = nil, math.huge
+                for _, plr in pairs(Players:GetPlayers()) do
                     if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                         local mag = (LocalPlayer.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
                         if mag < dist then
@@ -170,7 +170,7 @@ Combat:Toggle({
                     end
                 end
                 if nearest and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    LocalPlayer.Character.HumanoidRootPart.CFrame = nearest.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,3)
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = nearest.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
                 end
             end
         end)
@@ -178,7 +178,6 @@ Combat:Toggle({
 })
 
 local knifeRange = 10
-
 Combat:Input({
     Title = "Knife Range",
     Value = "10",
@@ -196,7 +195,7 @@ Combat:Toggle({
         task.spawn(function()
             while _G.AutoKnife do
                 task.wait(0.2)
-                for _,plr in pairs(Players:GetPlayers()) do
+                for _, plr in pairs(Players:GetPlayers()) do
                     if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                         local mag = (LocalPlayer.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
                         if mag <= knifeRange then
@@ -218,20 +217,20 @@ Visuals:Toggle({
     Callback = function(state)
         _G.ESPHighlight = state
         if state then
-            for _,plr in pairs(Players:GetPlayers()) do
+            for _, plr in pairs(Players:GetPlayers()) do
                 if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
                     local char = plr.Character or plr.CharacterAdded:Wait()
                     if not char:FindFirstChild("SeraphinESP_HL") then
                         local hl = Instance.new("Highlight")
                         hl.Name = "SeraphinESP_HL"
-                        hl.FillColor = Color3.fromRGB(180,0,255)
-                        hl.OutlineColor = Color3.fromRGB(255,255,255)
+                        hl.FillColor = Color3.fromRGB(180, 0, 255)
+                        hl.OutlineColor = Color3.fromRGB(255, 255, 255)
                         hl.Parent = char
                     end
                 end
             end
         else
-            for _,plr in pairs(Players:GetPlayers()) do
+            for _, plr in pairs(Players:GetPlayers()) do
                 if plr.Character and plr.Character:FindFirstChild("SeraphinESP_HL") then
                     plr.Character.SeraphinESP_HL:Destroy()
                 end
@@ -246,20 +245,20 @@ Visuals:Toggle({
     Callback = function(state)
         _G.ESPName = state
         if state then
-            for _,plr in pairs(Players:GetPlayers()) do
+            for _, plr in pairs(Players:GetPlayers()) do
                 if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
                     local char = plr.Character or plr.CharacterAdded:Wait()
                     if not char:FindFirstChild("SeraphinESP_Name") then
                         local billboard = Instance.new("BillboardGui", char)
                         billboard.Name = "SeraphinESP_Name"
-                        billboard.Size = UDim2.new(0,200,0,50)
+                        billboard.Size = UDim2.new(0, 200, 0, 50)
                         billboard.AlwaysOnTop = true
-                        billboard.StudsOffset = Vector3.new(0,3,0)
+                        billboard.StudsOffset = Vector3.new(0, 3, 0)
 
                         local nameLabel = Instance.new("TextLabel", billboard)
-                        nameLabel.Size = UDim2.new(1,0,1,0)
+                        nameLabel.Size = UDim2.new(1, 0, 1, 0)
                         nameLabel.BackgroundTransparency = 1
-                        nameLabel.TextColor3 = Color3.fromRGB(180,0,255)
+                        nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
                         nameLabel.TextStrokeTransparency = 0
                         nameLabel.Font = Enum.Font.SourceSansBold
                         nameLabel.TextSize = 14
@@ -268,7 +267,7 @@ Visuals:Toggle({
                 end
             end
         else
-            for _,plr in pairs(Players:GetPlayers()) do
+            for _, plr in pairs(Players:GetPlayers()) do
                 if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Name") then
                     plr.Character.SeraphinESP_Name:Destroy()
                 end
@@ -283,20 +282,20 @@ Visuals:Toggle({
     Callback = function(state)
         _G.ESPStuds = state
         if state then
-            for _,plr in pairs(Players:GetPlayers()) do
+            for _, plr in pairs(Players:GetPlayers()) do
                 if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
                     local char = plr.Character or plr.CharacterAdded:Wait()
                     if not char:FindFirstChild("SeraphinESP_Studs") then
                         local billboard = Instance.new("BillboardGui", char)
                         billboard.Name = "SeraphinESP_Studs"
-                        billboard.Size = UDim2.new(0,200,0,50)
+                        billboard.Size = UDim2.new(0, 200, 0, 50)
                         billboard.AlwaysOnTop = true
-                        billboard.StudsOffset = Vector3.new(0,5,0)
+                        billboard.StudsOffset = Vector3.new(0, 5, 0)
 
                         local infoLabel = Instance.new("TextLabel", billboard)
-                        infoLabel.Size = UDim2.new(1,0,1,0)
+                        infoLabel.Size = UDim2.new(1, 0, 1, 0)
                         infoLabel.BackgroundTransparency = 1
-                        infoLabel.TextColor3 = Color3.fromRGB(255,255,255)
+                        infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
                         infoLabel.TextStrokeTransparency = 0
                         infoLabel.Font = Enum.Font.SourceSansBold
                         infoLabel.TextSize = 12
@@ -305,7 +304,7 @@ Visuals:Toggle({
                 end
             end
         else
-            for _,plr in pairs(Players:GetPlayers()) do
+            for _, plr in pairs(Players:GetPlayers()) do
                 if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Studs") then
                     plr.Character.SeraphinESP_Studs:Destroy()
                 end
@@ -330,12 +329,11 @@ Visuals:Toggle({
     end
 })
 
-local Movement = Window:Tab({ Title = "Players", Icon = "user" })
-
+local PlayersTab = Window:Tab({ Title = "Players", Icon = "user" })
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 
-Players:Input({
+PlayersTab:Input({
     Title = "WalkSpeed",
     Value = "16",
     Callback = function(val)
@@ -344,7 +342,7 @@ Players:Input({
     end
 })
 
-Players:Input({
+PlayersTab:Input({
     Title = "JumpPower",
     Value = "50",
     Callback = function(val)
@@ -356,7 +354,7 @@ Players:Input({
     end
 })
 
-Players:Toggle({
+PlayersTab:Toggle({
     Title = "Infinite Jump",
     Default = false,
     Callback = function(state)
@@ -373,7 +371,7 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
-Players:Toggle({
+PlayersTab:Toggle({
     Title = "Fly",
     Default = false,
     Callback = function(state)
@@ -435,7 +433,7 @@ Settings:Toggle({
 
 Settings:Colorpicker({
     Title = "UI Color",
-    Default = Color3.fromRGB(180,0,255),
+    Default = Color3.fromRGB(180, 0, 255),
     Transparency = 0,
     Callback = function(color)
         print("UI Color changed:", color)
@@ -464,10 +462,7 @@ task.spawn(function()
             if closestPlayer and closestPlayer.Character then
                 local targetHead = closestPlayer.Character:FindFirstChild("Head")
                 if targetHead then
-                    local mouse = LocalPlayer:GetMouse()
-                    if mouse then
-                        mouse.TargetFilter = targetHead
-                    end
+                    Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetHead.Position)
                 end
             end
         end
