@@ -198,6 +198,7 @@ Visuals:Toggle({
     Title = "ESP Highlight",
     Default = false,
     Callback = function(state)
+        _G.ESPHighlight = state
         if state then
             for _,plr in pairs(Players:GetPlayers()) do
                 if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
@@ -225,6 +226,7 @@ Visuals:Toggle({
     Title = "ESP Name",
     Default = false,
     Callback = function(state)
+        _G.ESPName = state
         if state then
             for _,plr in pairs(Players:GetPlayers()) do
                 if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
@@ -251,6 +253,43 @@ Visuals:Toggle({
             for _,plr in pairs(Players:GetPlayers()) do
                 if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Name") then
                     plr.Character.SeraphinESP_Name:Destroy()
+                end
+            end
+        end
+    end
+})
+
+Visuals:Toggle({
+    Title = "ESP Studs",
+    Default = false,
+    Callback = function(state)
+        _G.ESPStuds = state
+        if state then
+            for _,plr in pairs(Players:GetPlayers()) do
+                if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
+                    local char = plr.Character or plr.CharacterAdded:Wait()
+                    if not char:FindFirstChild("SeraphinESP_Studs") then
+                        local billboard = Instance.new("BillboardGui", char)
+                        billboard.Name = "SeraphinESP_Studs"
+                        billboard.Size = UDim2.new(0,200,0,50)
+                        billboard.AlwaysOnTop = true
+                        billboard.StudsOffset = Vector3.new(0,5,0)
+
+                        local infoLabel = Instance.new("TextLabel", billboard)
+                        infoLabel.Size = UDim2.new(1,0,1,0)
+                        infoLabel.BackgroundTransparency = 1
+                        infoLabel.TextColor3 = Color3.fromRGB(255,255,255)
+                        infoLabel.TextStrokeTransparency = 0
+                        infoLabel.Font = Enum.Font.SourceSansBold
+                        infoLabel.TextSize = 12
+                        infoLabel.Text = "0 studs"
+                    end
+                end
+            end
+        else
+            for _,plr in pairs(Players:GetPlayers()) do
+                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Studs") then
+                    plr.Character.SeraphinESP_Studs:Destroy()
                 end
             end
         end
@@ -422,6 +461,24 @@ task.spawn(function()
     local ESPBoxes = {}
     
     RunService.RenderStepped:Connect(function()
+        if _G.ESPStuds then
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+                    local character = player.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("SeraphinESP_Studs") then
+                        local studsGui = character:FindFirstChild("SeraphinESP_Studs")
+                        if studsGui then
+                            local infoLabel = studsGui:FindFirstChild("TextLabel")
+                            if infoLabel and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                                local dist = math.floor((LocalPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude)
+                                infoLabel.Text = dist .. " studs"
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        
         if _G.ESPLine then
             for _, player in ipairs(Players:GetPlayers()) do
                 if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
