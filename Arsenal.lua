@@ -123,6 +123,46 @@ Combat:Toggle({
     end
 })
 
+local hitboxEnabled = false
+
+CombatTab:Toggle({
+    Title = "Hitbox Extender",
+    Default = false,
+    Callback = function(v)
+        hitboxEnabled = v
+        while hitboxEnabled do
+            task.wait(0.5)
+            for _, enemy in pairs(game.Players:GetPlayers()) do
+                if enemy.Team ~= game.Players.LocalPlayer.Team and enemy.Character and enemy.Character:FindFirstChild("Head") then
+                    local head = enemy.Character.Head
+                    if not head:FindFirstChild("HitboxNeon") then
+                        local adorn = Instance.new("BoxHandleAdornment")
+                        adorn.Name = "HitboxNeon"
+                        adorn.Adornee = head
+                        adorn.Parent = head
+                        adorn.AlwaysOnTop = true
+                        adorn.ZIndex = 5
+                        adorn.Size = Vector3.new(5, 5, 5)
+                        adorn.Transparency = 0.3
+                        adorn.Color3 = Color3.fromRGB(170, 0, 255)
+                    end
+                    head.Size = Vector3.new(5, 5, 5)
+                    head.CanCollide = false
+                end
+            end
+        end
+        for _, enemy in pairs(game.Players:GetPlayers()) do
+            if enemy.Character and enemy.Character:FindFirstChild("Head") then
+                local head = enemy.Character.Head
+                if head:FindFirstChild("HitboxNeon") then
+                    head.HitboxNeon:Destroy()
+                end
+                head.Size = Vector3.new(1, 1, 1)
+            end
+        end
+    end
+})
+
 Combat:Section({ 
     Title = "No delay [Need Update]",
     TextXAlignment = "Left",
