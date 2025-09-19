@@ -74,6 +74,34 @@ Combat:Toggle({
     Default = false,
     Callback = function(state)
         _G.AutoAim = state
+        if state then
+            task.spawn(function()
+                while _G.AutoAim do
+                    task.wait()
+                    local closestPlayer, closestDistance = nil, math.huge
+                    
+                    for _, player in ipairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+                            local character = player.Character
+                            if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Head") then
+                                local distance = (LocalPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                                if distance < closestDistance then
+                                    closestDistance = distance
+                                    closestPlayer = player
+                                end
+                            end
+                        end
+                    end
+                    
+                    if closestPlayer and closestPlayer.Character then
+                        local targetHead = closestPlayer.Character:FindFirstChild("Head")
+                        if targetHead then
+                            Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetHead.Position)
+                        end
+                    end
+                end
+            end)
+        end
     end
 })
 
@@ -328,3 +356,35 @@ Settings:Colorpicker({
         print("UI Color changed:", color)
     end
 })
+
+task.spawn(function()
+    while true do
+        task.wait()
+        if _G.Aimbot then
+            local closestPlayer, closestDistance = nil, math.huge
+            
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+                    local character = player.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Head") then
+                        local distance = (LocalPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                        if distance < closestDistance then
+                            closestDistance = distance
+                            closestPlayer = player
+                        end
+                    end
+                end
+            end
+            
+            if closestPlayer and closestPlayer.Character then
+                local targetHead = closestPlayer.Character:FindFirstChild("Head")
+                if targetHead then
+                    local mouse = LocalPlayer:GetMouse()
+                    if mouse then
+                        mouse.TargetFilter = targetHead
+                    end
+                end
+            end
+        end
+    end
+end)
