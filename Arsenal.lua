@@ -39,9 +39,9 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
-local Home = Window:Tab({ Title = "Home", Icon = "house" })
+local Home = Window:Tab({ Title = "Info", Icon = "info" })
 
-Home:Button({
+Info:Button({
     Title = "Discord",
     Desc = "Click to copy Discord link",
     Callback = function()
@@ -49,6 +49,12 @@ Home:Button({
             setclipboard("https://discord.gg/getseraphin")
         end
     end
+})
+
+Info:Section({ 
+    Title = "Section",
+    TextXAlignment = "Left",
+    TextSize = 17,
 })
 
 local Combat = Window:Tab({ Title = "Combat", Icon = "sword" })
@@ -245,6 +251,36 @@ Visuals:Toggle({
     end
 })
 
+Visuals:Toggle({
+    Title = "ESP Line",
+    Default = false,
+    Callback = function(state)
+        _G.ESPLine = state
+        if not state then
+            for _, drawing in pairs(getconnections(RunService.RenderStepped)) do
+                if drawing.Function and tostring(drawing.Function):find("ESPLine") then
+                    drawing:Disable()
+                end
+            end
+        end
+    end
+})
+
+Visuals:Toggle({
+    Title = "ESP Box",
+    Default = false,
+    Callback = function(state)
+        _G.ESPBox = state
+        if not state then
+            for _, drawing in pairs(getconnections(RunService.RenderStepped)) do
+                if drawing.Function and tostring(drawing.Function):find("ESPBox") then
+                    drawing:Disable()
+                end
+            end
+        end
+    end
+})
+
 local Movement = Window:Tab({ Title = "Movement", Icon = "move" })
 
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
@@ -387,4 +423,111 @@ task.spawn(function()
             end
         end
     end
+end)
+
+task.spawn(function()
+    local ESPLines = {}
+    local ESPBoxes = {}
+    
+    RunService.RenderStepped:Connect(function()
+        if _G.ESPLine then
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+                    local character = player.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") then
+                        if not ESPLines[player] then
+                            ESPLines[player] = Drawing.new("Line")
+                            ESPLines[player].Color = Color3.fromRGB(180, 0, 255)
+                            ESPLines[player].Thickness = 2
+                            ESPLines[player].Transparency = 1
+                        end
+                        
+                        local rootPos, visible = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
+                        if visible then
+                            ESPLines[player].From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                            ESPLines[player].To = Vector2.new(rootPos.X, rootPos.Y)
+                            ESPLines[player].Visible = true
+                        else
+                            ESPLines[player].Visible = false
+                        end
+                    end
+                end
+            end
+        else
+            for player, line in pairs(ESPLines) do
+                if line then
+                    line:Remove()
+                    ESPLines[player] = nil
+                end
+            end
+        end
+        
+        if _G.ESPBox then
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+                    local character = player.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Head") then
+                        if not ESPBoxes[player] then
+                            ESPBoxes[player] = {
+                                TopLeft = Drawing.new("Line"),
+                                TopRight = Drawing.new("Line"),
+                                BottomLeft = Drawing.new("Line"),
+                                BottomRight = Drawing.new("Line"),
+                                Color = Color3.fromRGB(180, 0, 255)
+                            }
+                            
+                            for _, line in pairs(ESPBoxes[player]) do
+                                if typeof(line) == "table" then continue end
+                                line.Color = ESPBoxes[player].Color
+                                line.Thickness = 2
+                                line.Transparency = 1
+                            end
+                        end
+                        
+                        local rootPos, rootVisible = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
+                        local headPos, headVisible = Camera:WorldToViewportPoint(character.Head.Position)
+                        
+                        if rootVisible and headVisible then
+                            local height = math.abs(headPos.Y - rootPos.Y) * 2
+                            local width = height * 0.6
+                            
+                            local topLeft = Vector2.new(rootPos.X - width/2, rootPos.Y - height/2)
+                            local topRight = Vector2.new(rootPos.X + width/2, rootPos.Y - height/2)
+                            local bottomLeft = Vector2.new(rootPos.X - width/2, rootPos.Y + height/2)
+                            local bottomRight = Vector2.new(rootPos.X + width/2, rootPos.Y + height/2)
+                            
+                            ESPBoxes[player].TopLeft.From = topLeft
+                            ESPBoxes[player].TopLeft.To = topRight
+                            ESPBoxes[player].TopRight.From = topRight
+                            ESPBoxes[player].TopRight.To = bottomRight
+                            ESPBoxes[player].BottomLeft.From = bottomLeft
+                            ESPBoxes[player].BottomLeft.To = bottomRight
+                            ESPBoxes[player].BottomRight.From = bottomLeft
+                            ESPBoxes[player].BottomRight.To = topLeft
+                            
+                            for _, line in pairs(ESPBoxes[player]) do
+                                if typeof(line) == "table" then continue end
+                                line.Visible = true
+                            end
+                        else
+                            for _, line in pairs(ESPBoxes[player]) do
+                                if typeof(line) == "table" then continue end
+                                line.Visible = false
+                            end
+                        end
+                    end
+                end
+            end
+        else
+            for player, box in pairs(ESPBoxes) do
+                for _, line in pairs(box) do
+                    if typeof(line) == "table" then continue end
+                    if line then
+                        line:Remove()
+                    end
+                end
+                ESPBoxes[player] = nil
+            end
+        end
+    end)
 end)
