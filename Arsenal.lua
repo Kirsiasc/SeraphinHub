@@ -39,7 +39,7 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
-local Home = Window:Tab({ Title = "Info", Icon = "info" })
+local Info = Window:Tab({ Title = "Info", Icon = "info" })
 
 Info:Section({ 
     Title = "Community Support",
@@ -262,13 +262,6 @@ Visuals:Toggle({
     Default = false,
     Callback = function(state)
         _G.ESPLine = state
-        if not state then
-            for _, drawing in pairs(getconnections(RunService.RenderStepped)) do
-                if drawing.Function and tostring(drawing.Function):find("ESPLine") then
-                    drawing:Disable()
-                end
-            end
-        end
     end
 })
 
@@ -277,13 +270,6 @@ Visuals:Toggle({
     Default = false,
     Callback = function(state)
         _G.ESPBox = state
-        if not state then
-            for _, drawing in pairs(getconnections(RunService.RenderStepped)) do
-                if drawing.Function and tostring(drawing.Function):find("ESPBox") then
-                    drawing:Disable()
-                end
-            end
-        end
     end
 })
 
@@ -376,9 +362,9 @@ Settings:Toggle({
                 if reconnectUI then
                     local prompt = reconnectUI:FindFirstChild("promptOverlay")
                     if prompt then
-                        local button = prompt:FindFirstChild("ErrorPrompt")
-                        if button then
-                            local confirmButton = button:FindFirstChild("ConfirmButton")
+                        local errorPrompt = prompt:FindFirstChild("ErrorPrompt")
+                        if errorPrompt then
+                            local confirmButton = errorPrompt:FindFirstChild("ConfirmButton")
                             if confirmButton then
                                 firesignal(confirmButton.MouseButton1Click)
                             end
