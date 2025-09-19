@@ -65,6 +65,12 @@ Info:Section({
 
 local Combat = Window:Tab({ Title = "Combat", Icon = "sword" })
 
+Combat:Section({ 
+    Title = "Auto Aim",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
 Combat:Toggle({
     Title = "Silent Aim",
     Default = false,
@@ -117,6 +123,12 @@ Combat:Toggle({
     end
 })
 
+Combat:Section({ 
+    Title = "No delay [Need Update]",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
 Combat:Toggle({
     Title = "No Recoil",
     Default = false,
@@ -131,6 +143,12 @@ Combat:Toggle({
     Callback = function(state)
         _G.NoSpread = state
     end
+})
+
+Combat:Section({ 
+    Title = "Attack",
+    TextXAlignment = "Left",
+    TextSize = 17,
 })
 
 Combat:Toggle({
