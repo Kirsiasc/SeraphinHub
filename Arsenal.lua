@@ -330,12 +330,12 @@ Visuals:Toggle({
     end
 })
 
-local Movement = Window:Tab({ Title = "Movement", Icon = "move" })
+local Movement = Window:Tab({ Title = "Players", Icon = "user" })
 
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 
-Movement:Input({
+Players:Input({
     Title = "WalkSpeed",
     Value = "16",
     Callback = function(val)
@@ -344,7 +344,7 @@ Movement:Input({
     end
 })
 
-Movement:Input({
+Players:Input({
     Title = "JumpPower",
     Value = "50",
     Callback = function(val)
@@ -356,7 +356,7 @@ Movement:Input({
     end
 })
 
-Movement:Toggle({
+Players:Toggle({
     Title = "Infinite Jump",
     Default = false,
     Callback = function(state)
@@ -373,7 +373,7 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
-Movement:Toggle({
+Players:Toggle({
     Title = "Fly",
     Default = false,
     Callback = function(state)
