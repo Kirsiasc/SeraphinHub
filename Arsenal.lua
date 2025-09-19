@@ -41,7 +41,7 @@ local Camera = workspace.CurrentCamera
 
 local Info = Window:Tab({ Title = "Info", Icon = "info" })
 
-Info:Section({ 
+Info:Section({
     Title = "Community Support",
     TextXAlignment = "Left",
     TextSize = 17,
@@ -57,7 +57,7 @@ Info:Button({
     end
 })
 
-Info:Section({ 
+Info:Section({
     Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible.",
     TextXAlignment = "Left",
     TextSize = 17,
@@ -65,7 +65,7 @@ Info:Section({
 
 local Combat = Window:Tab({ Title = "Combat", Icon = "sword" })
 
-Combat:Section({ 
+Combat:Section({
     Title = "Auto Aim",
     TextXAlignment = "Left",
     TextSize = 17,
@@ -97,7 +97,6 @@ Combat:Toggle({
                 while _G.AutoAim do
                     task.wait()
                     local closestPlayer, closestDistance = nil, math.huge
-                    
                     for _, player in ipairs(Players:GetPlayers()) do
                         if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
                             local character = player.Character
@@ -110,7 +109,7 @@ Combat:Toggle({
                             end
                         end
                     end
-                    
+
                     if closestPlayer and closestPlayer.Character then
                         local targetHead = closestPlayer.Character:FindFirstChild("Head")
                         if targetHead then
@@ -124,41 +123,45 @@ Combat:Toggle({
 })
 
 local hitboxEnabled = false
-
-CombatTab:Toggle({
+Combat:Toggle({
     Title = "Hitbox Extender",
     Default = false,
     Callback = function(v)
         hitboxEnabled = v
-        while hitboxEnabled do
-            task.wait(0.5)
-            for _, enemy in pairs(game.Players:GetPlayers()) do
-                if enemy.Team ~= game.Players.LocalPlayer.Team and enemy.Character and enemy.Character:FindFirstChild("Head") then
-                    local head = enemy.Character.Head
-                    if not head:FindFirstChild("HitboxNeon") then
-                        local adorn = Instance.new("BoxHandleAdornment")
-                        adorn.Name = "HitboxNeon"
-                        adorn.Adornee = head
-                        adorn.Parent = head
-                        adorn.AlwaysOnTop = true
-                        adorn.ZIndex = 5
-                        adorn.Size = Vector3.new(5, 5, 5)
-                        adorn.Transparency = 0.3
-                        adorn.Color3 = Color3.fromRGB(170, 0, 255)
+        if v then
+            task.spawn(function()
+                while hitboxEnabled do
+                    task.wait(0.5)
+                    for _, enemy in pairs(Players:GetPlayers()) do
+                        if enemy.Team ~= LocalPlayer.Team and enemy.Character and enemy.Character:FindFirstChild("Head") then
+                            local head = enemy.Character.Head
+                            if not head:FindFirstChild("HitboxNeon") then
+                                local adorn = Instance.new("BoxHandleAdornment")
+                                adorn.Name = "HitboxNeon"
+                                adorn.Adornee = head
+                                adorn.Parent = head
+                                adorn.AlwaysOnTop = true
+                                adorn.ZIndex = 5
+                                adorn.Size = Vector3.new(5, 5, 5)
+                                adorn.Transparency = 0.3
+                                adorn.Color3 = Color3.fromRGB(170, 0, 255)
+                            end
+                            head.Size = Vector3.new(5, 5, 5)
+                            head.CanCollide = false
+                        end
                     end
-                    head.Size = Vector3.new(5, 5, 5)
-                    head.CanCollide = false
                 end
-            end
-        end
-        for _, enemy in pairs(game.Players:GetPlayers()) do
-            if enemy.Character and enemy.Character:FindFirstChild("Head") then
-                local head = enemy.Character.Head
-                if head:FindFirstChild("HitboxNeon") then
-                    head.HitboxNeon:Destroy()
+
+                for _, enemy in pairs(Players:GetPlayers()) do
+                    if enemy.Character and enemy.Character:FindFirstChild("Head") then
+                        local head = enemy.Character.Head
+                        if head:FindFirstChild("HitboxNeon") then
+                            head.HitboxNeon:Destroy()
+                        end
+                        head.Size = Vector3.new(1, 1, 1)
+                    end
                 end
-                head.Size = Vector3.new(1, 1, 1)
-            end
+            end)
         end
     end
 })
