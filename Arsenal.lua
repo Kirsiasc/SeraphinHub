@@ -22,7 +22,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:Tag({
-    Title = "v0.0.0.1",
+    Title = "v0.0.0.2",
     Color = Color3.fromRGB(180, 0, 255)
 })
 
@@ -372,7 +372,11 @@ Visuals:Toggle({
     end
 })
 
-local PlayersTab = Window:Tab({ Title = "Players", Icon = "user" })
+local PlayersTab = Window:Tab({
+    Title = "Players",
+    Icon = "user"
+})
+
 local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 local Humanoid = Character:WaitForChild("Humanoid")
 
@@ -381,7 +385,9 @@ PlayersTab:Input({
     Value = "16",
     Callback = function(val)
         local spd = tonumber(val)
-        if spd and spd >= 16 then Humanoid.WalkSpeed = spd end
+        if spd and spd >= 16 then
+            Humanoid.WalkSpeed = spd
+        end
     end
 })
 
@@ -419,14 +425,24 @@ PlayersTab:Toggle({
     Default = false,
     Callback = function(state)
         _G.Fly = state
-        task.spawn(function()
-            while _G.Fly do
-                task.wait()
-                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    LocalPlayer.Character.HumanoidRootPart.Velocity = Camera.CFrame.LookVector * 50
+        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if state and hrp then
+            local bv = Instance.new("BodyVelocity")
+            bv.Name = "FlyVelocity"
+            bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+            bv.Velocity = Vector3.zero
+            bv.Parent = hrp
+            task.spawn(function()
+                while _G.Fly and bv.Parent do
+                    task.wait()
+                    bv.Velocity = Camera.CFrame.LookVector * 50
                 end
+            end)
+        else
+            if hrp and hrp:FindFirstChild("FlyVelocity") then
+                hrp.FlyVelocity:Destroy()
             end
-        end)
+        end
     end
 })
 
