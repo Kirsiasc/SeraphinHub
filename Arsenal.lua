@@ -377,28 +377,48 @@ local PlayersTab = Window:Tab({
     Icon = "user"
 })
 
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
+local walkVal, jumpVal = 16, 50
+
+local function applyStats(char)
+    local hum = char:WaitForChild("Humanoid")
+    hum.WalkSpeed = walkVal
+    hum.UseJumpPower = true
+    hum.JumpPower = jumpVal
+end
+
+applyStats(LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait())
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    char:WaitForChild("Humanoid")
+    task.wait(0.2)
+    applyStats(char)
+end)
 
 PlayersTab:Input({
     Title = "WalkSpeed",
-    Value = "16",
+    Value = tostring(walkVal),
     Callback = function(val)
         local spd = tonumber(val)
         if spd and spd >= 16 then
-            Humanoid.WalkSpeed = spd
+            walkVal = spd
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.WalkSpeed = walkVal
+            end
         end
     end
 })
 
 PlayersTab:Input({
     Title = "JumpPower",
-    Value = "50",
+    Value = tostring(jumpVal),
     Callback = function(val)
         local jp = tonumber(val)
         if jp then
-            Humanoid.UseJumpPower = true
-            Humanoid.JumpPower = jp
+            jumpVal = jp
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.UseJumpPower = true
+                LocalPlayer.Character.Humanoid.JumpPower = jumpVal
+            end
         end
     end
 })
