@@ -22,7 +22,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:Tag({
-    Title = "v0.0.0.2",
+    Title = "v0.0.0.3",
     Color = Color3.fromRGB(180, 0, 255)
 })
 
@@ -519,12 +519,20 @@ Settings:Colorpicker({
     end
 })
 
+Settings:Button({
+    Title = "Infinite Yield",
+    Desc = "Script Other",
+    Callback = function()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+    end
+})
+
 task.spawn(function()
     while true do
         task.wait()
         if _G.Aimbot then
             local closestPlayer, closestDistance = nil, math.huge
-            
+
             for _, player in ipairs(Players:GetPlayers()) do
                 if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
                     local character = player.Character
@@ -537,7 +545,7 @@ task.spawn(function()
                     end
                 end
             end
-            
+
             if closestPlayer and closestPlayer.Character then
                 local targetHead = closestPlayer.Character:FindFirstChild("Head")
                 if targetHead then
@@ -546,129 +554,4 @@ task.spawn(function()
             end
         end
     end
-end)
-
-task.spawn(function()
-    local ESPLines = {}
-    local ESPBoxes = {}
-    
-    RunService.RenderStepped:Connect(function()
-        if _G.ESPStuds then
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
-                    local character = player.Character
-                    if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("SeraphinESP_Studs") then
-                        local studsGui = character:FindFirstChild("SeraphinESP_Studs")
-                        if studsGui then
-                            local infoLabel = studsGui:FindFirstChild("TextLabel")
-                            if infoLabel and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                                local dist = math.floor((LocalPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude)
-                                infoLabel.Text = dist .. " studs"
-                            end
-                        end
-                    end
-                end
-            end
-        end
-        
-        if _G.ESPLine then
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
-                    local character = player.Character
-                    if character and character:FindFirstChild("HumanoidRootPart") then
-                        if not ESPLines[player] then
-                            ESPLines[player] = Drawing.new("Line")
-                            ESPLines[player].Color = Color3.fromRGB(180, 0, 255)
-                            ESPLines[player].Thickness = 2
-                            ESPLines[player].Transparency = 1
-                        end
-                        
-                        local rootPos, visible = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
-                        if visible then
-                            ESPLines[player].From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-                            ESPLines[player].To = Vector2.new(rootPos.X, rootPos.Y)
-                            ESPLines[player].Visible = true
-                        else
-                            ESPLines[player].Visible = false
-                        end
-                    end
-                end
-            end
-        else
-            for player, line in pairs(ESPLines) do
-                if line then
-                    line:Remove()
-                    ESPLines[player] = nil
-                end
-            end
-        end
-        
-        if _G.ESPBox then
-            for _, player in ipairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
-                    local character = player.Character
-                    if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Head") then
-                        if not ESPBoxes[player] then
-                            ESPBoxes[player] = {
-                                TopLeft = Drawing.new("Line"),
-                                TopRight = Drawing.new("Line"),
-                                BottomLeft = Drawing.new("Line"),
-                                BottomRight = Drawing.new("Line"),
-                                Color = Color3.fromRGB(180, 0, 255)
-                            }
-                            
-                            for _, line in pairs(ESPBoxes[player]) do
-                                if typeof(line) == "table" then continue end
-                                line.Color = ESPBoxes[player].Color
-                                line.Thickness = 2
-                                line.Transparency = 1
-                            end
-                        end
-                        
-                        local rootPos, rootVisible = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
-                        local headPos, headVisible = Camera:WorldToViewportPoint(character.Head.Position)
-                        
-                        if rootVisible and headVisible then
-                            local height = math.abs(headPos.Y - rootPos.Y) * 2
-                            local width = height * 0.6
-                            
-                            local topLeft = Vector2.new(rootPos.X - width/2, rootPos.Y - height/2)
-                            local topRight = Vector2.new(rootPos.X + width/2, rootPos.Y - height/2)
-                            local bottomLeft = Vector2.new(rootPos.X - width/2, rootPos.Y + height/2)
-                            local bottomRight = Vector2.new(rootPos.X + width/2, rootPos.Y + height/2)
-                            
-                            ESPBoxes[player].TopLeft.From = topLeft
-                            ESPBoxes[player].TopLeft.To = topRight
-                            ESPBoxes[player].TopRight.From = topRight
-                            ESPBoxes[player].TopRight.To = bottomRight
-                            ESPBoxes[player].BottomLeft.From = bottomLeft
-                            ESPBoxes[player].BottomLeft.To = bottomRight
-                            ESPBoxes[player].BottomRight.From = bottomLeft
-                            ESPBoxes[player].BottomRight.To = topLeft
-                            
-                            for _, line in pairs(ESPBoxes[player]) do
-                                if typeof(line) == "table" then continue end
-                                line.Visible = true
-                            end
-                        else
-                            for _, line in pairs(ESPBoxes[player]) do
-                                if typeof(line) == "table" then continue end
-                                line.Visible = false
-                            end
-                        end
-                    end
-                end
-            end
-        else
-            for player, box in pairs(ESPBoxes) do
-                for _, line in pairs(box) do
-                    if typeof(line) == "table" then continue end
-                    if line then
-                        line:Remove()
-                    end
-                end
-                ESPBoxes[player] = nil
-            end
-        end
-    end)
 end)
