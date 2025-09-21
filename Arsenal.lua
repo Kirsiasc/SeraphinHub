@@ -527,6 +527,30 @@ Settings:Button({
     end
 })
 
+Settings:Button({
+    Title = "Save Config",
+    Desc = "Save your current settings",
+    Callback = function()
+        WindUI:SaveConfig("Seraphin_Config")
+    end
+})
+
+Settings:Button({
+    Title = "Load Config",
+    Desc = "Load your saved settings",
+    Callback = function()
+        WindUI:LoadConfig("Seraphin_Config")
+    end
+})
+
+Settings:Button({
+    Title = "Delete Config",
+    Desc = "Delete saved config",
+    Callback = function()
+        WindUI:DeleteConfig("Seraphin_Config")
+    end
+})
+
 task.spawn(function()
     while true do
         task.wait()
