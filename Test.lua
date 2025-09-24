@@ -15,4 +15,8 @@ end
 local titleText = gradient("Seraphin", Color3.new(1, 0.2, 0.2), Color3.new(0.2, 0.5, 1))
 local subtitleText = gradient("mielix | Fish It", Color3.new(0.8, 0.8, 0.2), Color3.new(0.2, 0.8, 0.8))
 
-local Window = Library:CreateWindow(titleText, subtitleText)
+local Tab1 = Window:Tab({
+    Title = "Tab Title",
+    Icon = "bird",
+    Locked = false,
+})
