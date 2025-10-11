@@ -1,4 +1,4 @@
-# Seraphin UI — Ronix-style (UI-only preview)
+# Seraphin UI (UI-only preview)
 
 **Seraphin UI (Ronix-style)** adalah versi *UI-only* dari tampilan executor Seraphin — dibuat untuk keperluan preview, desain, dan distribusi di GitHub.  
 > ⚠️ **Catatan penting:** ini adalah *UI-only preview*. Script ini **tidak** mengeksekusi kode Roblox eksternal dan **tidak** berfungsi sebagai executor. Tidak ada `loadstring`, tidak ada pembentukan Script di ServerScriptService, dan tidak ada bypass.
