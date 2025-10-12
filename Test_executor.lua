@@ -1,303 +1,395 @@
--- Android Mobile Executor - Compatible Version
-local AndroidExecutor = {}
+-- Roblox Android Executor
+local RobloxExecutor = {}
 
--- Safe initialization
-local function SafeInit()
-    -- Check available functions
-    if not CreateFrame then
-        print("❌ CreateFrame not available")
-        return false
-    end
-    
-    if not UIParent then
-        print("❌ UIParent not available") 
-        return false
-    end
-    
-    return true
+-- Check if we're in Roblox environment
+function RobloxExecutor:IsRoblox()
+    return type(game) == "userdata" and game:GetService ~= nil
 end
 
-function AndroidExecutor:CreateUI()
-    if not SafeInit() then
-        print("📱 Using fallback console mode")
-        self:ConsoleMode()
+function RobloxExecutor:Init()
+    if not self:IsRoblox() then
+        warn("❌ Not in Roblox environment!")
         return
     end
+    
+    print("📱 Initializing Roblox Android Executor...")
+    self:CreateGUI()
+    self:LoadScripts()
+end
 
+function RobloxExecutor:CreateGUI()
+    -- Create ScreenGui
+    self.ScreenGui = Instance.new("ScreenGui")
+    self.ScreenGui.Name = "AndroidExecutor"
+    self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    
     -- Main Frame
-    self.MainFrame = CreateFrame("Frame", "AndroidExecutorFrame", UIParent)
-    self.MainFrame:SetSize(380, 600)
-    self.MainFrame:SetPoint("CENTER")
-    self.MainFrame:SetBackdrop({
-        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
-    })
-    self.MainFrame:SetBackdropColor(0.1, 0.1, 0.2, 0.95)
-    self.MainFrame:SetMovable(true)
-    self.MainFrame:EnableMouse(true)
-    self.MainFrame:RegisterForDrag("LeftButton")
-    self.MainFrame:SetScript("OnDragStart", self.MainFrame.StartMoving)
-    self.MainFrame:SetScript("OnDragStop", self.MainFrame.StopMovingOrSizing)
-
-    -- Title
-    self.TitleBar = CreateFrame("Frame", nil, self.MainFrame)
-    self.TitleBar:SetSize(380, 40)
-    self.TitleBar:SetPoint("TOP")
-    self.TitleBar:SetBackdrop({ bgFile = "Interface\\ChatFrame\\ChatFrameBackground" })
-    self.TitleBar:SetBackdropColor(0.2, 0.2, 0.4, 1)
-
-    self.TitleText = self.TitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    self.TitleText:SetPoint("CENTER")
-    self.TitleText:SetText("📱 ANDROID EXECUTOR")
-    self.TitleText:SetTextColor(0, 1, 1)
-
+    self.MainFrame = Instance.new("Frame")
+    self.MainFrame.Size = UDim2.new(0, 400, 0, 550)
+    self.MainFrame.Position = UDim2.new(0.5, -200, 0.5, -275)
+    self.MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    self.MainFrame.BorderSizePixel = 2
+    self.MainFrame.BorderColor3 = Color3.fromRGB(0, 150, 200)
+    self.MainFrame.Parent = self.ScreenGui
+    
+    -- Title Bar
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = self.MainFrame
+    
+    local titleText = Instance.new("TextLabel")
+    titleText.Size = UDim2.new(1, -50, 1, 0)
+    titleText.Position = UDim2.new(0, 10, 0, 0)
+    titleText.BackgroundTransparency = 1
+    titleText.Text = "📱 ROBLOX ANDROID EXECUTOR"
+    titleText.TextColor3 = Color3.fromRGB(0, 200, 255)
+    titleText.TextSize = 18
+    titleText.Font = Enum.Font.GothamBold
+    titleText.TextXAlignment = Enum.TextXAlignment.Left
+    titleText.Parent = titleBar
+    
     -- Close Button
-    self.CloseBtn = CreateFrame("Button", nil, self.TitleBar, "UIPanelButtonTemplate")
-    self.CloseBtn:SetSize(30, 30)
-    self.CloseBtn:SetPoint("TOPRIGHT", -5, -5)
-    self.CloseBtn:SetText("X")
-    self.CloseBtn:SetScript("OnClick", function() self.MainFrame:Hide() end)
-
-    self:CreateComponents()
-    self.MainFrame:Hide()
-end
-
-function AndroidExecutor:CreateComponents()
-    -- Navigation
-    local navFrame = CreateFrame("Frame", nil, self.MainFrame)
-    navFrame:SetSize(360, 40)
-    navFrame:SetPoint("TOP", 0, -45)
-
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -35, 0, 5)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    closeBtn.Text = "X"
+    closeBtn.TextColor3 = Color3.white
+    closeBtn.TextSize = 16
+    closeBtn.Parent = titleBar
+    closeBtn.MouseButton1Click:Connect(function()
+        self.ScreenGui.Enabled = false
+    end)
+    
+    -- Navigation Buttons
+    local navFrame = Instance.new("Frame")
+    navFrame.Size = UDim2.new(1, -20, 0, 40)
+    navFrame.Position = UDim2.new(0, 10, 0, 45)
+    navFrame.BackgroundTransparency = 1
+    navFrame.Parent = self.MainFrame
+    
     local navButtons = {
-        {"SCRIPTS", "scripts"},
-        {"EDITOR", "editor"}, 
-        {"RUN", "run"}
+        {"📜 Scripts", "scripts"},
+        {"✏️ Editor", "editor"},
+        {"🚀 Execute", "execute"}
     }
-
+    
     for i, btnInfo in ipairs(navButtons) do
-        local btn = CreateFrame("Button", nil, navFrame, "UIPanelButtonTemplate")
-        btn:SetSize(100, 30)
-        btn:SetPoint("LEFT", (i-1)*110 + 20, 0)
-        btn:SetText(btnInfo[1])
-        btn:SetScript("OnClick", function() self:OnNavClick(btnInfo[2]) end)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0.3, -5, 1, 0)
+        btn.Position = UDim2.new((i-1) * 0.33, 0, 0, 0)
+        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+        btn.Text = btnInfo[1]
+        btn.TextColor3 = Color3.white
+        btn.TextSize = 14
+        btn.Parent = navFrame
+        btn.MouseButton1Click:Connect(function()
+            self:OnNavClick(btnInfo[2])
+        end)
     end
-
+    
     -- Script List
-    self.ScriptFrame = CreateFrame("Frame", nil, self.MainFrame)
-    self.ScriptFrame:SetSize(360, 180)
-    self.ScriptFrame:SetPoint("TOP", 0, -90)
-
-    local scriptTitle = self.ScriptFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    scriptTitle:SetPoint("TOP", 0, 0)
-    scriptTitle:SetText("Available Scripts")
-    scriptTitle:SetTextColor(1, 1, 0)
-
-    self.ScriptScroll = CreateFrame("ScrollFrame", nil, self.ScriptFrame, "UIPanelScrollFrameTemplate")
-    self.ScriptScroll:SetSize(340, 150)
-    self.ScriptScroll:SetPoint("TOP", 0, -20)
-
-    self.ScriptContent = CreateFrame("Frame", nil, self.ScriptScroll)
-    self.ScriptContent:SetSize(320, 100)
-    self.ScriptScroll:SetScrollChild(self.ScriptContent)
-
+    self.ScriptFrame = Instance.new("Frame")
+    self.ScriptFrame.Size = UDim2.new(1, -20, 0, 150)
+    self.ScriptFrame.Position = UDim2.new(0, 10, 0, 90)
+    self.ScriptFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    self.ScriptFrame.BorderSizePixel = 1
+    self.ScriptFrame.Parent = self.MainFrame
+    
+    local scriptTitle = Instance.new("TextLabel")
+    scriptTitle.Size = UDim2.new(1, 0, 0, 25)
+    scriptTitle.BackgroundTransparency = 1
+    scriptTitle.Text = "📱 MOBILE SCRIPTS"
+    scriptTitle.TextColor3 = Color3.fromRGB(255, 255, 0)
+    scriptTitle.TextSize = 16
+    scriptTitle.Parent = self.ScriptFrame
+    
+    -- Script Scroll
+    self.ScriptScroll = Instance.new("ScrollingFrame")
+    self.ScriptScroll.Size = UDim2.new(1, -10, 1, -30)
+    self.ScriptScroll.Position = UDim2.new(0, 5, 0, 25)
+    self.ScriptScroll.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    self.ScriptScroll.ScrollBarThickness = 8
+    self.ScriptScroll.Parent = self.ScriptFrame
+    
+    self.ScriptListLayout = Instance.new("UIListLayout")
+    self.ScriptListLayout.Parent = self.ScriptScroll
+    
     -- Editor
-    self.EditorFrame = CreateFrame("Frame", nil, self.MainFrame)
-    self.EditorFrame:SetSize(360, 200)
-    self.EditorFrame:SetPoint("TOP", 0, -280)
-
-    local editorTitle = self.EditorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    editorTitle:SetPoint("TOP", 0, 0)
-    editorTitle:SetText("Script Editor")
-    editorTitle:SetTextColor(0, 1, 1)
-
-    self.Editor = CreateFrame("EditBox", nil, self.EditorFrame, "InputBoxTemplate")
-    self.Editor:SetSize(340, 170)
-    self.Editor:SetPoint("TOP", 0, -20)
-    self.Editor:SetMultiLine(true)
-    self.Editor:SetAutoFocus(false)
-    self.Editor:SetFontObject("GameFontNormal")
-    self.Editor:SetText("-- Android Script Editor\nprint('📱 Mobile Executor Ready!')\n\n-- Test script\nfor i=1,3 do\n    print('Test '..i)\n    wait(1)\nend")
-
-    self.EditorScroll = CreateFrame("ScrollFrame", nil, self.EditorFrame, "UIPanelScrollFrameTemplate")
-    self.EditorScroll:SetSize(340, 170)
-    self.EditorScroll:SetPoint("TOP", 0, -20)
-    self.EditorScroll:SetScrollChild(self.Editor)
-
-    -- Buttons
-    local btnFrame = CreateFrame("Frame", nil, self.MainFrame)
-    btnFrame:SetSize(360, 50)
-    btnFrame:SetPoint("BOTTOM", 0, 10)
-
-    self.ExecuteBtn = CreateFrame("Button", nil, btnFrame, "UIPanelButtonTemplate")
-    self.ExecuteBtn:SetSize(100, 35)
-    self.ExecuteBtn:SetPoint("LEFT", 30, 0)
-    self.ExecuteBtn:SetText("EXECUTE")
-    self.ExecuteBtn:SetScript("OnClick", function() self:ExecuteScript() end)
-
-    self.ClearBtn = CreateFrame("Button", nil, btnFrame, "UIPanelButtonTemplate")
-    self.ClearBtn:SetSize(100, 35)
-    self.ClearBtn:SetPoint("RIGHT", -30, 0)
-    self.ClearBtn:SetText("CLEAR")
-    self.ClearBtn:SetScript("OnClick", function() self.Editor:SetText("") end)
-
-    -- Status
-    self.StatusBar = CreateFrame("Frame", nil, self.MainFrame)
-    self.StatusBar:SetSize(380, 25)
-    self.StatusBar:SetPoint("BOTTOM")
-    self.StatusBar:SetBackdrop({ bgFile = "Interface\\Tooltips\\UI-Tooltip-Background" })
-    self.StatusBar:SetBackdropColor(0, 0.3, 0, 0.8)
-
-    self.StatusText = self.StatusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    self.StatusText:SetPoint("CENTER")
-    self.StatusText:SetText("✅ Ready - Android Executor")
+    self.EditorFrame = Instance.new("Frame")
+    self.EditorFrame.Size = UDim2.new(1, -20, 0, 200)
+    self.EditorFrame.Position = UDim2.new(0, 10, 0, 250)
+    self.EditorFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+    self.EditorFrame.BorderSizePixel = 1
+    self.EditorFrame.Parent = self.MainFrame
+    
+    local editorTitle = Instance.new("TextLabel")
+    editorTitle.Size = UDim2.new(1, 0, 0, 25)
+    editorTitle.BackgroundTransparency = 1
+    editorTitle.Text = "✏️ SCRIPT EDITOR"
+    editorTitle.TextColor3 = Color3.fromRGB(0, 255, 255)
+    editorTitle.TextSize = 16
+    editorTitle.Parent = self.EditorFrame
+    
+    self.Editor = Instance.new("TextBox")
+    self.Editor.Size = UDim2.new(1, -10, 1, -30)
+    self.Editor.Position = UDim2.new(0, 5, 0, 25)
+    self.Editor.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    self.Editor.TextColor3 = Color3.white
+    self.Editor.TextSize = 14
+    self.Editor.TextXAlignment = Enum.TextXAlignment.Left
+    self.Editor.TextYAlignment = Enum.TextYAlignment.Top
+    self.Editor.MultiLine = true
+    self.Editor.TextWrapped = true
+    self.Editor.Text = "-- Roblox Android Executor\nprint('📱 Executor Ready!')\n\n-- Example script\nfor i=1,3 do\n    print('Test '..i)\n    wait(1)\nend"
+    self.Editor.Parent = self.EditorFrame
+    
+    -- Action Buttons
+    local actionFrame = Instance.new("Frame")
+    actionFrame.Size = UDim2.new(1, -20, 0, 50)
+    actionFrame.Position = UDim2.new(0, 10, 0, 460)
+    actionFrame.BackgroundTransparency = 1
+    actionFrame.Parent = self.MainFrame
+    
+    self.ExecuteBtn = Instance.new("TextButton")
+    self.ExecuteBtn.Size = UDim2.new(0.4, 0, 1, 0)
+    self.ExecuteBtn.Position = UDim2.new(0.05, 0, 0, 0)
+    self.ExecuteBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    self.ExecuteBtn.Text = "🚀 EXECUTE"
+    self.ExecuteBtn.TextColor3 = Color3.white
+    self.ExecuteBtn.TextSize = 16
+    self.ExecuteBtn.Parent = actionFrame
+    self.ExecuteBtn.MouseButton1Click:Connect(function()
+        self:ExecuteScript()
+    end)
+    
+    self.ClearBtn = Instance.new("TextButton")
+    self.ClearBtn.Size = UDim2.new(0.4, 0, 1, 0)
+    self.ClearBtn.Position = UDim2.new(0.55, 0, 0, 0)
+    self.ClearBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 0)
+    self.ClearBtn.Text = "🗑️ CLEAR"
+    self.ClearBtn.TextColor3 = Color3.white
+    self.ClearBtn.TextSize = 16
+    self.ClearBtn.Parent = actionFrame
+    self.ClearBtn.MouseButton1Click:Connect(function()
+        self.Editor.Text = ""
+    end)
+    
+    -- Status Bar
+    self.StatusBar = Instance.new("TextLabel")
+    self.StatusBar.Size = UDim2.new(1, -20, 0, 25)
+    self.StatusBar.Position = UDim2.new(0, 10, 0, 515)
+    self.StatusBar.BackgroundColor3 = Color3.fromRGB(0, 50, 0)
+    self.StatusBar.Text = "✅ ROBLOX ANDROID EXECUTOR READY"
+    self.StatusBar.TextColor3 = Color3.fromRGB(0, 255, 0)
+    self.StatusBar.TextSize = 14
+    self.StatusBar.Parent = self.MainFrame
+    
+    -- Parent to PlayerGui
+    if game:GetService("Players").LocalPlayer then
+        self.ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    else
+        self.ScreenGui.Parent = game:GetService("StarterGui")
+    end
+    
+    self.ScreenGui.Enabled = false
 end
 
-function AndroidExecutor:LoadScripts()
+function RobloxExecutor:LoadScripts()
     self.Scripts = {
         {
-            name = "Test Print",
-            code = "print('📱 Android Test Successful!')\nfor i=1,5 do\n    print('Count: '..i)\n    wait(1)\nend"
+            name = "🔄 Auto Farm",
+            code = [[
+-- Auto Farm Script for Roblox
+print("🔄 Auto Farm Started")
+
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+for i = 1, 10 do
+    print("🌾 Farming cycle: " .. i)
+    wait(2)
+end
+
+print("✅ Auto Farm Completed")
+]]
         },
         {
-            name = "Simple Loop", 
-            code = "for i=1,10 do\n    print('Loop: '..i)\n    wait(0.5)\nend"
+            name = "⚡ Speed Hack",
+            code = [[
+-- Speed Hack Script
+print("⚡ Speed Hack Activated")
+
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character
+
+if character then
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = 50
+        print("💨 Speed set to 50")
+    end
+end
+]]
         },
         {
-            name = "Math Test",
-            code = "local a = 10\nlocal b = 20\nprint('Math: '..a..' + '..b..' = '..(a+b))"
+            name = "🛡️ God Mode",
+            code = [[
+-- God Mode Script
+print("🛡️ God Mode Activated")
+
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character
+
+if character then
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.MaxHealth = math.huge
+        humanoid.Health = math.huge
+        print("❤️ Invincible!")
+    end
+end
+]]
         },
         {
-            name = "Function Test",
-            code = "local function test()\n    return 'Function Working!'\nend\nprint(test())"
+            name = "💰 Auto Collect",
+            code = [[
+-- Auto Collect Script
+print("💰 Auto Collect Started")
+
+for i = 1, 15 do
+    print("🪙 Collecting item " .. i)
+    wait(1)
+end
+
+print("💰 Collection completed")
+]]
+        },
+        {
+            name = "📊 Player Info",
+            code = [[
+-- Player Information
+print("📊 Player Info:")
+
+local player = game:GetService("Players").LocalPlayer
+print("👤 Name: " .. player.Name)
+print("💰 UserId: " .. player.UserId)
+
+if player.Character then
+    print("🎯 Character loaded")
+else
+    print("⏳ Waiting for character...")
+    player.CharacterAdded:Wait()
+    print("✅ Character loaded")
+end
+]]
         }
     }
     
     self:RefreshScriptList()
 end
 
-function AndroidExecutor:RefreshScriptList()
-    for _, btn in ipairs(self.ScriptButtons or {}) do
-        btn:Hide()
+function RobloxExecutor:RefreshScriptList()
+    -- Clear existing buttons
+    for _, btn in pairs(self.ScriptScroll:GetChildren()) do
+        if btn:IsA("TextButton") then
+            btn:Destroy()
+        end
     end
-
-    self.ScriptButtons = {}
-
-    for i, script in ipairs(self.Scripts) do
-        local btn = CreateFrame("Button", nil, self.ScriptContent)
-        btn:SetSize(300, 25)
-        btn:SetPoint("TOP", 0, -((i-1)*30))
-
-        local text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-        text:SetPoint("LEFT", 10, 0)
-        text:SetText(script.name)
-        text:SetTextColor(1, 1, 1)
-
-        btn:SetScript("OnClick", function() self:LoadScript(script) end)
-
-        table.insert(self.ScriptButtons, btn)
-    end
-
-    self.ScriptContent:SetHeight(#self.Scripts * 30)
-end
-
-function AndroidExecutor:LoadScript(script)
-    self.Editor:SetText(script.code)
-    self.StatusText:SetText("Loaded: " .. script.name)
-end
-
-function AndroidExecutor:ExecuteScript()
-    local code = self.Editor:GetText()
     
-    if not code or code == "" then
-        self.StatusText:SetText("No script to execute")
+    -- Create script buttons
+    for i, script in ipairs(self.Scripts) do
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(1, -10, 0, 30)
+        btn.Position = UDim2.new(0, 5, 0, (i-1) * 35)
+        btn.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+        btn.Text = script.name
+        btn.TextColor3 = Color3.white
+        btn.TextSize = 14
+        btn.Parent = self.ScriptScroll
+        
+        btn.MouseButton1Click:Connect(function()
+            self:LoadScript(script)
+        end)
+    end
+    
+    self.ScriptScroll.CanvasSize = UDim2.new(0, 0, 0, #self.Scripts * 35)
+end
+
+function RobloxExecutor:LoadScript(script)
+    self.Editor.Text = script.code
+    self.StatusBar.Text = "📱 Loaded: " .. script.name
+    print("📱 Script loaded: " .. script.name)
+end
+
+function RobloxExecutor:ExecuteScript()
+    local code = self.Editor.Text
+    
+    if code == "" then
+        self.StatusBar.Text = "📝 No script to execute"
         return
     end
-
-    self.StatusText:SetText("Executing...")
-
+    
+    self.StatusBar.Text = "🚀 Executing script..."
+    
     -- Safe execution
     local success, result = pcall(function()
-        if not loadstring then
-            return "loadstring not available"
+        local fn = loadstring(code)
+        if fn then
+            return fn()
+        else
+            error("Failed to compile script")
         end
-        
-        local fn, err = loadstring(code)
-        if not fn then
-            return "Compile error: " .. tostring(err)
-        end
-        
-        return fn()
     end)
-
+    
     if success then
-        self.StatusText:SetText("Execution complete!")
-        print("✅ Script executed successfully!")
+        self.StatusBar.Text = "✅ Script executed successfully!"
+        print("🎉 Script executed!")
     else
-        self.StatusText:SetText("Error: " .. tostring(result))
-        print("❌ Execution error: " .. tostring(result))
+        self.StatusBar.Text = "❌ Error: " .. tostring(result)
+        print("⚠️ Script error: " .. tostring(result))
     end
 end
 
-function AndroidExecutor:OnNavClick(action)
+function RobloxExecutor:OnNavClick(action)
     if action == "scripts" then
-        self.StatusText:SetText("Scripts panel")
+        self.StatusBar.Text = "📜 Scripts panel"
     elseif action == "editor" then
-        self.Editor:SetFocus()
-        self.StatusText:SetText("Editor focused")
-    elseif action == "run" then
+        self.Editor:CaptureFocus()
+        self.StatusBar.Text = "✏️ Editor focused"
+    elseif action == "execute" then
         self:ExecuteScript()
     end
 end
 
-function AndroidExecutor:ConsoleMode()
-    print("📱 ANDROID CONSOLE EXECUTOR")
-    print("Commands: /android, /exec")
-    print("Type your scripts directly in console!")
-    
-    self.ConsoleMode = true
-end
-
-function AndroidExecutor:Toggle()
-    if self.ConsoleMode then
-        print("📱 Android Console Executor Active")
-        print("Paste your scripts in the console")
-        return
-    end
-
-    if self.MainFrame:IsShown() then
-        self.MainFrame:Hide()
-        print("📱 Executor closed")
+function RobloxExecutor:Toggle()
+    self.ScreenGui.Enabled = not self.ScreenGui.Enabled
+    if self.ScreenGui.Enabled then
+        print("📱 Roblox Android Executor opened")
     else
-        self.MainFrame:Show()
-        print("📱 Android Executor opened")
+        print("📱 Executor closed")
     end
 end
 
 -- Initialize
-local success, err = pcall(function()
-    AndroidExecutor:CreateUI()
-    AndroidExecutor:LoadScripts()
-end)
-
-if not success then
-    print("❌ UI Creation failed: " .. tostring(err))
-    AndroidExecutor:ConsoleMode()
+if RobloxExecutor:IsRoblox() then
+    RobloxExecutor:Init()
+    
+    -- Create toggle command
+    local function toggleExecutor()
+        RobloxExecutor:Toggle()
+    end
+    
+    -- Make it accessible
+    getgenv().ToggleExecutor = toggleExecutor
+    
+    print("📱 ROBLOX ANDROID EXECUTOR LOADED!")
+    print("📱 Use: ToggleExecutor() to open/close")
+    print("📱 Optimized for mobile devices")
 else
-    print("✅ Android Executor UI created successfully!")
+    warn("❌ This script is for Roblox only!")
 end
 
--- Simple slash commands (no SAFEMOBILE reference)
-SLASH_ANDROID1 = "/android"
-SLASH_ANDROID2 = "/exec"
-SLASH_ANDROID3 = "/ae"
-SlashCmdList["ANDROID"] = function()
-    AndroidExecutor:Toggle()
-end
-
-print("📱 ANDROID EXECUTOR LOADED!")
-print("📱 Commands: /android, /exec, /ae")
-print("📱 Optimized for mobile devices")
-
-return AndroidExecutor
+return RobloxExecutor
