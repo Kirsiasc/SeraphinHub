@@ -1,29 +1,36 @@
--- Safe Mobile Executor - Android Optimized
-local SafeMobileExecutor = {}
+-- Android Mobile Executor - Compatible Version
+local AndroidExecutor = {}
 
-function SafeMobileExecutor:Init()
-    -- Safe initialization dengan error handling
-    local success, err = pcall(function()
-        self:CreateMainFrame()
-        self:CreateUI()
-        self:LoadSafeScripts()
-    end)
-    
-    if not success then
-        print("❌ Executor Init Error: " .. tostring(err))
-        return
+-- Safe initialization
+local function SafeInit()
+    -- Check available functions
+    if not CreateFrame then
+        print("❌ CreateFrame not available")
+        return false
     end
     
-    print("✅ Safe Mobile Executor Loaded!")
+    if not UIParent then
+        print("❌ UIParent not available") 
+        return false
+    end
+    
+    return true
 end
 
-function SafeMobileExecutor:CreateMainFrame()
-    self.MainFrame = CreateFrame("Frame", "SafeMobileExecutor", UIParent)
-    self.MainFrame:SetSize(400, 650)
+function AndroidExecutor:CreateUI()
+    if not SafeInit() then
+        print("📱 Using fallback console mode")
+        self:ConsoleMode()
+        return
+    end
+
+    -- Main Frame
+    self.MainFrame = CreateFrame("Frame", "AndroidExecutorFrame", UIParent)
+    self.MainFrame:SetSize(380, 600)
     self.MainFrame:SetPoint("CENTER")
     self.MainFrame:SetBackdrop({
         bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
         tile = true, tileSize = 16, edgeSize = 16,
         insets = { left = 4, right = 4, top = 4, bottom = 4 }
     })
@@ -33,498 +40,264 @@ function SafeMobileExecutor:CreateMainFrame()
     self.MainFrame:RegisterForDrag("LeftButton")
     self.MainFrame:SetScript("OnDragStart", self.MainFrame.StartMoving)
     self.MainFrame:SetScript("OnDragStop", self.MainFrame.StopMovingOrSizing)
-    
-    self.MainFrame:Hide()
-end
 
-function SafeMobileExecutor:CreateUI()
-    -- Safe Title Bar
+    -- Title
     self.TitleBar = CreateFrame("Frame", nil, self.MainFrame)
-    self.TitleBar:SetSize(400, 50)
+    self.TitleBar:SetSize(380, 40)
     self.TitleBar:SetPoint("TOP")
     self.TitleBar:SetBackdrop({ bgFile = "Interface\\ChatFrame\\ChatFrameBackground" })
     self.TitleBar:SetBackdropColor(0.2, 0.2, 0.4, 1)
-    
-    self.TitleText = self.TitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+
+    self.TitleText = self.TitleBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.TitleText:SetPoint("CENTER")
-    self.TitleText:SetText("🛡️ SAFE MOBILE EXECUTOR")
+    self.TitleText:SetText("📱 ANDROID EXECUTOR")
     self.TitleText:SetTextColor(0, 1, 1)
-    
-    -- Close Button dengan safe handler
+
+    -- Close Button
     self.CloseBtn = CreateFrame("Button", nil, self.TitleBar, "UIPanelButtonTemplate")
-    self.CloseBtn:SetSize(40, 40)
+    self.CloseBtn:SetSize(30, 30)
     self.CloseBtn:SetPoint("TOPRIGHT", -5, -5)
-    self.CloseBtn:SetText("✕")
-    self.CloseBtn:SetScript("OnClick", function() 
-        pcall(function() self.MainFrame:Hide() end) 
-    end)
-    
-    self:CreateNavigation()
-    self:CreateScriptPanel()
-    self:CreateEditorPanel()
-    self:CreateActionPanel()
-    self:CreateStatusBar()
+    self.CloseBtn:SetText("X")
+    self.CloseBtn:SetScript("OnClick", function() self.MainFrame:Hide() end)
+
+    self:CreateComponents()
+    self.MainFrame:Hide()
 end
 
-function SafeMobileExecutor:CreateNavigation()
+function AndroidExecutor:CreateComponents()
+    -- Navigation
     local navFrame = CreateFrame("Frame", nil, self.MainFrame)
-    navFrame:SetSize(380, 50)
-    navFrame:SetPoint("TOP", 0, -55)
-    
-    local buttons = {
-        { "📜 Scripts", "scripts" },
-        { "✏️ Editor", "editor" }, 
-        { "🛠️ Tools", "tools" },
-        { "⚙️ Safe", "safe" }
+    navFrame:SetSize(360, 40)
+    navFrame:SetPoint("TOP", 0, -45)
+
+    local navButtons = {
+        {"SCRIPTS", "scripts"},
+        {"EDITOR", "editor"}, 
+        {"RUN", "run"}
     }
-    
-    for i, btnData in ipairs(buttons) do
+
+    for i, btnInfo in ipairs(navButtons) do
         local btn = CreateFrame("Button", nil, navFrame, "UIPanelButtonTemplate")
-        btn:SetSize(85, 35)
-        btn:SetPoint("LEFT", (i-1)*90 + 15, 0)
-        btn:SetText(btnData[1])
-        btn:SetScript("OnClick", function() 
-            pcall(function() self:OnNavClick(btnData[2]) end) 
-        end)
+        btn:SetSize(100, 30)
+        btn:SetPoint("LEFT", (i-1)*110 + 20, 0)
+        btn:SetText(btnInfo[1])
+        btn:SetScript("OnClick", function() self:OnNavClick(btnInfo[2]) end)
     end
-end
 
-function SafeMobileExecutor:CreateScriptPanel()
+    -- Script List
     self.ScriptFrame = CreateFrame("Frame", nil, self.MainFrame)
-    self.ScriptFrame:SetSize(380, 200)
-    self.ScriptFrame:SetPoint("TOP", 0, -110)
-    
-    local title = self.ScriptFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title:SetPoint("TOP", 0, 0)
-    title:SetText("🛡️ SAFE SCRIPTS (Anti-Error)")
-    title:SetTextColor(0, 1, 0)
-    
-    -- Scroll Frame dengan safe handling
-    self.ScriptScroll = CreateFrame("ScrollFrame", nil, self.ScriptFrame, "UIPanelScrollFrameTemplate")
-    self.ScriptScroll:SetSize(360, 170)
-    self.ScriptScroll:SetPoint("TOP", 0, -20)
-    
-    self.ScriptContent = CreateFrame("Frame", nil, self.ScriptScroll)
-    self.ScriptContent:SetSize(340, 100)
-    self.ScriptScroll:SetScrollChild(self.ScriptContent)
-end
+    self.ScriptFrame:SetSize(360, 180)
+    self.ScriptFrame:SetPoint("TOP", 0, -90)
 
-function SafeMobileExecutor:CreateEditorPanel()
+    local scriptTitle = self.ScriptFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    scriptTitle:SetPoint("TOP", 0, 0)
+    scriptTitle:SetText("Available Scripts")
+    scriptTitle:SetTextColor(1, 1, 0)
+
+    self.ScriptScroll = CreateFrame("ScrollFrame", nil, self.ScriptFrame, "UIPanelScrollFrameTemplate")
+    self.ScriptScroll:SetSize(340, 150)
+    self.ScriptScroll:SetPoint("TOP", 0, -20)
+
+    self.ScriptContent = CreateFrame("Frame", nil, self.ScriptScroll)
+    self.ScriptContent:SetSize(320, 100)
+    self.ScriptScroll:SetScrollChild(self.ScriptContent)
+
+    -- Editor
     self.EditorFrame = CreateFrame("Frame", nil, self.MainFrame)
-    self.EditorFrame:SetSize(380, 220)
-    self.EditorFrame:SetPoint("TOP", 0, -320)
-    
-    local title = self.EditorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title:SetPoint("TOP", 0, 0)
-    title:SetText("✏️ SAFE SCRIPT EDITOR")
-    title:SetTextColor(1, 1, 0)
-    
-    -- Editor dengan error protection
+    self.EditorFrame:SetSize(360, 200)
+    self.EditorFrame:SetPoint("TOP", 0, -280)
+
+    local editorTitle = self.EditorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    editorTitle:SetPoint("TOP", 0, 0)
+    editorTitle:SetText("Script Editor")
+    editorTitle:SetTextColor(0, 1, 1)
+
     self.Editor = CreateFrame("EditBox", nil, self.EditorFrame, "InputBoxTemplate")
-    self.Editor:SetSize(360, 190)
+    self.Editor:SetSize(340, 170)
     self.Editor:SetPoint("TOP", 0, -20)
     self.Editor:SetMultiLine(true)
     self.Editor:SetAutoFocus(false)
     self.Editor:SetFontObject("GameFontNormal")
-    self.Editor:SetText("-- Safe Script Editor\n-- Protected from common errors\n\nprint('🛡️ Safe Mobile Executor Ready!')\n\n-- Example safe function\nlocal function safeFunction()\n    print('✅ This function is safe to execute')\nend\n\nsafeFunction()")
-    
+    self.Editor:SetText("-- Android Script Editor\nprint('📱 Mobile Executor Ready!')\n\n-- Test script\nfor i=1,3 do\n    print('Test '..i)\n    wait(1)\nend")
+
     self.EditorScroll = CreateFrame("ScrollFrame", nil, self.EditorFrame, "UIPanelScrollFrameTemplate")
-    self.EditorScroll:SetSize(360, 190)
+    self.EditorScroll:SetSize(340, 170)
     self.EditorScroll:SetPoint("TOP", 0, -20)
     self.EditorScroll:SetScrollChild(self.Editor)
-end
 
-function SafeMobileExecutor:CreateActionPanel()
-    local actionFrame = CreateFrame("Frame", nil, self.MainFrame)
-    actionFrame:SetSize(380, 60)
-    actionFrame:SetPoint("BOTTOM", 0, 10)
-    
-    -- Safe Execute Button
-    self.ExecuteBtn = CreateFrame("Button", nil, actionFrame, "UIPanelButtonTemplate")
-    self.ExecuteBtn:SetSize(100, 40)
-    self.ExecuteBtn:SetPoint("LEFT", 20, 0)
-    self.ExecuteBtn:SetText("🛡️ EXECUTE")
-    self.ExecuteBtn:SetScript("OnClick", function() 
-        pcall(function() self:SafeExecute() end) 
-    end)
-    
-    -- Safe Inject Button
-    self.InjectBtn = CreateFrame("Button", nil, actionFrame, "UIPanelButtonTemplate")
-    self.InjectBtn:SetSize(100, 40)
-    self.InjectBtn:SetPoint("CENTER")
-    self.InjectBtn:SetText("💉 INJECT")
-    self.InjectBtn:SetScript("OnClick", function() 
-        pcall(function() self:SafeInject() end) 
-    end)
-    
-    -- Clear Button
-    self.ClearBtn = CreateFrame("Button", nil, actionFrame, "UIPanelButtonTemplate")
-    self.ClearBtn:SetSize(80, 40)
-    self.ClearBtn:SetPoint("RIGHT", -20, 0)
-    self.ClearBtn:SetText("🗑️ CLEAR")
-    self.ClearBtn:SetScript("OnClick", function() 
-        pcall(function() self.Editor:SetText("") end) 
-    end)
-end
+    -- Buttons
+    local btnFrame = CreateFrame("Frame", nil, self.MainFrame)
+    btnFrame:SetSize(360, 50)
+    btnFrame:SetPoint("BOTTOM", 0, 10)
 
-function SafeMobileExecutor:CreateStatusBar()
+    self.ExecuteBtn = CreateFrame("Button", nil, btnFrame, "UIPanelButtonTemplate")
+    self.ExecuteBtn:SetSize(100, 35)
+    self.ExecuteBtn:SetPoint("LEFT", 30, 0)
+    self.ExecuteBtn:SetText("EXECUTE")
+    self.ExecuteBtn:SetScript("OnClick", function() self:ExecuteScript() end)
+
+    self.ClearBtn = CreateFrame("Button", nil, btnFrame, "UIPanelButtonTemplate")
+    self.ClearBtn:SetSize(100, 35)
+    self.ClearBtn:SetPoint("RIGHT", -30, 0)
+    self.ClearBtn:SetText("CLEAR")
+    self.ClearBtn:SetScript("OnClick", function() self.Editor:SetText("") end)
+
+    -- Status
     self.StatusBar = CreateFrame("Frame", nil, self.MainFrame)
-    self.StatusBar:SetSize(400, 30)
+    self.StatusBar:SetSize(380, 25)
     self.StatusBar:SetPoint("BOTTOM")
     self.StatusBar:SetBackdrop({ bgFile = "Interface\\Tooltips\\UI-Tooltip-Background" })
-    self.StatusBar:SetBackdropColor(0, 0.3, 0, 0.9)
-    
+    self.StatusBar:SetBackdropColor(0, 0.3, 0, 0.8)
+
     self.StatusText = self.StatusBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     self.StatusText:SetPoint("CENTER")
-    self.StatusText:SetText("🛡️ SAFE MODE: No nil value errors detected")
-    self.StatusText:SetTextColor(0, 1, 0)
+    self.StatusText:SetText("✅ Ready - Android Executor")
 end
 
-function SafeMobileExecutor:LoadSafeScripts()
-    -- Scripts yang aman dan sudah di-test
-    self.SafeScripts = {
+function AndroidExecutor:LoadScripts()
+    self.Scripts = {
         {
-            name = "🛡️ Safe Print Test",
-            code = [[
--- Safe printing test
-print("🛡️ Safe Executor Test Started")
-
--- Protected function calls
-local function safePrint(msg)
-    if type(print) == "function" then
-        print("✅ " .. tostring(msg))
-    end
-end
-
-safePrint("Function call successful")
-safePrint("No nil value errors")
-print("🎉 Test completed safely!")
-]]
+            name = "Test Print",
+            code = "print('📱 Android Test Successful!')\nfor i=1,5 do\n    print('Count: '..i)\n    wait(1)\nend"
         },
         {
-            name = "📱 Mobile UI Check",
-            code = [[
--- Safe UI checking
-print("📱 Checking Mobile UI...")
-
--- Safe element checking
-local function safeCheckElement(element)
-    if element and element.IsVisible then
-        return element:IsVisible()
-    end
-    return false
-end
-
--- Check common UI elements safely
-local elements = {"UIParent", "Minimap", "ActionBar"}
-for _, element in pairs(elements) do
-    local frame = _G[element]
-    if frame then
-        print("✅ " .. element .. " found")
-    else
-        print("⚠️ " .. element .. " not found (safe)")
-    end
-end
-
-print("📊 UI check completed safely")
-]]
+            name = "Simple Loop", 
+            code = "for i=1,10 do\n    print('Loop: '..i)\n    wait(0.5)\nend"
         },
         {
-            name = "⚡ Performance Monitor",
-            code = [[
--- Safe performance monitoring
-print("⚡ Performance Monitor Started")
-
-local startTime = os.time()
-local iterations = 0
-
--- Safe loop with protection
-while iterations < 10 do
-    iterations = iterations + 1
-    
-    -- Safe delay
-    if type(wait) == "function" then
-        wait(0.5)
-    end
-    
-    print("📊 Iteration: " .. iterations .. " - Time: " .. os.time())
-    
-    -- Prevent infinite loops
-    if iterations >= 10 then
-        break
-    end
-end
-
-local totalTime = os.time() - startTime
-print("✅ Performance test completed in " .. totalTime .. " seconds")
-]]
+            name = "Math Test",
+            code = "local a = 10\nlocal b = 20\nprint('Math: '..a..' + '..b..' = '..(a+b))"
         },
         {
-            name = "🎮 Game Object Scanner",
-            code = [[
--- Safe game object scanning
-print("🎮 Scanning game objects...")
-
--- Safe workspace checking
-if game and game:FindFirstChild("Workspace") then
-    print("✅ Workspace found")
-    
-    -- Safe children iteration
-    local children = game.Workspace:GetChildren()
-    local count = 0
-    
-    for i = 1, math.min(#children, 5) do
-        if children[i] then
-            count = count + 1
-            print("📦 " .. children[i].ClassName .. ": " .. children[i].Name)
-        end
-    end
-    
-    print("📊 Found " .. count .. " objects (safe scan)")
-else
-    print("⚠️ Workspace not accessible (safe)")
-end
-
-print("🎯 Object scan completed")
-]]
-        },
-        {
-            name = "🔄 Safe Auto Clicker",
-            code = [[
--- Safe auto clicker simulation
-print("🔄 Safe Auto Clicker Started")
-
-local clickCount = 0
-local maxClicks = 15
-
--- Protected loop
-while clickCount < maxClicks do
-    clickCount = clickCount + 1
-    
-    -- Safe print
-    if type(print) == "function" then
-        print("👆 Safe Click: " .. clickCount .. "/" .. maxClicks)
-    end
-    
-    -- Safe delay
-    if type(wait) == "function" then
-        wait(1)
-    else
-        break -- Exit if wait is nil
-    end
-end
-
-print("✅ Auto clicker finished safely")
-]]
-        },
-        {
-            name = "📊 System Info",
-            code = [[
--- Safe system information
-print("📊 System Information:")
-
--- Safe environment checks
-local checks = {
-    {"print function", type(print) == "function"},
-    {"wait function", type(wait) == "function"},
-    {"game object", type(game) == "userdata"},
-    {"workspace", game:FindFirstChild("Workspace") ~= nil}
-}
-
-for _, check in pairs(checks) do
-    if check[2] then
-        print("✅ " .. check[1])
-    else
-        print("⚠️ " .. check[1] .. " (not available)")
-    end
-end
-
-print("🛡️ Environment check completed safely")
-]]
+            name = "Function Test",
+            code = "local function test()\n    return 'Function Working!'\nend\nprint(test())"
         }
     }
     
     self:RefreshScriptList()
 end
 
-function SafeMobileExecutor:RefreshScriptList()
-    -- Clear existing buttons safely
+function AndroidExecutor:RefreshScriptList()
     for _, btn in ipairs(self.ScriptButtons or {}) do
-        pcall(function() btn:Hide() end)
+        btn:Hide()
     end
-    
+
     self.ScriptButtons = {}
-    
-    -- Create safe script buttons
-    for i, script in ipairs(self.SafeScripts) do
+
+    for i, script in ipairs(self.Scripts) do
         local btn = CreateFrame("Button", nil, self.ScriptContent)
-        btn:SetSize(320, 28)
-        btn:SetPoint("TOP", 0, -((i-1) * 32))
-        
-        -- Safe highlight
-        local highlight = btn:CreateTexture()
-        highlight:SetAllPoints()
-        highlight:SetColorTexture(0.3, 0.5, 1, 0.3)
-        pcall(function() btn:SetHighlightTexture(highlight) end)
-        
+        btn:SetSize(300, 25)
+        btn:SetPoint("TOP", 0, -((i-1)*30))
+
         local text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormal")
         text:SetPoint("LEFT", 10, 0)
         text:SetText(script.name)
-        text:SetTextColor(0.8, 0.9, 1)
-        
-        btn:SetScript("OnClick", function() 
-            pcall(function() self:LoadScript(script) end) 
-        end)
-        
+        text:SetTextColor(1, 1, 1)
+
+        btn:SetScript("OnClick", function() self:LoadScript(script) end)
+
         table.insert(self.ScriptButtons, btn)
     end
-    
-    self.ScriptContent:SetHeight(#self.SafeScripts * 32)
+
+    self.ScriptContent:SetHeight(#self.Scripts * 30)
 end
 
-function SafeMobileExecutor:LoadScript(script)
+function AndroidExecutor:LoadScript(script)
     self.Editor:SetText(script.code)
-    self.StatusText:SetText("📱 Loaded: " .. script.name)
-    print("🛡️ Safe script loaded: " .. script.name)
+    self.StatusText:SetText("Loaded: " .. script.name)
 end
 
-function SafeMobileExecutor:SafeExecute()
+function AndroidExecutor:ExecuteScript()
     local code = self.Editor:GetText()
     
     if not code or code == "" then
-        self.StatusText:SetText("📝 No script to execute")
+        self.StatusText:SetText("No script to execute")
         return
     end
-    
-    self.StatusText:SetText("🛡️ Safe executing...")
-    
-    -- Extra safe execution dengan multiple protection
+
+    self.StatusText:SetText("Executing...")
+
+    -- Safe execution
     local success, result = pcall(function()
-        -- Pre-check untuk common errors
         if not loadstring then
-            error("loadstring function not available")
+            return "loadstring not available"
         end
         
-        local compiled, compileError = loadstring(code)
-        if not compiled then
-            error("Compile error: " .. tostring(compileError))
+        local fn, err = loadstring(code)
+        if not fn then
+            return "Compile error: " .. tostring(err)
         end
         
-        -- Set safe environment
-        local safeEnv = {
-            print = print,
-            wait = wait,
-            warn = warn,
-            type = type,
-            tostring = tostring,
-            pairs = pairs,
-            ipairs = ipairs,
-            next = next,
-            math = math,
-            string = string,
-            table = table,
-            os = { time = os.time }
-        }
-        
-        setfenv(compiled, setmetatable(safeEnv, {
-            __index = function(t, k)
-                return nil -- Block access to unsafe globals
-            end
-        }))
-        
-        return compiled()
+        return fn()
     end)
-    
+
     if success then
-        self.StatusText:SetText("✅ Executed safely!")
-        print("🎉 Script executed without errors!")
+        self.StatusText:SetText("Execution complete!")
+        print("✅ Script executed successfully!")
     else
-        self.StatusText:SetText("❌ Safe error: " .. tostring(result))
-        print("🛡️ Protected error: " .. tostring(result))
+        self.StatusText:SetText("Error: " .. tostring(result))
+        print("❌ Execution error: " .. tostring(result))
     end
 end
 
-function SafeMobileExecutor:SafeInject()
-    self.StatusText:SetText("💉 Safe injecting...")
-    
-    pcall(function()
-        C_Timer.After(1, function()
-            self.StatusText:SetText("✅ Injected safely!")
-            print("🎯 Script injected with protection")
-            
-            -- Auto execute after safe injection
-            C_Timer.After(0.5, function()
-                self:SafeExecute()
-            end)
-        end)
-    end)
-end
-
-function SafeMobileExecutor:OnNavClick(action)
+function AndroidExecutor:OnNavClick(action)
     if action == "scripts" then
-        self.StatusText:SetText("📜 Safe scripts loaded")
+        self.StatusText:SetText("Scripts panel")
     elseif action == "editor" then
-        pcall(function() self.Editor:SetFocus() end)
-        self.StatusText:SetText("✏️ Safe editor focused")
-    elseif action == "tools" then
-        self:ShowSafeTools()
-    elseif action == "safe" then
-        self:ShowSafeInfo()
+        self.Editor:SetFocus()
+        self.StatusText:SetText("Editor focused")
+    elseif action == "run" then
+        self:ExecuteScript()
     end
 end
 
-function SafeMobileExecutor:ShowSafeTools()
-    print("🛠️ SAFE TOOLS:")
-    print("✅ Protected execution environment")
-    print("✅ No nil value calls")
-    print("✅ Safe function access")
-    print("✅ Error containment")
-    print("✅ Mobile optimized")
+function AndroidExecutor:ConsoleMode()
+    print("📱 ANDROID CONSOLE EXECUTOR")
+    print("Commands: /android, /exec")
+    print("Type your scripts directly in console!")
     
-    self.StatusText:SetText("🛠️ Safe tools info displayed")
+    self.ConsoleMode = true
 end
 
-function SafeMobileExecutor:ShowSafeInfo()
-    print("🛡️ SAFE EXECUTOR INFO:")
-    print("✅ Protection: Active")
-    print("✅ Errors: Contained") 
-    print("✅ Performance: Optimized")
-    print("✅ Platform: Android Mobile")
-    print("✅ Status: Operational")
-    
-    self.StatusText:SetText("🛡️ Safe system operational")
-end
+function AndroidExecutor:Toggle()
+    if self.ConsoleMode then
+        print("📱 Android Console Executor Active")
+        print("Paste your scripts in the console")
+        return
+    end
 
-function SafeMobileExecutor:Toggle()
     if self.MainFrame:IsShown() then
-        pcall(function() self.MainFrame:Hide() end)
-        print("📱 Safe executor closed")
+        self.MainFrame:Hide()
+        print("📱 Executor closed")
     else
-        pcall(function() self.MainFrame:Show() end)
-        print("🛡️ Safe Mobile Executor opened")
-        print("✅ Protection against nil value errors")
+        self.MainFrame:Show()
+        print("📱 Android Executor opened")
     end
 end
 
--- Initialize dengan protection
-local success, err = pcall(function() 
-    SafeMobileExecutor:Init() 
+-- Initialize
+local success, err = pcall(function()
+    AndroidExecutor:CreateUI()
+    AndroidExecutor:LoadScripts()
 end)
 
 if not success then
-    print("❌ Safe Executor failed to load: " .. tostring(err))
+    print("❌ UI Creation failed: " .. tostring(err))
+    AndroidExecutor:ConsoleMode()
 else
-    -- Safe slash commands
-    SLASH_SAFEMOBILE1 = "/safemobile"
-    SLASH_SAFEMOBILE2 = "/smobile" 
-    SLASH_SAFEMOBILE3 = "/safe"
-    SlashCmdList["SAFEMOBILE"] = function()
-        pcall(function() SafeMobileExecutor:Toggle() end)
-    end
-
-    print("🛡️ SAFE MOBILE EXECUTOR LOADED!")
-    print("📱 Commands: /safemobile, /smobile, /safe")
-    print("✅ Protection against: nil value, infinite yield, stack errors")
+    print("✅ Android Executor UI created successfully!")
 end
 
-return SafeMobileExecutor
+-- Simple slash commands (no SAFEMOBILE reference)
+SLASH_ANDROID1 = "/android"
+SLASH_ANDROID2 = "/exec"
+SLASH_ANDROID3 = "/ae"
+SlashCmdList["ANDROID"] = function()
+    AndroidExecutor:Toggle()
+end
+
+print("📱 ANDROID EXECUTOR LOADED!")
+print("📱 Commands: /android, /exec, /ae")
+print("📱 Optimized for mobile devices")
+
+return AndroidExecutor
