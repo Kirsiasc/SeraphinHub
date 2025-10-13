@@ -1,187 +1,222 @@
--- 📱 Roblox Android Executor (Fixed & Optimized)
-local RobloxExecutor = {}
+-- RONIX ANDROID STYLE EXECUTOR UI by Kirsia
+-- Full Custom UI System (No External Library)
 
--- Check environment
-function RobloxExecutor:IsRoblox()
-    return typeof(game) == "Instance" and game:GetService("Players") ~= nil
+local RonixUI = {}
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer or Players.PlayerAdded:Wait()
+local UserInputService = game:GetService("UserInputService")
+
+-- ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "RonixAndroidUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main Frame (Draggable)
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 700, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -350, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+MainFrame.BackgroundTransparency = 0.15
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+-- UICorner
+local corner = Instance.new("UICorner", MainFrame)
+corner.CornerRadius = UDim.new(0, 10)
+
+-- Drop shadow (Glow effect)
+local shadow = Instance.new("ImageLabel", MainFrame)
+shadow.ZIndex = -1
+shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+shadow.Size = UDim2.new(1, 60, 1, 60)
+shadow.Image = "rbxassetid://5028857084"
+shadow.ImageColor3 = Color3.fromRGB(80, 80, 150)
+shadow.ImageTransparency = 0.5
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(24, 24, 276, 276)
+
+-- Dragging
+local dragging = false
+local dragInput, dragStart, startPos
+
+MainFrame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = MainFrame.Position
+	end
+end)
+MainFrame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+MainFrame.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = false
+	end
+end)
+
+-- Left Sidebar
+local Sidebar = Instance.new("Frame")
+Sidebar.Size = UDim2.new(0, 180, 1, 0)
+Sidebar.Position = UDim2.new(0, 0, 0, 0)
+Sidebar.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+Sidebar.BorderSizePixel = 0
+Sidebar.Parent = MainFrame
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 10)
+
+-- Sidebar Title
+local Title = Instance.new("TextLabel", Sidebar)
+Title.Size = UDim2.new(1, 0, 0, 60)
+Title.BackgroundTransparency = 1
+Title.Text = "RONIX\nANDROID"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 20
+
+-- Sidebar Buttons
+local buttons = {"Search", "Editor", "Folder", "Config", "Close"}
+local selectedButton = nil
+
+for i, name in ipairs(buttons) do
+	local btn = Instance.new("TextButton", Sidebar)
+	btn.Size = UDim2.new(1, -30, 0, 40)
+	btn.Position = UDim2.new(0, 15, 0, 70 + (i - 1) * 50)
+	btn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+	btn.Text = name
+	btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+	btn.TextSize = 16
+	btn.Font = Enum.Font.Gotham
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+	btn.MouseEnter:Connect(function()
+		if btn ~= selectedButton then
+			btn.BackgroundColor3 = Color3.fromRGB(45, 45, 65)
+		end
+	end)
+	btn.MouseLeave:Connect(function()
+		if btn ~= selectedButton then
+			btn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+		end
+	end)
+	btn.MouseButton1Click:Connect(function()
+		if selectedButton then
+			selectedButton.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+		end
+		selectedButton = btn
+		btn.BackgroundColor3 = Color3.fromRGB(80, 80, 150)
+		RonixUI:ShowTab(name)
+	end)
 end
 
-function RobloxExecutor:Init()
-    if not self:IsRoblox() then
-        warn("❌ Not in Roblox environment!")
-        return
-    end
+-- Right Content Panel
+local Content = Instance.new("Frame", MainFrame)
+Content.Size = UDim2.new(1, -200, 1, -20)
+Content.Position = UDim2.new(0, 190, 0, 10)
+Content.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+Content.BorderSizePixel = 0
+Instance.new("UICorner", Content).CornerRadius = UDim.new(0, 10)
 
-    print("📱 Initializing Roblox Android Executor...")
-    self:CreateGUI()
-    self:LoadScripts()
-    self.ScreenGui.Enabled = true
+-- Tabs Row
+local TabRow = Instance.new("Frame", Content)
+TabRow.Size = UDim2.new(1, -20, 0, 40)
+TabRow.Position = UDim2.new(0, 10, 0, 10)
+TabRow.BackgroundTransparency = 1
+
+local Tabs = {"Server", "Auto Execute", "Console"}
+local ActiveTab = nil
+local TabContents = {}
+
+for i, tabName in ipairs(Tabs) do
+	local tabBtn = Instance.new("TextButton", TabRow)
+	tabBtn.Size = UDim2.new(0, 120, 1, 0)
+	tabBtn.Position = UDim2.new(0, (i - 1) * 130, 0, 0)
+	tabBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+	tabBtn.Text = tabName
+	tabBtn.TextColor3 = Color3.fromRGB(220, 220, 255)
+	tabBtn.Font = Enum.Font.GothamSemibold
+	tabBtn.TextSize = 14
+	Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 8)
+
+	local tabFrame = Instance.new("Frame", Content)
+	tabFrame.Size = UDim2.new(1, -20, 1, -60)
+	tabFrame.Position = UDim2.new(0, 10, 0, 50)
+	tabFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
+	tabFrame.Visible = false
+	Instance.new("UICorner", tabFrame).CornerRadius = UDim.new(0, 10)
+
+	TabContents[tabName] = tabFrame
+
+	tabBtn.MouseButton1Click:Connect(function()
+		for _, f in pairs(TabContents) do f.Visible = false end
+		tabFrame.Visible = true
+		if ActiveTab then
+			ActiveTab.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+		end
+		tabBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 150)
+		ActiveTab = tabBtn
+	end)
 end
 
-function RobloxExecutor:CreateGUI()
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer or Players.PlayerAdded:Wait()
+-- Example content: Server Tab
+local serverTab = TabContents["Server"]
+local title = Instance.new("TextLabel", serverTab)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "Server Hop"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.Position = UDim2.new(0, 10, 0, 10)
+title.TextXAlignment = Enum.TextXAlignment.Left
 
-    self.ScreenGui = Instance.new("ScreenGui")
-    self.ScreenGui.Name = "AndroidExecutor"
-    self.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    self.ScreenGui.ResetOnSpawn = false
-    self.ScreenGui.Parent = player:WaitForChild("PlayerGui")
+local desc = Instance.new("TextLabel", serverTab)
+desc.Size = UDim2.new(1, -20, 0, 40)
+desc.Position = UDim2.new(0, 10, 0, 40)
+desc.TextWrapped = true
+desc.Text = "Starts a New Session, switches Servers."
+desc.TextColor3 = Color3.fromRGB(180, 180, 180)
+desc.BackgroundTransparency = 1
+desc.Font = Enum.Font.Gotham
+desc.TextSize = 14
+desc.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Main Frame
-    self.MainFrame = Instance.new("Frame")
-    self.MainFrame.Size = UDim2.new(0, 400, 0, 550)
-    self.MainFrame.Position = UDim2.new(0.5, -200, 0.5, -275)
-    self.MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-    self.MainFrame.BorderColor3 = Color3.fromRGB(0, 200, 255)
-    self.MainFrame.BorderSizePixel = 2
-    self.MainFrame.Parent = self.ScreenGui
+local btn1 = Instance.new("TextButton", serverTab)
+btn1.Size = UDim2.new(0, 200, 0, 35)
+btn1.Position = UDim2.new(0, 10, 0, 90)
+btn1.BackgroundColor3 = Color3.fromRGB(60, 60, 120)
+btn1.Text = "Server Hop"
+btn1.TextColor3 = Color3.new(1, 1, 1)
+btn1.Font = Enum.Font.GothamBold
+btn1.TextSize = 14
+Instance.new("UICorner", btn1).CornerRadius = UDim.new(0, 6)
+btn1.MouseButton1Click:Connect(function()
+	game:GetService("TeleportService"):Teleport(game.PlaceId)
+end)
 
-    -- Drag Function
-    local dragging, dragInput, dragStart, startPos
-    self.MainFrame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = self.MainFrame.Position
-        end
-    end)
+local btn2 = btn1:Clone()
+btn2.Parent = serverTab
+btn2.Text = "Rejoin Server"
+btn2.Position = UDim2.new(0, 10, 0, 135)
+btn2.MouseButton1Click:Connect(function()
+	game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
+end)
 
-    self.MainFrame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
+-- Default Tab
+TabContents["Server"].Visible = true
 
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            self.MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-
-    self.MainFrame.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
-    end)
-
-    -- Title Bar
-    local titleBar = Instance.new("Frame")
-    titleBar.Size = UDim2.new(1, 0, 0, 40)
-    titleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-    titleBar.Parent = self.MainFrame
-
-    local titleText = Instance.new("TextLabel")
-    titleText.Size = UDim2.new(1, -40, 1, 0)
-    titleText.Position = UDim2.new(0, 10, 0, 0)
-    titleText.BackgroundTransparency = 1
-    titleText.Text = "📱 ROBLOX ANDROID EXECUTOR"
-    titleText.TextColor3 = Color3.fromRGB(0, 255, 255)
-    titleText.TextSize = 18
-    titleText.Font = Enum.Font.GothamBold
-    titleText.TextXAlignment = Enum.TextXAlignment.Left
-    titleText.Parent = titleBar
-
-    -- Close Button
-    local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 30, 0, 30)
-    closeBtn.Position = UDim2.new(1, -35, 0, 5)
-    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    closeBtn.Text = "X"
-    closeBtn.TextColor3 = Color3.new(1, 1, 1)
-    closeBtn.TextSize = 16
-    closeBtn.Parent = titleBar
-    closeBtn.MouseButton1Click:Connect(function()
-        self.ScreenGui.Enabled = false
-    end)
-
-    -- Script Editor
-    self.Editor = Instance.new("TextBox")
-    self.Editor.Size = UDim2.new(1, -20, 0, 200)
-    self.Editor.Position = UDim2.new(0, 10, 0, 60)
-    self.Editor.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    self.Editor.TextColor3 = Color3.fromRGB(255, 255, 255)
-    self.Editor.TextSize = 14
-    self.Editor.MultiLine = true
-    self.Editor.TextWrapped = true
-    self.Editor.Font = Enum.Font.Code
-    self.Editor.TextYAlignment = Enum.TextYAlignment.Top
-    self.Editor.Text = "-- Roblox Android Executor Ready!\nprint('📱 Hello Mobile User!')"
-    self.Editor.Parent = self.MainFrame
-
-    -- Execute Button
-    self.ExecuteBtn = Instance.new("TextButton")
-    self.ExecuteBtn.Size = UDim2.new(0.45, 0, 0, 40)
-    self.ExecuteBtn.Position = UDim2.new(0.05, 0, 0, 280)
-    self.ExecuteBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-    self.ExecuteBtn.Text = "🚀 EXECUTE"
-    self.ExecuteBtn.TextColor3 = Color3.new(1, 1, 1)
-    self.ExecuteBtn.TextSize = 16
-    self.ExecuteBtn.Parent = self.MainFrame
-    self.ExecuteBtn.MouseButton1Click:Connect(function()
-        self:ExecuteScript()
-    end)
-
-    -- Clear Button
-    self.ClearBtn = Instance.new("TextButton")
-    self.ClearBtn.Size = UDim2.new(0.45, 0, 0, 40)
-    self.ClearBtn.Position = UDim2.new(0.5, 0, 0, 280)
-    self.ClearBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 0)
-    self.ClearBtn.Text = "🗑️ CLEAR"
-    self.ClearBtn.TextColor3 = Color3.new(1, 1, 1)
-    self.ClearBtn.TextSize = 16
-    self.ClearBtn.Parent = self.MainFrame
-    self.ClearBtn.MouseButton1Click:Connect(function()
-        self.Editor.Text = ""
-    end)
-
-    -- Status
-    self.StatusBar = Instance.new("TextLabel")
-    self.StatusBar.Size = UDim2.new(1, -20, 0, 25)
-    self.StatusBar.Position = UDim2.new(0, 10, 0, 330)
-    self.StatusBar.BackgroundColor3 = Color3.fromRGB(0, 60, 0)
-    self.StatusBar.Text = "✅ Executor Ready!"
-    self.StatusBar.TextColor3 = Color3.fromRGB(0, 255, 0)
-    self.StatusBar.TextSize = 14
-    self.StatusBar.Font = Enum.Font.Gotham
-    self.StatusBar.Parent = self.MainFrame
+function RonixUI:ShowTab(name)
+	print("Opened sidebar tab:", name)
 end
 
-function RobloxExecutor:LoadScripts()
-    -- (you can add your script list here later)
-end
-
-function RobloxExecutor:ExecuteScript()
-    local code = self.Editor.Text
-    if code == "" then
-        self.StatusBar.Text = "⚠️ No script to execute!"
-        return
-    end
-
-    local success, result = pcall(function()
-        local fn = loadstring(code)
-        if fn then return fn() end
-    end)
-
-    if success then
-        self.StatusBar.Text = "✅ Script executed successfully!"
-    else
-        self.StatusBar.Text = "❌ Error: " .. tostring(result)
-    end
-end
-
-function RobloxExecutor:Toggle()
-    self.ScreenGui.Enabled = not self.ScreenGui.Enabled
-end
-
--- Initialize
-if RobloxExecutor:IsRoblox() then
-    RobloxExecutor:Init()
-    getgenv().ToggleExecutor = function()
-        RobloxExecutor:Toggle()
-    end
-    print("📱 ROBLOX ANDROID EXECUTOR LOADED! Use ToggleExecutor() to open/close.")
-else
-    warn("❌ This script can only run in Roblox environment.")
-end
+print("✅ Ronix Android UI Loaded Successfully.")
