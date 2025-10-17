@@ -635,14 +635,53 @@ Settings:Toggle({
     end
 })
 
-
+Settings:Section({
+    Title = "Server",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
 
 Settings:Button({
-    Title = "Infinite Yield",
-    Desc = "Script Other",
+    Title = "Rejoin",
+    Desc = "Reconnect to current server",
     Callback = function()
-        loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+        local TeleportService = game:GetService("TeleportService")
+        local PlaceId = game.PlaceId
+        local Player = game.Players.LocalPlayer
+        TeleportService:Teleport(PlaceId, Player)
     end
+})
+
+Settings:Button({
+    Title = "Server Hop",
+    Desc = "Teleport to a different server",
+    Callback = function()
+        local HttpService = game:GetService("HttpService")
+        local TeleportService = game:GetService("TeleportService")
+        local PlaceId = game.PlaceId
+        local Servers = {}
+        local success, response = pcall(function()
+            return game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+        end)
+        if success and response then
+            local data = HttpService:JSONDecode(response)
+            for _, v in pairs(data.data) do
+                if v.playing < v.maxPlayers and v.id ~= game.JobId then
+                    table.insert(Servers, v.id)
+                end
+            end
+        end
+        if #Servers > 0 then
+            local randomServer = Servers[math.random(1, #Servers)]
+            TeleportService:TeleportToPlaceInstance(PlaceId, randomServer, game.Players.LocalPlayer)
+        end
+    end
+})
+
+Settings:Section({
+    Title = "Config",
+    TextXAlignment = "Left",
+    TextSize = 17,
 })
 
 Settings:Button({
@@ -697,3 +736,17 @@ task.spawn(function()
         end
     end
 end)
+
+Settings:Section({
+    Title = "other scripts",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+Settings:Button({
+    Title = "Infinite Yield",
+    Desc = "Script Other",
+    Callback = function()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+    end
+})
