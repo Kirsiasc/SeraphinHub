@@ -66,7 +66,7 @@ Info:Section({
 local Combat = Window:Tab({ Title = "Combat", Icon = "sword" })
 
 local hitboxEnabled = false
-Visuals:Toggle({
+Combat:Toggle({
     Title = "Hitbox Extender",
     Default = false,
     Callback = function(v)
@@ -635,14 +635,7 @@ Settings:Toggle({
     end
 })
 
-Settings:Colorpicker({
-    Title = "UI Color",
-    Default = Color3.fromRGB(180, 0, 255),
-    Transparency = 0,
-    Callback = function(color)
-        print("UI Color changed:", color)
-    end
-})
+
 
 Settings:Button({
     Title = "Infinite Yield",
