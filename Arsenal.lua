@@ -65,76 +65,49 @@ Info:Section({
 
 local Combat = Window:Tab({ Title = "Combat", Icon = "sword" })
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
-
-_G.AutoHit = false
-_G.AutoHitRadius = 100
-
-local circle = Drawing.new("Circle")
-circle.Thickness = 1.5
-circle.NumSides = 100
-circle.Radius = 100
-circle.Filled = false
-circle.Color = Color3.fromRGB(170, 0, 255)
-circle.Visible = false
-
-Combat:Section({
-    Title = "Auto Hit",
-    TextXAlignment = "Left",
-    TextSize = 17,
-})
-
-Combat:Toggle({
-    Title = "Auto Hit",
+local hitboxEnabled = false
+Visuals:Toggle({
+    Title = "Hitbox Extender",
     Default = false,
-    Callback = function(state)
-        _G.AutoHit = state
-        circle.Visible = state
-    end
-})
-
-Combat:Slider({
-    Title = "Hit Radius",
-    Min = 10,
-    Max = 100,
-    Default = 100,
-    Callback = function(value)
-        _G.AutoHitRadius = value
-        circle.Radius = value
-    end
-})
-
-RunService.RenderStepped:Connect(function()
-    if _G.AutoHit and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        local screenPos, onScreen = Camera:WorldToViewportPoint(hrp.Position)
-        if onScreen then
-            circle.Position = Vector2.new(screenPos.X, screenPos.Y)
-        end
-    end
-end)
-
-RunService.Heartbeat:Connect(function()
-    if _G.AutoHit then
-        local char = LocalPlayer.Character
-        local tool = char and char:FindFirstChildOfClass("Tool")
-        if char and tool and tool:FindFirstChild("Handle") then
-            for _, target in pairs(Players:GetPlayers()) do
-                if target ~= LocalPlayer and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                    local distance = (target.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
-                    if distance < _G.AutoHitRadius then
-                        pcall(function()
-                            tool:Activate()
-                        end)
+    Callback = function(v)
+        hitboxEnabled = v
+        if v then
+            task.spawn(function()
+                while hitboxEnabled do
+                    task.wait(0.5)
+                    for _, enemy in pairs(Players:GetPlayers()) do
+                        if enemy.Team ~= LocalPlayer.Team and enemy.Character and enemy.Character:FindFirstChild("Head") then
+                            local head = enemy.Character.Head
+                            if not head:FindFirstChild("HitboxNeon") then
+                                local adorn = Instance.new("BoxHandleAdornment")
+                                adorn.Name = "HitboxNeon"
+                                adorn.Adornee = head
+                                adorn.Parent = head
+                                adorn.AlwaysOnTop = true
+                                adorn.ZIndex = 5
+                                adorn.Size = Vector3.new(5, 5, 5)
+                                adorn.Transparency = 0.3
+                                adorn.Color3 = Color3.fromRGB(170, 0, 255)
+                            end
+                            head.Size = Vector3.new(5, 5, 5)
+                            head.CanCollide = false
+                        end
                     end
                 end
-            end
+
+                for _, enemy in pairs(Players:GetPlayers()) do
+                    if enemy.Character and enemy.Character:FindFirstChild("Head") then
+                        local head = enemy.Character.Head
+                        if head:FindFirstChild("HitboxNeon") then
+                            head.HitboxNeon:Destroy()
+                        end
+                        head.Size = Vector3.new(1, 1, 1)
+                    end
+                end
+            end)
         end
     end
-end)
+})
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -341,49 +314,52 @@ Combat:Toggle({
 
 local Visuals = Window:Tab({ Title = "Visuals", Icon = "eye" })
 
-local hitboxEnabled = false
-Visuals:Toggle({
-    Title = "Hitbox Extender",
-    Default = false,
-    Callback = function(v)
-        hitboxEnabled = v
-        if v then
-            task.spawn(function()
-                while hitboxEnabled do
-                    task.wait(0.5)
-                    for _, enemy in pairs(Players:GetPlayers()) do
-                        if enemy.Team ~= LocalPlayer.Team and enemy.Character and enemy.Character:FindFirstChild("Head") then
-                            local head = enemy.Character.Head
-                            if not head:FindFirstChild("HitboxNeon") then
-                                local adorn = Instance.new("BoxHandleAdornment")
-                                adorn.Name = "HitboxNeon"
-                                adorn.Adornee = head
-                                adorn.Parent = head
-                                adorn.AlwaysOnTop = true
-                                adorn.ZIndex = 5
-                                adorn.Size = Vector3.new(5, 5, 5)
-                                adorn.Transparency = 0.3
-                                adorn.Color3 = Color3.fromRGB(170, 0, 255)
-                            end
-                            head.Size = Vector3.new(5, 5, 5)
-                            head.CanCollide = false
-                        end
-                    end
-                end
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
-                for _, enemy in pairs(Players:GetPlayers()) do
-                    if enemy.Character and enemy.Character:FindFirstChild("Head") then
-                        local head = enemy.Character.Head
-                        if head:FindFirstChild("HitboxNeon") then
-                            head.HitboxNeon:Destroy()
-                        end
-                        head.Size = Vector3.new(1, 1, 1)
-                    end
-                end
-            end)
-        end
+_G.AutoHit = false
+
+Visuals:Toggle({
+    Title = "Auto Hit",
+    Default = false,
+    Callback = function(state)
+        _G.AutoHit = state
     end
 })
+
+local circle = Drawing.new("Circle")
+circle.Thickness = 2
+circle.NumSides = 100
+circle.Radius = 100
+circle.Filled = false
+circle.Color = Color3.fromRGB(170, 0, 255)
+circle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+circle.Visible = false
+
+RunService.RenderStepped:Connect(function()
+    circle.Visible = _G.AutoHit
+end)
+
+RunService.Heartbeat:Connect(function()
+    if _G.AutoHit then
+        local char = LocalPlayer.Character
+        local tool = char and char:FindFirstChildOfClass("Tool")
+        if char and tool and tool:FindFirstChild("Handle") then
+            for _, target in pairs(Players:GetPlayers()) do
+                if target ~= LocalPlayer and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (target.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
+                    if distance < 100 then
+                        pcall(function()
+                            tool:Activate()
+                        end)
+                    end
+                end
+            end
+        end
+    end
+end)
 
 Visuals:Toggle({
     Title = "ESP Highlight",
