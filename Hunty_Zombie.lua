@@ -14,7 +14,7 @@ local Window = WindUI:CreateWindow({
     Icon = "rbxassetid://120248611602330",
     Author = "KirsiaSC | Hunty Zombie",
     Folder = "SERAPHIN_HUB",
-    Size = UDim2.fromOffset(300, 400),
+    Size = UDim2.fromOffset(280, 320),
     Transparent = true,
     Theme = "Dark",
     SideBarWidth = 170,
@@ -23,7 +23,7 @@ local Window = WindUI:CreateWindow({
 
 Window:Tag({
     Title = "v0.0.0.1",
-    Color = Color3.fromHex("#9b4dff")
+    Color = Color3.fromRGB(180, 0, 255)
 })
 
 WindUI:Notify({
