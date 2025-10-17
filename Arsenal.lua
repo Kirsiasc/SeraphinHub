@@ -128,7 +128,7 @@ RunService.Heartbeat:Connect(function()
         for _, player in pairs(Players:GetPlayers()) do
             if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character:FindFirstChild("HumanoidRootPart") then
                 local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                if distance < 10 then
+                if distance < 100 then
                     player.Character.Humanoid:TakeDamage(5)
                 end
             end
