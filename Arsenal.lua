@@ -85,7 +85,7 @@ local LocalPlayer = Players.LocalPlayer
 
 _G.KillAura = false
 
-PlayersTab:Toggle({
+Combat:Toggle({
     Title = "Kill Aura",
     Default = false,
     Callback = function(state)
