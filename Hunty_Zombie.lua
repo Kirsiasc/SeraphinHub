@@ -10,7 +10,7 @@ else
 end
 
 local Window = WindUI:CreateWindow({
-    Title = "Seraphin - Hunty Zombie",
+    Title = "Seraphin",
     Icon = "rbxassetid://120248611602330",
     Author = "KirsiaSC | Hunty Zombie",
     Folder = "SERAPHIN_HUB",
@@ -22,7 +22,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:Tag({
-    Title = "v1.0.0",
+    Title = "v0.0.0.1",
     Color = Color3.fromHex("#9b4dff")
 })
 
