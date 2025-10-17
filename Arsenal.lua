@@ -22,7 +22,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:Tag({
-    Title = "v0.0.0.3",
+    Title = "v0.0.0.4",
     Color = Color3.fromRGB(180, 0, 255)
 })
 
@@ -121,6 +121,33 @@ Combat:Toggle({
         end
     end
 })
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local circle = Drawing.new("Circle")
+circle.Thickness = 1.5
+circle.NumSides = 100
+circle.Radius = 70
+circle.Filled = false
+circle.Color = Color3.fromRGB(170, 0, 255)
+circle.Visible = false
+
+Combat:Toggle({
+    Title = "Aim Circle",
+    Default = false,
+    Callback = function(state)
+        _G.AimCircle = state
+        circle.Visible = state
+    end
+})
+
+RunService.RenderStepped:Connect(function()
+    if _G.AimCircle then
+        local mouse = UserInputService:GetMouseLocation()
+        circle.Position = Vector2.new(mouse.X, mouse.Y + 36)
+    end
+end)
 
 local hitboxEnabled = false
 Combat:Toggle({
@@ -422,6 +449,24 @@ PlayersTab:Input({
         end
     end
 })
+
+PlayersTab:Toggle({
+    Title = "Noclip",
+    Default = false,
+    Callback = function(state)
+        _G.Noclip = state
+    end
+})
+
+game:GetService("RunService").Stepped:Connect(function()
+    if _G.Noclip and game.Players.LocalPlayer.Character then
+        for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
 
 PlayersTab:Toggle({
     Title = "Infinite Jump",
