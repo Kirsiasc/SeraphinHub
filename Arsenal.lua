@@ -79,6 +79,33 @@ Combat:Toggle({
     end
 })
 
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+_G.KillAura = false
+
+PlayersTab:Toggle({
+    Title = "Kill Aura",
+    Default = false,
+    Callback = function(state)
+        _G.KillAura = state
+    end
+})
+
+RunService.Heartbeat:Connect(function()
+    if _G.KillAura and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character:FindFirstChild("HumanoidRootPart") then
+                local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                if distance < 10 then
+                    player.Character.Humanoid:TakeDamage(5)
+                end
+            end
+        end
+    end
+end)
+
 Combat:Toggle({
     Title = "Aimbot",
     Default = false,
@@ -149,55 +176,18 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-local hitboxEnabled = false
-Combat:Toggle({
-    Title = "Hitbox Extender",
-    Default = false,
-    Callback = function(v)
-        hitboxEnabled = v
-        if v then
-            task.spawn(function()
-                while hitboxEnabled do
-                    task.wait(0.5)
-                    for _, enemy in pairs(Players:GetPlayers()) do
-                        if enemy.Team ~= LocalPlayer.Team and enemy.Character and enemy.Character:FindFirstChild("Head") then
-                            local head = enemy.Character.Head
-                            if not head:FindFirstChild("HitboxNeon") then
-                                local adorn = Instance.new("BoxHandleAdornment")
-                                adorn.Name = "HitboxNeon"
-                                adorn.Adornee = head
-                                adorn.Parent = head
-                                adorn.AlwaysOnTop = true
-                                adorn.ZIndex = 5
-                                adorn.Size = Vector3.new(5, 5, 5)
-                                adorn.Transparency = 0.3
-                                adorn.Color3 = Color3.fromRGB(170, 0, 255)
-                            end
-                            head.Size = Vector3.new(5, 5, 5)
-                            head.CanCollide = false
-                        end
-                    end
-                end
-
-                for _, enemy in pairs(Players:GetPlayers()) do
-                    if enemy.Character and enemy.Character:FindFirstChild("Head") then
-                        local head = enemy.Character.Head
-                        if head:FindFirstChild("HitboxNeon") then
-                            head.HitboxNeon:Destroy()
-                        end
-                        head.Size = Vector3.new(1, 1, 1)
-                    end
-                end
-            end)
-        end
-    end
-})
-
-Combat:Section({ 
-    Title = "No delay [Need Update]",
+Combat:Section({
+    Title = "No delay",
     TextXAlignment = "Left",
     TextSize = 17,
 })
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+_G.NoRecoil = false
+_G.NoSpread = false
 
 Combat:Toggle({
     Title = "No Recoil",
@@ -214,6 +204,19 @@ Combat:Toggle({
         _G.NoSpread = state
     end
 })
+
+RunService.Stepped:Connect(function()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChildOfClass("Tool") then
+        local tool = char:FindFirstChildOfClass("Tool")
+        if tool:FindFirstChild("CameraRecoil") and _G.NoRecoil then
+            tool.CameraRecoil.Value = 0
+        end
+        if tool:FindFirstChild("Spread") and _G.NoSpread then
+            tool.Spread.Value = 0
+        end
+    end
+end)
 
 Combat:Section({ 
     Title = "Attack",
@@ -280,6 +283,50 @@ Combat:Toggle({
 })
 
 local Visuals = Window:Tab({ Title = "Visuals", Icon = "eye" })
+
+local hitboxEnabled = false
+Visuals:Toggle({
+    Title = "Hitbox Extender",
+    Default = false,
+    Callback = function(v)
+        hitboxEnabled = v
+        if v then
+            task.spawn(function()
+                while hitboxEnabled do
+                    task.wait(0.5)
+                    for _, enemy in pairs(Players:GetPlayers()) do
+                        if enemy.Team ~= LocalPlayer.Team and enemy.Character and enemy.Character:FindFirstChild("Head") then
+                            local head = enemy.Character.Head
+                            if not head:FindFirstChild("HitboxNeon") then
+                                local adorn = Instance.new("BoxHandleAdornment")
+                                adorn.Name = "HitboxNeon"
+                                adorn.Adornee = head
+                                adorn.Parent = head
+                                adorn.AlwaysOnTop = true
+                                adorn.ZIndex = 5
+                                adorn.Size = Vector3.new(5, 5, 5)
+                                adorn.Transparency = 0.3
+                                adorn.Color3 = Color3.fromRGB(170, 0, 255)
+                            end
+                            head.Size = Vector3.new(5, 5, 5)
+                            head.CanCollide = false
+                        end
+                    end
+                end
+
+                for _, enemy in pairs(Players:GetPlayers()) do
+                    if enemy.Character and enemy.Character:FindFirstChild("Head") then
+                        local head = enemy.Character.Head
+                        if head:FindFirstChild("HitboxNeon") then
+                            head.HitboxNeon:Destroy()
+                        end
+                        head.Size = Vector3.new(1, 1, 1)
+                    end
+                end
+            end)
+        end
+    end
+})
 
 Visuals:Toggle({
     Title = "ESP Highlight",
