@@ -61,7 +61,7 @@ local Section = Tab1:Section({
 })
 
 local Tab2 = Window:Tab({
-    Title = "Auto",
+    Title = "Automatic",
     Icon = "fish-symbol",
 })
 
