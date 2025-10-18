@@ -59,3 +59,8 @@ local Section = Tab1:Section({
     TextXAlignment = "Left",
     TextSize = 17,
 })
+
+local Tab2 = Window:Tab({
+    Title = "Auto",
+    Icon = "landmark",
+})
