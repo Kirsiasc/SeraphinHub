@@ -28,7 +28,7 @@ Window:Tag({
 
 WindUI:Notify({
     Title = "SeraphinHub Loaded",
-    Content = "UI loaded successfully!",
+    Content = "Fisch loaded successfully!",
     Duration = 3,
     Icon = "bell",
 })
@@ -62,5 +62,20 @@ local Section = Tab1:Section({
 
 local Tab2 = Window:Tab({
     Title = "Auto",
-    Icon = "landmark",
+    Icon = "fish-symbol",
+})
+
+local Tab3 = Window:Tab({
+    Title = "Shop",
+    Icon = "shopping-cart",
+})
+
+local Tab4 = Window:Tab({
+    Title = "Teleport",
+    Icon = "map",
+})
+
+local Tab5 = Window:Tab({
+    Title = "Misc",
+    Icon = "layout-grid",
 })
