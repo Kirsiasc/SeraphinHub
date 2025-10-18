@@ -34,8 +34,8 @@ WindUI:Notify({
 })
 
 local Tab1 = Window:Tab({
-    Title = "Home",
-    Icon = "house",
+    Title = "Infomation",
+    Icon = "info",
 })
 
 local Section = Tab1:Section({ 
