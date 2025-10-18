@@ -61,8 +61,13 @@ local Section = Tab1:Section({
 })
 
 local Tab2 = Window:Tab({
-    Title = "Automatic",
+    Title = "Fishing",
     Icon = "fish-symbol",
+})
+
+local Tab2 = Window:Tab({
+    Title = "Automatic",
+    Icon = "play",
 })
 
 local Tab3 = Window:Tab({
