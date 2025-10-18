@@ -65,22 +65,34 @@ local Tab2 = Window:Tab({
     Icon = "fish-symbol",
 })
 
-local Tab2 = Window:Tab({
+local Tab3 = Window:Tab({
     Title = "Automatic",
     Icon = "play",
 })
 
-local Tab3 = Window:Tab({
+local Tab4 = Window:Tab({
     Title = "Shop",
     Icon = "shopping-cart",
 })
 
-local Tab4 = Window:Tab({
+local Tab5 = Window:Tab({
     Title = "Teleport",
     Icon = "map",
 })
 
-local Tab5 = Window:Tab({
+local Section = Tab5:Section({ 
+    Title = "Location",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+local Tab6 = Window:Tab({
     Title = "Misc",
     Icon = "layout-grid",
+})
+
+local Section = Tab6:Section({ 
+    Title = "Server",
+    TextXAlignment = "Left",
+    TextSize = 17,
 })
