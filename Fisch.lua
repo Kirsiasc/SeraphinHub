@@ -111,6 +111,7 @@ local Locations = {
 }
 
 local SelectedLocation = nil
+local TweenService = game:GetService("TweenService")
 
 local LocationDropdown = Section:Dropdown({
     Title = "Select Location",
@@ -131,7 +132,11 @@ Section:Button({
     Title = "Teleport to Location",
     Callback = function()
         if SelectedLocation and Locations[SelectedLocation] and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            Player.Character.HumanoidRootPart.CFrame = CFrame.new(Locations[SelectedLocation])
+            local randomDelay = math.random(1, 3)
+            local tweenInfo = TweenInfo.new(randomDelay, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+            local tween = TweenService:Create(Player.Character.HumanoidRootPart, tweenInfo, {CFrame = CFrame.new(Locations[SelectedLocation] + Vector3.new(math.random(-2, 2), 5, math.random(-2, 2)))})
+            tween:Play()
+            task.wait(randomDelay)
         end
     end
 })
