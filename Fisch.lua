@@ -86,6 +86,56 @@ local Section = Tab5:Section({
     TextSize = 17,
 })
 
+local Locations = {
+    ["Ancient"] = Vector3.new(6056, 195, 282),
+    ["Angler Baby"] = Vector3.new(-13466, -11036, 175),
+    ["Archive"] = Vector3.new(-3158, -755, 2214),
+    ["Atlantis"] = Vector3.new(-4266, -604, 1830),
+    ["Boss Arena"] = Vector3.new(-4356, -11093, 7153),
+    ["Boss Queue"] = Vector3.new(-4351, -11187, 7405),
+    ["Bosspool"] = Vector3.new(-2374, -11187, 7122),
+    ["Bunker 2"] = Vector3.new(1792, -328, -2390),
+    ["Crafting"] = Vector3.new(-3160, -746, 1684),
+    ["Crook's Hallow"] = Vector3.new(24, 137, -11535),
+    ["Ethereal Puzzle"] = Vector3.new(-4123, -603, 1820),
+    ["GrandReef"] = Vector3.new(-3566, 150, 535),
+    ["Moosewood"] = Vector3.new(381, 134, 243),
+    ["Podium 1"] = Vector3.new(-3464, -2259, 3832),
+    ["Podium 2"] = Vector3.new(-826, -3275, -710),
+    ["Podium 3"] = Vector3.new(-13489, -11051, 134),
+    ["Podium 4"] = Vector3.new(-4334, -11183, 3196),
+    ["Poseindo Puzzle"] = Vector3.new(-3683, -547, 1012),
+    ["Roslit Submarine"] = Vector3.new(-1365, 177, 432),
+    ["Sunkenpanel"] = Vector3.new(-4616, -597, 1843),
+    ["Zeus Puzzle"] = Vector3.new(-4297, -674, 2353),
+}
+
+local SelectedLocation = nil
+
+local LocationDropdown = Section:Dropdown({
+    Title = "Select Location",
+    Values = (function()
+        local keys = {}
+        for name in pairs(Locations) do
+            table.insert(keys, name)
+        end
+        table.sort(keys)
+        return keys
+    end)(),
+    Callback = function(Value)
+        SelectedLocation = Value
+    end
+})
+
+Section:Button({
+    Title = "Teleport to Location",
+    Callback = function()
+        if SelectedLocation and Locations[SelectedLocation] and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            Player.Character.HumanoidRootPart.CFrame = CFrame.new(Locations[SelectedLocation])
+        end
+    end
+})
+
 local Tab6 = Window:Tab({
     Title = "Misc",
     Icon = "layout-grid",
