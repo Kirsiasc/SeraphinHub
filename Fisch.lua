@@ -138,33 +138,38 @@ local Section = Tab2:Section({
 local isAutoFishing = false
 Section:Toggle({
     Title = "Auto Fish",
-    Desc = "Automatically cast and reel fish",
+    Desc = "Automatically toggle auto-fishing",
     Default = false,
     Callback = function(Value)
         isAutoFishing = Value
-        if isAutoFishing then
+        local autoFishRemote = ReplicatedStorage:FindFirstChild("AutoFishing/Toggle", true)
+        local level = Player:WaitForChild("PlayerGui"):WaitForChild("hud"):WaitForChild("safezone"):WaitForChild("topbar"):WaitForChild("AutoFishing"):FindFirstChild("EnabledFrame") and Player:GetAttribute("AB_AutoFishing") and Player:WaitForChild("PlayerGui"):WaitForChild("Stats"):WaitForChild("level").Value >= 25
+        if isAutoFishing and autoFishRemote and level then
             WindUI:Notify({
                 Title = "Auto Fishing",
                 Content = "Auto fishing started!",
                 Duration = 3
             })
             spawn(function()
-                while isAutoFishing and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") do
-                    local tool = Player.Character:FindFirstChildOfClass("Tool")
-                    if tool and tool:FindFirstChild("RemoteEvent") then
-                        tool.RemoteEvent:FireServer("Cast")
-                        task.wait(math.random(2, 4))
-                        tool.RemoteEvent:FireServer("Reel")
-                    end
-                    task.wait(math.random(5, 8))
+                while isAutoFishing and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and level do
+                    autoFishRemote:FireServer()
+                    task.wait(math.random(5, 10))
                 end
             end)
         else
-            WindUI:Notify({
-                Title = "Auto Fishing",
-                Content = "Auto fishing stopped!",
-                Duration = 3
-            })
+            if not level then
+                WindUI:Notify({
+                    Title = "Auto Fishing Failed",
+                    Content = "Level 25 or AB_AutoFishing required!",
+                    Duration = 3
+                })
+            else
+                WindUI:Notify({
+                    Title = "Auto Fishing",
+                    Content = "Auto fishing stopped!",
+                    Duration = 3
+                })
+            end
         end
     end
 })
@@ -187,7 +192,8 @@ Section:Toggle({
     Default = false,
     Callback = function(Value)
         isAutoSell = Value
-        if isAutoSell then
+        local sellRemote = ReplicatedStorage:FindFirstChild("SellFish")
+        if isAutoSell and sellRemote then
             WindUI:Notify({
                 Title = "Auto Sell",
                 Content = "Auto selling started!",
@@ -195,19 +201,24 @@ Section:Toggle({
             })
             spawn(function()
                 while isAutoSell and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") do
-                    local sellRemote = ReplicatedStorage:FindFirstChild("SellFish")
-                    if sellRemote then
-                        sellRemote:FireServer()
-                    end
+                    sellRemote:FireServer()
                     task.wait(math.random(10, 15))
                 end
             end)
         else
-            WindUI:Notify({
-                Title = "Auto Sell",
-                Content = "Auto selling stopped!",
-                Duration = 3
-            })
+            if not sellRemote then
+                WindUI:Notify({
+                    Title = "Auto Sell Failed",
+                    Content = "SellFish remote not found!",
+                    Duration = 3
+                })
+            else
+                WindUI:Notify({
+                    Title = "Auto Sell",
+                    Content = "Auto selling stopped!",
+                    Duration = 3
+                })
+            end
         end
     end
 })
@@ -228,7 +239,7 @@ Section:Button({
     Desc = "Teleport to shop location",
     Callback = function()
         if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            local shopPos = Vector3.new(-3160, -746, 1684) -- Crafting/Shop location
+            local shopPos = Vector3.new(-3160, -746, 1684)
             local targetPos = shopPos + Vector3.new(math.random(-3, 3), 5, math.random(-3, 3))
             local distance = (Player.Character.HumanoidRootPart.Position - targetPos).Magnitude
             local tweenDuration = math.clamp(distance / 1000, 3, 6)
@@ -424,15 +435,9 @@ Section:Button({
     end
 })
 
-local Section = Tab6:Section({
-    Title = "Players",
-    TextXAlignment = "Left",
-    TextSize = 17
-})
-
 local isAntiAFK = false
 Section:Toggle({
-    Title = "Anti AFK",
+    Title = "Anti-AFK",
     Desc = "Prevents being kicked for idling",
     Default = false,
     Callback = function(Value)
