@@ -13,6 +13,9 @@ local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
 local GuiService = game:GetService("GuiService")
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local LoadingScreen = Instance.new("ScreenGui")
 LoadingScreen.Parent = game.CoreGui
@@ -126,14 +129,126 @@ local Tab2 = Window:Tab({
     Icon = "fish-symbol"
 })
 
+local Section = Tab2:Section({
+    Title = "Auto Fishing",
+    TextXAlignment = "Left",
+    TextSize = 17
+})
+
+local isAutoFishing = false
+Section:Toggle({
+    Title = "Auto Fish",
+    Desc = "Automatically cast and reel fish",
+    Default = false,
+    Callback = function(Value)
+        isAutoFishing = Value
+        if isAutoFishing then
+            WindUI:Notify({
+                Title = "Auto Fishing",
+                Content = "Auto fishing started!",
+                Duration = 3
+            })
+            spawn(function()
+                while isAutoFishing and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") do
+                    local tool = Player.Character:FindFirstChildOfClass("Tool")
+                    if tool and tool:FindFirstChild("RemoteEvent") then
+                        tool.RemoteEvent:FireServer("Cast")
+                        task.wait(math.random(2, 4))
+                        tool.RemoteEvent:FireServer("Reel")
+                    end
+                    task.wait(math.random(5, 8))
+                end
+            end)
+        else
+            WindUI:Notify({
+                Title = "Auto Fishing",
+                Content = "Auto fishing stopped!",
+                Duration = 3
+            })
+        end
+    end
+})
+
 local Tab3 = Window:Tab({
     Title = "Automatic",
     Icon = "play"
 })
 
+local Section = Tab3:Section({
+    Title = "Auto Features",
+    TextXAlignment = "Left",
+    TextSize = 17
+})
+
+local isAutoSell = false
+Section:Toggle({
+    Title = "Auto Sell",
+    Desc = "Automatically sell caught fish",
+    Default = false,
+    Callback = function(Value)
+        isAutoSell = Value
+        if isAutoSell then
+            WindUI:Notify({
+                Title = "Auto Sell",
+                Content = "Auto selling started!",
+                Duration = 3
+            })
+            spawn(function()
+                while isAutoSell and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") do
+                    local sellRemote = ReplicatedStorage:FindFirstChild("SellFish")
+                    if sellRemote then
+                        sellRemote:FireServer()
+                    end
+                    task.wait(math.random(10, 15))
+                end
+            end)
+        else
+            WindUI:Notify({
+                Title = "Auto Sell",
+                Content = "Auto selling stopped!",
+                Duration = 3
+            })
+        end
+    end
+})
+
 local Tab4 = Window:Tab({
     Title = "Shop",
     Icon = "shopping-cart"
+})
+
+local Section = Tab4:Section({
+    Title = "Shop Features",
+    TextXAlignment = "Left",
+    TextSize = 17
+})
+
+Section:Button({
+    Title = "Open Shop",
+    Desc = "Teleport to shop location",
+    Callback = function()
+        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+            local shopPos = Vector3.new(-3160, -746, 1684) -- Crafting/Shop location
+            local targetPos = shopPos + Vector3.new(math.random(-3, 3), 5, math.random(-3, 3))
+            local distance = (Player.Character.HumanoidRootPart.Position - targetPos).Magnitude
+            local tweenDuration = math.clamp(distance / 1000, 3, 6)
+            local tweenInfo = TweenInfo.new(tweenDuration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+            local tween = TweenService:Create(Player.Character.HumanoidRootPart, tweenInfo, {CFrame = CFrame.new(targetPos)})
+            tween:Play()
+            WindUI:Notify({
+                Title = "Teleporting",
+                Content = "Moving to Shop",
+                Duration = tweenDuration
+            })
+            task.wait(tweenDuration)
+        else
+            WindUI:Notify({
+                Title = "Teleport Failed",
+                Content = "Player character not found!",
+                Duration = 3
+            })
+        end
+    end
 })
 
 local Tab5 = Window:Tab({
@@ -172,6 +287,8 @@ local Locations = {
 }
 
 local SelectedLocation = nil
+local lastTeleportTime = 0
+local teleportCooldown = 10
 
 local LocationDropdown = Section:Dropdown({
     Title = "Select Location",
@@ -192,6 +309,14 @@ local LocationDropdown = Section:Dropdown({
 Section:Button({
     Title = "Teleport to Location",
     Callback = function()
+        if os.time() - lastTeleportTime < teleportCooldown then
+            WindUI:Notify({
+                Title = "Teleport Cooldown",
+                Content = "Please wait " .. tostring(teleportCooldown - (os.time() - lastTeleportTime)) .. " seconds!",
+                Duration = 3
+            })
+            return
+        end
         if not Player.Character then
             warn("Error: Player character not found!")
             WindUI:Notify({
@@ -219,17 +344,20 @@ Section:Button({
             })
             return
         end
-        local targetPos = Locations[SelectedLocation] + Vector3.new(math.random(-2, 2), 5, math.random(-2, 2))
-        local tweenInfo = TweenInfo.new(math.random(2, 4), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+        local targetPos = Locations[SelectedLocation] + Vector3.new(math.random(-3, 3), 5, math.random(-3, 3))
+        local distance = (Player.Character.HumanoidRootPart.Position - targetPos).Magnitude
+        local tweenDuration = math.clamp(distance / 1000, 3, 6)
+        local tweenInfo = TweenInfo.new(tweenDuration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
         local tween = TweenService:Create(Player.Character.HumanoidRootPart, tweenInfo, {CFrame = CFrame.new(targetPos)})
         print("Teleporting to: " .. SelectedLocation .. " at " .. tostring(targetPos))
         tween:Play()
         WindUI:Notify({
             Title = "Teleporting",
-            Content = "Teleporting to " .. SelectedLocation,
-            Duration = 2
+            Content = "Moving to " .. SelectedLocation,
+            Duration = tweenDuration
         })
-        task.wait(tweenInfo.Time)
+        lastTeleportTime = os.time()
+        task.wait(tweenDuration)
     end
 })
 
@@ -290,6 +418,71 @@ Section:Button({
             WindUI:Notify({
                 Title = "Server Hop Failed",
                 Content = "No available servers found!",
+                Duration = 3
+            })
+        end
+    end
+})
+
+local Section = Tab6:Section({
+    Title = "Players",
+    TextXAlignment = "Left",
+    TextSize = 17
+})
+
+local isAntiAFK = false
+Section:Toggle({
+    Title = "Anti AFK",
+    Desc = "Prevents being kicked for idling",
+    Default = false,
+    Callback = function(Value)
+        isAntiAFK = Value
+        if isAntiAFK then
+            WindUI:Notify({
+                Title = "Anti-AFK",
+                Content = "Anti-AFK enabled!",
+                Duration = 3
+            })
+            spawn(function()
+                while isAntiAFK and Player.Character do
+                    UserInputService:SendMouseMovement(Vector2.new(math.random(-10, 10), math.random(-10, 10)))
+                    task.wait(math.random(30, 60))
+                end
+            end)
+        else
+            WindUI:Notify({
+                Title = "Anti-AFK",
+                Content = "Anti-AFK disabled!",
+                Duration = 3
+            })
+        end
+    end
+})
+
+local isAutoReconnect = false
+Section:Toggle({
+    Title = "Auto Reconnect",
+    Desc = "Automatically reconnects on disconnect",
+    Default = false,
+    Callback = function(Value)
+        isAutoReconnect = Value
+        if isAutoReconnect then
+            WindUI:Notify({
+                Title = "Auto Reconnect",
+                Content = "Auto reconnect enabled!",
+                Duration = 3
+            })
+            game:BindToClose(function()
+                if isAutoReconnect then
+                    local TeleportService = game:GetService("TeleportService")
+                    local PlaceId = game.PlaceId
+                    TeleportService:Teleport(PlaceId, Player)
+                end
+            end)
+        else
+            WindUI:Notify({
+                Title = "Auto Reconnect",
+                Content = "Auto reconnect disabled!",
                 Duration = 3
             })
         end
