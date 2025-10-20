@@ -87,6 +87,11 @@ local Section = Tab5:Section({
 })
 
 local Locations = {
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local Player = Players.LocalPlayer
+
+local Locations = {
     ["Ancient"] = Vector3.new(6056, 195, 282),
     ["Angler Baby"] = Vector3.new(-13466, -11036, 175),
     ["Archive"] = Vector3.new(-3158, -755, 2214),
@@ -111,7 +116,6 @@ local Locations = {
 }
 
 local SelectedLocation = nil
-local TweenService = game:GetService("TweenService")
 
 local LocationDropdown = Section:Dropdown({
     Title = "Select Location",
@@ -125,19 +129,31 @@ local LocationDropdown = Section:Dropdown({
     end)(),
     Callback = function(Value)
         SelectedLocation = Value
+        print("Selected location: " .. tostring(Value)) -- Debug
     end
 })
 
 Section:Button({
     Title = "Teleport to Location",
     Callback = function()
-        if SelectedLocation and Locations[SelectedLocation] and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-            local randomDelay = math.random(1, 3)
-            local tweenInfo = TweenInfo.new(randomDelay, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-            local tween = TweenService:Create(Player.Character.HumanoidRootPart, tweenInfo, {CFrame = CFrame.new(Locations[SelectedLocation] + Vector3.new(math.random(-2, 2), 5, math.random(-2, 2)))})
-            tween:Play()
-            task.wait(randomDelay)
+        if not Player.Character then
+            warn("Error: Player character not found!")
+            return
         end
+        if not Player.Character:FindFirstChild("HumanoidRootPart") then
+            warn("Error: HumanoidRootPart not found!")
+            return
+        end
+        if not SelectedLocation or not Locations[SelectedLocation] then
+            warn("Error: No location selected or invalid location!")
+            return
+        end
+        local targetPos = Locations[SelectedLocation] + Vector3.new(math.random(-2, 2), 5, math.random(-2, 2))
+        local tweenInfo = TweenInfo.new(math.random(2, 4), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+        local tween = TweenService:Create(Player.Character.HumanoidRootPart, tweenInfo, {CFrame = CFrame.new(targetPos)})
+        print("Teleporting to: " .. SelectedLocation .. " at " .. tostring(targetPos)) -- Debug
+        tween:Play()
+        task.wait(tweenInfo.Time)
     end
 })
 
