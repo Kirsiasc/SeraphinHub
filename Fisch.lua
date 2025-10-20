@@ -142,7 +142,7 @@ Section:Toggle({
     Default = false,
     Callback = function(Value)
         isAutoFishing = Value
-        local autoFishRemote = ReplicatedStorage:FindFirstChild("AutoFishing/Toggle", true)
+        local autoFishRemote = script:WaitForChild("RE/AutoFishing/Toggle", 10)
         local level = Player:WaitForChild("PlayerGui"):WaitForChild("hud"):WaitForChild("safezone"):WaitForChild("topbar"):WaitForChild("AutoFishing"):FindFirstChild("EnabledFrame") and Player:GetAttribute("AB_AutoFishing") and Player:WaitForChild("PlayerGui"):WaitForChild("Stats"):WaitForChild("level").Value >= 25
         if isAutoFishing and autoFishRemote and level then
             WindUI:Notify({
@@ -161,6 +161,12 @@ Section:Toggle({
                 WindUI:Notify({
                     Title = "Auto Fishing Failed",
                     Content = "Level 25 or AB_AutoFishing required!",
+                    Duration = 3
+                })
+            elseif not autoFishRemote then
+                WindUI:Notify({
+                    Title = "Auto Fishing Failed",
+                    Content = "AutoFishing/Toggle remote not found!",
                     Duration = 3
                 })
             else
@@ -192,7 +198,7 @@ Section:Toggle({
     Default = false,
     Callback = function(Value)
         isAutoSell = Value
-        local sellRemote = ReplicatedStorage:FindFirstChild("SellFish")
+        local sellRemote = script:WaitForChild("RE/SellFish", 10)
         if isAutoSell and sellRemote then
             WindUI:Notify({
                 Title = "Auto Sell",
