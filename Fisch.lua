@@ -30,63 +30,68 @@ WindUI:Notify({
     Title = "SeraphinHub Loaded",
     Content = "Fisch loaded successfully!",
     Duration = 3,
-    Icon = "bell",
+    Icon = "bell"
 })
 
 local Tab1 = Window:Tab({
-    Title = "Infomation",
-    Icon = "info",
+    Title = "Information",
+    Icon = "info"
 })
 
-local Section = Tab1:Section({ 
+local Section = Tab1:Section({
     Title = "Community Support",
     TextXAlignment = "Left",
-    TextSize = 17,
+    TextSize = 17
 })
 
 Tab1:Button({
     Title = "Discord",
-    Desc = "click to copy link",
+    Desc = "Click to copy link",
     Callback = function()
         if setclipboard then
             setclipboard("discord.gg/getseraphin")
+            WindUI:Notify({
+                Title = "Copied!",
+                Content = "Discord link copied to clipboard.",
+                Duration = 2
+            })
         end
     end
 })
 
-local Section = Tab1:Section({ 
-    Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible.",
+local Section = Tab1:Section({
+    Title = "Updates",
     TextXAlignment = "Left",
     TextSize = 17,
+    Content = "Every time there is a game update or someone reports something, I will fix it as soon as possible."
 })
 
 local Tab2 = Window:Tab({
     Title = "Fishing",
-    Icon = "fish-symbol",
+    Icon = "fish-symbol"
 })
 
 local Tab3 = Window:Tab({
     Title = "Automatic",
-    Icon = "play",
+    Icon = "play"
 })
 
 local Tab4 = Window:Tab({
     Title = "Shop",
-    Icon = "shopping-cart",
+    Icon = "shopping-cart"
 })
 
 local Tab5 = Window:Tab({
     Title = "Teleport",
-    Icon = "map",
+    Icon = "map"
 })
 
-local Section = Tab5:Section({ 
+local Section = Tab5:Section({
     Title = "Location",
     TextXAlignment = "Left",
-    TextSize = 17,
+    TextSize = 17
 })
 
-local Locations = {
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local Player = Players.LocalPlayer
@@ -112,7 +117,7 @@ local Locations = {
     ["Poseindo Puzzle"] = Vector3.new(-3683, -547, 1012),
     ["Roslit Submarine"] = Vector3.new(-1365, 177, 432),
     ["Sunkenpanel"] = Vector3.new(-4616, -597, 1843),
-    ["Zeus Puzzle"] = Vector3.new(-4297, -674, 2353),
+    ["Zeus Puzzle"] = Vector3.new(-4297, -674, 2353)
 }
 
 local SelectedLocation = nil
@@ -129,7 +134,7 @@ local LocationDropdown = Section:Dropdown({
     end)(),
     Callback = function(Value)
         SelectedLocation = Value
-        print("Selected location: " .. tostring(Value)) -- Debug
+        print("Selected location: " .. tostring(Value))
     end
 })
 
@@ -138,34 +143,54 @@ Section:Button({
     Callback = function()
         if not Player.Character then
             warn("Error: Player character not found!")
+            WindUI:Notify({
+                Title = "Teleport Failed",
+                Content = "Player character not found!",
+                Duration = 3
+            })
             return
         end
         if not Player.Character:FindFirstChild("HumanoidRootPart") then
             warn("Error: HumanoidRootPart not found!")
+            WindUI:Notify({
+                Title = "Teleport Failed",
+                Content = "HumanoidRootPart not found!",
+                Duration = 3
+            })
             return
         end
         if not SelectedLocation or not Locations[SelectedLocation] then
             warn("Error: No location selected or invalid location!")
+            WindUI:Notify({
+                Title = "Teleport Failed",
+                Content = "No location selected or invalid location!",
+                Duration = 3
+            })
             return
         end
         local targetPos = Locations[SelectedLocation] + Vector3.new(math.random(-2, 2), 5, math.random(-2, 2))
         local tweenInfo = TweenInfo.new(math.random(2, 4), Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
         local tween = TweenService:Create(Player.Character.HumanoidRootPart, tweenInfo, {CFrame = CFrame.new(targetPos)})
-        print("Teleporting to: " .. SelectedLocation .. " at " .. tostring(targetPos)) -- Debug
+        print("Teleporting to: " .. SelectedLocation .. " at " .. tostring(targetPos))
         tween:Play()
+        WindUI:Notify({
+            Title = "Teleporting",
+            Content = "Teleporting to " .. SelectedLocation,
+            Duration = 2
+        })
         task.wait(tweenInfo.Time)
     end
 })
 
 local Tab6 = Window:Tab({
     Title = "Misc",
-    Icon = "layout-grid",
+    Icon = "layout-grid"
 })
 
 local Section = Tab6:Section({
     Title = "Server",
     TextXAlignment = "Left",
-    TextSize = 17,
+    TextSize = 17
 })
 
 Section:Button({
@@ -174,8 +199,12 @@ Section:Button({
     Callback = function()
         local TeleportService = game:GetService("TeleportService")
         local PlaceId = game.PlaceId
-        local Player = game.Players.LocalPlayer
         TeleportService:Teleport(PlaceId, Player)
+        WindUI:Notify({
+            Title = "Rejoining",
+            Content = "Reconnecting to current server...",
+            Duration = 3
+        })
     end
 })
 
@@ -188,7 +217,7 @@ Section:Button({
         local PlaceId = game.PlaceId
         local Servers = {}
         local success, response = pcall(function()
-            return game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+            return game:HttpGet("https://games.roblox.com/v1/games/" .. PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
         end)
         if success and response then
             local data = HttpService:JSONDecode(response)
@@ -200,7 +229,18 @@ Section:Button({
         end
         if #Servers > 0 then
             local randomServer = Servers[math.random(1, #Servers)]
-            TeleportService:TeleportToPlaceInstance(PlaceId, randomServer, game.Players.LocalPlayer)
+            TeleportService:TeleportToPlaceInstance(PlaceId, randomServer, Player)
+            WindUI:Notify({
+                Title = "Server Hopping",
+                Content = "Teleporting to a different server...",
+                Duration = 3
+            })
+        else
+            WindUI:Notify({
+                Title = "Server Hop Failed",
+                Content = "No available servers found!",
+                Duration = 3
+            })
         end
     end
 })
