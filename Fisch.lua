@@ -9,62 +9,62 @@ else
     print("✓ UI loaded successfully!")
 end
 
+local Players = game:GetService("Players")  
+local Player = Players.LocalPlayer  
+local GuiService = game:GetService("GuiService")  
+local UserInputService = game:GetService("UserInputService")  
+local ReplicatedStorage = game:GetService("ReplicatedStorage")  
+local RunService = game:GetService("RunService")  
 local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
-local Player = Players.LocalPlayer
-local GuiService = game:GetService("GuiService")
-local UserInputService = game:GetService("UserInputService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
-local LoadingScreen = Instance.new("ScreenGui")
-LoadingScreen.Parent = game.CoreGui
-LoadingScreen.Name = "SeraphinLoading"
-LoadingScreen.IgnoreGuiInset = true
-
-local Background = Instance.new("Frame")
-Background.Size = UDim2.new(1, 0, 1, 0)
-Background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-Background.Parent = LoadingScreen
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(0.5, 0, 0.1, 0)
-Title.Position = UDim2.new(0.25, 0, 0.4, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "KirsiaSC artificial bypass"
-Title.TextColor3 = Color3.fromRGB(180, 0, 255)
-Title.TextScaled = true
-Title.Font = Enum.Font.SourceSansBold
-Title.Parent = Background
-
-local DiscordLink = Instance.new("TextLabel")
-DiscordLink.Size = UDim2.new(0.5, 0, 0.05, 0)
-DiscordLink.Position = UDim2.new(0.25, 0, 0.5, 0)
-DiscordLink.BackgroundTransparency = 1
-DiscordLink.Text = "discord.gg/getseraphin"
-DiscordLink.TextColor3 = Color3.fromRGB(255, 255, 255)
-DiscordLink.TextScaled = true
-DiscordLink.Font = Enum.Font.SourceSans
-DiscordLink.Parent = Background
-
-local function showLoading()
-    Background.BackgroundTransparency = 1
-    Title.TextTransparency = 1
-    DiscordLink.TextTransparency = 1
-    LoadingScreen.Enabled = true
-    local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
-    TweenService:Create(Background, tweenInfo, {BackgroundTransparency = 0}):Play()
-    TweenService:Create(Title, tweenInfo, {TextTransparency = 0}):Play()
-    TweenService:Create(DiscordLink, tweenInfo, {TextTransparency = 0}):Play()
-    task.wait(3)
-    local fadeOut = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-    TweenService:Create(Background, fadeOut, {BackgroundTransparency = 1}):Play()
-    TweenService:Create(Title, fadeOut, {TextTransparency = 1}):Play()
-    TweenService:Create(DiscordLink, fadeOut, {TextTransparency = 1}):Play()
-    task.wait(1)
-    LoadingScreen.Enabled = false
-end
-
+local LoadingScreen = Instance.new("ScreenGui")  
+LoadingScreen.Parent = game.CoreGui  
+LoadingScreen.Name = "SeraphinLoading"  
+LoadingScreen.IgnoreGuiInset = true  
+  
+local Background = Instance.new("Frame")  
+Background.Size = UDim2.new(1, 0, 1, 0)  
+Background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  
+Background.Parent = LoadingScreen  
+  
+local Title = Instance.new("TextLabel")  
+Title.Size = UDim2.new(0.5, 0, 0.1, 0)  
+Title.Position = UDim2.new(0.25, 0, 0.4, 0)  
+Title.BackgroundTransparency = 1  
+Title.Text = "KirsiaSC artificial bypass"  
+Title.TextColor3 = Color3.fromRGB(88, 108, 179)  
+Title.TextScaled = true  
+Title.Font = Enum.Font.SourceSansBold  
+Title.Parent = Background  
+  
+local DiscordLink = Instance.new("TextLabel")  
+DiscordLink.Size = UDim2.new(0.5, 0, 0.05, 0)  
+DiscordLink.Position = UDim2.new(0.25, 0, 0.5, 0)  
+DiscordLink.BackgroundTransparency = 1  
+DiscordLink.Text = "discord.gg/getseraphin"  
+DiscordLink.TextColor3 = Color3.fromRGB(255, 255, 255)  
+DiscordLink.TextScaled = true  
+DiscordLink.Font = Enum.Font.SourceSans  
+DiscordLink.Parent = Background  
+  
+local function showLoading()  
+    Background.BackgroundTransparency = 1  
+    Title.TextTransparency = 1  
+    DiscordLink.TextTransparency = 1  
+    LoadingScreen.Enabled = true  
+    local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.In)  
+    TweenService:Create(Background, tweenInfo, {BackgroundTransparency = 0}):Play()  
+    TweenService:Create(Title, tweenInfo, {TextTransparency = 0}):Play()  
+    TweenService:Create(DiscordLink, tweenInfo, {TextTransparency = 0}):Play()  
+    task.wait(3)  
+    local fadeOut = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)  
+    TweenService:Create(Background, fadeOut, {BackgroundTransparency = 1}):Play()  
+    TweenService:Create(Title, fadeOut, {TextTransparency = 1}):Play()  
+    TweenService:Create(DiscordLink, fadeOut, {TextTransparency = 1}):Play()  
+    task.wait(1)  
+    LoadingScreen.Enabled = false  
+end  
+  
 showLoading()
 
 local Window = WindUI:CreateWindow({
@@ -81,7 +81,7 @@ local Window = WindUI:CreateWindow({
 
 Window:Tag({
     Title = "v0.0.0.1",
-    Color = Color3.fromRGB(180, 0, 255)
+    Color = Color3.fromRGB(110, 130, 210)
 })
 
 WindUI:Notify({
