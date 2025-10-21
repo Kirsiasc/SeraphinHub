@@ -69,7 +69,7 @@ showLoading()
 
 local Window = WindUI:CreateWindow({
     Title = "Seraphin",
-    Icon = "rbxassetid://120248611602330",
+    Icon = "rbxassetid://135748028632686",
     Author = "KirsiaSC | Fisch",
     Folder = "SERAPHIN_HUB",
     Size = UDim2.new(0, 280, 0, 320),
