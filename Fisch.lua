@@ -118,10 +118,9 @@ Tab1:Button({
 })
 
 local Section = Tab1:Section({
-    Title = "Updates",
+    Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible.",
     TextXAlignment = "Left",
     TextSize = 17,
-    Content = "Every time there is a game update or someone reports something, I will fix it as soon as possible."
 })
 
 local Tab2 = Window:Tab({
@@ -135,50 +134,119 @@ local Section = Tab2:Section({
     TextSize = 17
 })
 
-local isAutoFishing = false
+local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Player = Players.LocalPlayer
+
+local isAutoCasting = false
+local isAutoShaking = false
+local isAutoReeling = false
+
+local function checkRequirements()
+    local level = Player:WaitForChild("PlayerGui"):WaitForChild("Stats"):WaitForChild("level").Value >= 25
+    local hasAutoFishing = Player:GetAttribute("AB_AutoFishing")
+    local autoFishRemote = script:WaitForChild("RE/AutoFishing/Toggle", 10)
+    return level, hasAutoFishing, autoFishRemote
+end
+
+local function notify(title, content, duration)
+    WindUI:Notify({
+        Title = title,
+        Content = content,
+        Duration = duration or 3
+    })
+end
+
 Section:Toggle({
-    Title = "Auto Fish",
-    Desc = "Automatically toggle auto-fishing",
+    Title = "Auto Cast",
+    Desc = "Automatically casts the fishing rod",
     Default = false,
     Callback = function(Value)
-        isAutoFishing = Value
-        local autoFishRemote = script:WaitForChild("RE/AutoFishing/Toggle", 10)
-        local level = Player:WaitForChild("PlayerGui"):WaitForChild("hud"):WaitForChild("safezone"):WaitForChild("topbar"):WaitForChild("AutoFishing"):FindFirstChild("EnabledFrame") and Player:GetAttribute("AB_AutoFishing") and Player:WaitForChild("PlayerGui"):WaitForChild("Stats"):WaitForChild("level").Value >= 25
-        if isAutoFishing and autoFishRemote and level then
-            WindUI:Notify({
-                Title = "Auto Fishing",
-                Content = "Auto fishing started!",
-                Duration = 3
-            })
+        isAutoCasting = Value
+        local level, hasAutoFishing, autoFishRemote = checkRequirements()
+        if isAutoCasting and level and hasAutoFishing and autoFishRemote then
+            notify("Auto Cast", "Auto casting started!")
             spawn(function()
-                while isAutoFishing and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and level do
-                    autoFishRemote:FireServer()
+                while isAutoCasting and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") do
+                    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+                    task.wait(0.1)
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
                     task.wait(math.random(5, 10))
                 end
             end)
         else
-            if not level then
-                WindUI:Notify({
-                    Title = "Auto Fishing Failed",
-                    Content = "Level 25 or AB_AutoFishing required!",
-                    Duration = 3
-                })
+            if not level or not hasAutoFishing then
+                notify("Auto Cast Failed", "Level 25 or AB_AutoFishing required!")
             elseif not autoFishRemote then
-                WindUI:Notify({
-                    Title = "Auto Fishing Failed",
-                    Content = "AutoFishing/Toggle remote not found!",
-                    Duration = 3
-                })
+                notify("Auto Cast Failed", "AutoFishing/Toggle remote not found!")
             else
-                WindUI:Notify({
-                    Title = "Auto Fishing",
-                    Content = "Auto fishing stopped!",
-                    Duration = 3
-                })
+                notify("Auto Cast", "Auto casting stopped!")
             end
         end
     end
 })
+
+Section:Toggle({
+    Title = "Auto Shake",
+    Desc = "Automatically shakes during fishing mini-game",
+    Default = false,
+    Callback = function(Value)
+        isAutoShaking = Value
+        local level, hasAutoFishing, autoFishRemote = checkRequirements()
+        if isAutoShaking and level and hasAutoFishing and autoFishRemote then
+            notify("Auto Shake", "Auto shaking started!")
+            spawn(function()
+                while isAutoShaking and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") do
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                    task.wait(0.05)
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+                    task.wait(0.05)
+                end
+            end)
+        else
+            if not level or not hasAutoFishing then
+                notify("Auto Shake Failed", "Level 25 or AB_AutoFishing required!")
+            elseif not autoFishRemote then
+                notify("Auto Shake Failed", "AutoFishing/Toggle remote not found!")
+            else
+                notify("Auto Shake", "Auto shaking stopped!")
+            end
+        end
+    end
+})
+
+Section:Toggle({
+    Title = "Auto Reel",
+    Desc = "Automatically reels in the fish",
+    Default = false,
+    Callback = function(Value)
+        isAutoReeling = Value
+        local level, hasAutoFishing, autoFishRemote = checkRequirements()
+        if isAutoReeling and level and hasAutoFishing and autoFishRemote then
+            notify("Auto Reel", "Auto reeling started!")
+            spawn(function()
+                while isAutoReeling and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") do
+                    autoFishRemote:FireServer()
+                    task.wait(math.random(2, 5))
+                end
+            end)
+        else
+            if not level or not hasAutoFishing then
+                notify("Auto Reel Failed", "Level 25 or AB_AutoFishing required!")
+            elseif not autoFishRemote then
+                notify("Auto Reel Failed", "AutoFishing/Toggle remote not found!")
+            else
+                notify("Auto Reel", "Auto reeling stopped!")
+            end
+        end
+    end
+})
+
+Players.PlayerRemoving:Connect(function()
+    if Player.Character and Player.Character:FindFirstChild("Humanoid") then
+        Player.Character.Humanoid.PlatformStand = false
+    end
+end)
 
 local Tab3 = Window:Tab({
     Title = "Automatic",
@@ -191,39 +259,29 @@ local Section = Tab3:Section({
     TextSize = 17
 })
 
-local isAutoSell = false
+local isAutoSelling = false
 Section:Toggle({
     Title = "Auto Sell",
-    Desc = "Automatically sell caught fish",
+    Desc = "Automatically sells caught fish",
     Default = false,
     Callback = function(Value)
-        isAutoSell = Value
-        local sellRemote = script:WaitForChild("RE/SellFish", 10)
-        if isAutoSell and sellRemote then
-            WindUI:Notify({
-                Title = "Auto Sell",
-                Content = "Auto selling started!",
-                Duration = 3
-            })
+        isAutoSelling = Value
+        local level, hasAutoFishing, autoFishRemote = checkRequirements()
+        if isAutoSelling and level and hasAutoFishing and autoFishRemote then
+            notify("Auto Sell", "Auto selling started!")
             spawn(function()
-                while isAutoSell and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") do
-                    sellRemote:FireServer()
+                while isAutoSelling and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") do
+                    game:GetService("ReplicatedStorage").RemoteEvents.SellFish:FireServer()
                     task.wait(math.random(10, 15))
                 end
             end)
         else
-            if not sellRemote then
-                WindUI:Notify({
-                    Title = "Auto Sell Failed",
-                    Content = "SellFish remote not found!",
-                    Duration = 3
-                })
+            if not level or not hasAutoFishing then
+                notify("Auto Sell Failed", "Level 25 or AB_AutoFishing required!")
+            elseif not autoFishRemote then
+                notify("Auto Sell Failed", "AutoFishing/Toggle remote not found!")
             else
-                WindUI:Notify({
-                    Title = "Auto Sell",
-                    Content = "Auto selling stopped!",
-                    Duration = 3
-                })
+                notify("Auto Sell", "Auto selling stopped!")
             end
         end
     end
