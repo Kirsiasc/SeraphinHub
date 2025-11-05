@@ -367,7 +367,7 @@ CollectionService:GetInstanceAddedSignal("radarTagWithTimer"):Connect(function(v
 	end
 end)
 
-Section:CreateToggle({
+Section:Toggle({
 	Title = "Enable Fish Radar",
 	Default = _G.Radar,
 	Callback = function(value)
