@@ -259,32 +259,120 @@ local Section = Tab3:Section({
     TextSize = 17
 })
 
-local isAutoSelling = false
-Section:Toggle({
-    Title = "Auto Sell",
-    Desc = "Automatically sells caught fish",
-    Default = false,
-    Callback = function(Value)
-        isAutoSelling = Value
-        local level, hasAutoFishing, autoFishRemote = checkRequirements()
-        if isAutoSelling and level and hasAutoFishing and autoFishRemote then
-            notify("Auto Sell", "Auto selling started!")
-            spawn(function()
-                while isAutoSelling and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") do
-                    game:GetService("ReplicatedStorage").RemoteEvents.SellFish:FireServer()
-                    task.wait(math.random(10, 15))
-                end
-            end)
-        else
-            if not level or not hasAutoFishing then
-                notify("Auto Sell Failed", "Level 25 or AB_AutoFishing required!")
-            elseif not autoFishRemote then
-                notify("Auto Sell Failed", "AutoFishing/Toggle remote not found!")
-            else
-                notify("Auto Sell", "Auto selling stopped!")
-            end
-        end
-    end
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = game.Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local Lighting = game:GetService("Lighting")
+local CollectionService = game:GetService("CollectionService")
+
+local fx = require(ReplicatedStorage.shared.modules.fx)
+local debris = require(ReplicatedStorage.shared.modules.fx.debris)
+
+_G.Radar = _G.Radar or false
+local radarCooldown = false
+
+local function ToTime(sec)
+	local h = math.floor(sec / 3600)
+	local m = os.date("%M", sec)
+	local s = os.date("%S", sec)
+	if (tonumber(h) or 0) < 1 then
+		return string.format("%s:%s", m, s)
+	else
+		return string.format("%s:%s:%s", h, m, s)
+	end
+end
+
+local function ToggleRadar(state)
+	if radarCooldown then return end
+	radarCooldown = true
+	_G.Radar = state
+
+	local clone = Instance.new("TextLabel")
+	clone.Size = UDim2.new(0, 200, 0, 30)
+	clone.BackgroundTransparency = 1
+	clone.TextScaled = true
+	clone.TextColor3 = Color3.fromRGB(159, 255, 128)
+	clone.Text = state and "[Radar Enabled]" or "[Radar Disabled]"
+	local stroke = Instance.new("UIStroke", clone)
+	stroke.Thickness = 2
+	clone.Parent = LocalPlayer.PlayerGui:WaitForChild("hud")
+
+	TweenService:Create(stroke, TweenInfo.new(1.7, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
+		Transparency = 1
+	}):Play()
+	debris:AddItem(clone, 2)
+
+	local colorFx = Instance.new("ColorCorrectionEffect")
+	colorFx.Saturation = -1
+	colorFx.TintColor = Color3.fromRGB(209, 255, 199)
+	colorFx.Parent = Lighting
+
+	TweenService:Create(colorFx, TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {
+		Saturation = 0,
+		TintColor = Color3.fromRGB(255, 255, 255)
+	}):Play()
+	debris:AddItem(colorFx, 2)
+
+	if state then
+		fx:PlaySound(ReplicatedStorage.resources.sounds.sfx.item.RadarOn)
+	else
+		fx:PlaySound(ReplicatedStorage.resources.sounds.sfx.item.RadarOff)
+	end
+
+	for _, v in pairs(CollectionService:GetTagged("radarTag")) do
+		if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
+			v.Enabled = state
+		end
+		if v:FindFirstChild("abundanceName") and v.abundanceName.Text == "Ancient Depth Serpent" then
+			v.Enabled = false
+		end
+	end
+
+	if state then
+		task.spawn(function()
+			while _G.Radar do
+				for _, v in pairs(CollectionService:GetTagged("radarTagWithTimer")) do
+					local parent = v.Parent
+					if parent then
+						local text = parent:GetAttribute("Text")
+						local endClock = parent:GetAttribute("EndClock")
+						if text and endClock then
+							local remain = math.clamp(endClock - workspace:GetServerTimeNow(), 0, math.huge)
+							if remain <= 0 then
+								v.abundanceName.Text = "Disappearing Soon"
+							else
+								v.abundanceName.Text = string.format(text, ToTime(remain))
+							end
+						end
+					end
+				end
+				task.wait(1)
+			end
+		end)
+	end
+
+	task.wait(2)
+	radarCooldown = false
+end
+
+CollectionService:GetInstanceAddedSignal("radarTag"):Connect(function(v)
+	if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
+		v.Enabled = _G.Radar
+	end
+end)
+
+CollectionService:GetInstanceAddedSignal("radarTagWithTimer"):Connect(function(v)
+	if v:IsA("BillboardGui") or v:IsA("SurfaceGui") then
+		v.Enabled = _G.Radar
+	end
+end)
+
+Section:CreateToggle({
+	Title = "Enable Fish Radar",
+	Default = _G.Radar,
+	Callback = function(value)
+		ToggleRadar(value)
+	end,
 })
 
 local Tab4 = Window:Tab({
