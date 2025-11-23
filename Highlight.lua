@@ -1,4 +1,4 @@
--[[
+--[[
     higlight.lua v0.0.1 by exxtremewa#9394
     
     Features:
