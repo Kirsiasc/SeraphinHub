@@ -65,8 +65,9 @@ local config_file_path = "config.json"
 local selected_player = nil
 local localPlayer = players_service.LocalPlayer
 local camera = workspace.CurrentCamera
+local silentAimHook = nil
 
-function init_visuals(player)
+local function init_visuals(player)
     if not visuals_enabled then
         return
     end
@@ -74,7 +75,11 @@ function init_visuals(player)
         return
     end
 
-    local character = player.Character or player.CharacterAdded:Wait()
+    local character = player.Character
+    if not character then
+        return
+    end
+
     local humanoid_root_part = character:WaitForChild("HumanoidRootPart")
 
     local box_visual = Drawing.new("Square")
@@ -171,7 +176,7 @@ function init_visuals(player)
             end
     
             if show_view_line_enabled and player.Character:FindFirstChild("Head") then
-                local head = player.Character:FindFirstChild("Head")
+                local head = player.Character.Head
                 local head_pos = camera:WorldToViewportPoint(head.Position)
                 local forward_vector = player.Character.HumanoidRootPart.CFrame.LookVector * 2
                 local view_point = head.Position + forward_vector
@@ -257,16 +262,20 @@ function init_visuals(player)
     run_service.RenderStepped:Connect(update_visuals)
 end
 
-function remove_visuals(player)
+local function remove_visuals(player)
     if visual_elements[player] then
         visual_elements[player].box:Remove()
         visual_elements[player].tracer:Remove()
         visual_elements[player].name:Remove()
+        for _, line in pairs(visual_elements[player].skeleton) do
+            line:Remove()
+        end
+        visual_elements[player].view_line:Remove()
         visual_elements[player] = nil
     end
 end
 
-function add_visuals(player)
+local function add_visuals(player)
     player.CharacterAdded:Connect(
         function()
             init_visuals(player)
@@ -288,7 +297,7 @@ for _, player in pairs(players_service:GetPlayers()) do
     add_visuals(player)
 end
 
-function toggle_visuals(state)
+local function toggle_visuals(state)
     visuals_enabled = state
     if not state then
         for _, player in pairs(players_service:GetPlayers()) do
@@ -303,24 +312,22 @@ function toggle_visuals(state)
     end
 end
 
-function aimbot()
+local function aimbot()
     if not aimbot_enabled or not aimbot_keybind then
         return
     end
 
+    local is_key_down
     if aimbot_keybind == Enum.UserInputType.MouseButton2 then
-        if not user_input_service:IsMouseButtonPressed(aimbot_keybind) then
-            locked_target = nil
-            return
-        end
+        is_key_down = user_input_service:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
     else
-        if not user_input_service:IsKeyDown(aimbot_keybind) then
-            locked_target = nil
-            return
-        end
+        is_key_down = user_input_service:IsKeyDown(aimbot_keybind)
     end
 
-    local mouse = localPlayer:GetMouse()
+    if not is_key_down then
+        locked_target = nil
+        return
+    end
 
     if locked_target and aimbot_sticky_aim_enabled then
         if locked_target.Character and locked_target.Character:FindFirstChild(aimbot_aim_part) then
@@ -430,7 +437,7 @@ fov_circle.Thickness = 1
 fov_circle.Transparency = 1
 fov_circle.Filled = false
 
-function update_fov_circle()
+local function update_fov_circle()
     if show_fov then
         local mouse_pos = user_input_service:GetMouseLocation()
         fov_circle.Radius = aimbot_fov_size
@@ -443,7 +450,7 @@ end
 
 run_service.RenderStepped:Connect(update_fov_circle)
 
-function string_to_enum(string)
+local function string_to_enum(string)
     local newstring = string:gsub("Enum.KeyCode.","")
     return Enum.KeyCode[newstring]
 end 
@@ -527,7 +534,7 @@ end
 local Noclip = nil
 local Clip = nil
 
-function noclip()
+local function noclip()
     Clip = false
     local function Nocl()
         if Clip == false and localPlayer.Character ~= nil then
@@ -542,14 +549,12 @@ function noclip()
     Noclip = run_service.Stepped:Connect(Nocl)
 end
 
-function clip()
+local function clip()
     if Noclip then Noclip:Disconnect() end
     Clip = true
 end
 
-local silentAimHook
 local mouse = localPlayer:GetMouse()
-local wtvp = camera.WorldToViewportPoint
 
 local function getClosestPlayerHead()
     local target
@@ -559,7 +564,7 @@ local function getClosestPlayerHead()
          local character = v.Character 
          if character:FindFirstChild("Head") then
             local head = character.Head 
-            local headPos, onScreen = wtvp(camera, head.Position)
+            local headPos, onScreen = camera:WorldToViewportPoint(head.Position)
             
             if onScreen then 
                 local mouseDist = (Vector2.new(mouse.X, mouse.Y) - Vector2.new(headPos.X, headPos.Y)).Magnitude
@@ -573,7 +578,7 @@ local function getClosestPlayerHead()
     return target 
 end
 
-function toggle_silent_aim(state)
+local function toggle_silent_aim(state)
     if state then
         local old
         old = hookmetamethod(game, "__namecall", function(...)
@@ -898,5 +903,3 @@ InfoTab:Section({
     TextXAlignment = "Left",
     TextSize = 17,
 })
-
-Window:SelectTab(1)
