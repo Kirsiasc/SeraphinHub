@@ -9,6 +9,35 @@ else
     print("✓ UI loaded successfully!")
 end
 
+local function detectEnvironment()
+    local isStudio = game:GetService("RunService"):IsStudio()
+    local isUGC = false
+    local hasPlayers = false
+    
+    pcall(function()
+        hasPlayers = #game:GetService("Players"):GetPlayers() > 0
+    end)
+    
+    isUGC = isStudio and not hasPlayers
+    
+    return {
+        IsStudio = isStudio,
+        IsUGC = isUGC,
+        HasPlayers = hasPlayers
+    }
+end
+
+local env = detectEnvironment()
+
+if env.IsUGC then
+    WindUI:Notify({
+        Title = "UGC Environment Detected",
+        Content = "Running in limited compatibility mode",
+        Duration = 5,
+        Icon = "alert-triangle"
+    })
+end
+
 local Window = WindUI:CreateWindow({
     Title = "Seraphin",
     Icon = "rbxassetid://135748028632686",
@@ -26,12 +55,37 @@ Window:Tag({
     Color = Color3.fromRGB(180, 0, 255)
 })
 
-WindUI:Notify({
-    Title = "SeraphinHub Loaded",
-    Content = "Rivals script loaded!",
-    Duration = 3,
-    Icon = "bell",
-})
+local players_service
+local player_service_available = pcall(function()
+    players_service = game:GetService("Players")
+end)
+
+if not player_service_available or not players_service then
+    warn("⚠️ Players service not available!")
+    
+    players_service = {
+        LocalPlayer = {
+            Name = "Player",
+            Character = nil,
+            CharacterAdded = Instance.new("BindableEvent").Event,
+            CharacterRemoving = Instance.new("BindableEvent").Event,
+            GetMouse = function() 
+                return {
+                    X = 0,
+                    Y = 0,
+                    Target = nil
+                }
+            end
+        },
+        GetPlayers = function() return {} end,
+        PlayerAdded = Instance.new("BindableEvent").Event
+    }
+end
+
+local run_service = game:GetService("RunService")
+local user_input_service = game:GetService("UserInputService")
+local camera = workspace.CurrentCamera
+local localPlayer = players_service.LocalPlayer
 
 local visuals_enabled = false
 local show_boxes_enabled = false
@@ -51,10 +105,7 @@ local aimbot_prediction_enabled = false
 local aimbot_prediction_strength_x = 0
 local aimbot_prediction_strength_y = 0
 local aimbot_sticky_aim_enabled = false
-local user_input_service = game:GetService("UserInputService")
 local locked_target = nil
-local players_service = game:GetService("Players")
-local run_service = game:GetService("RunService")
 local visual_elements = {}
 local tp_behind_offset = 0
 local tp_behind_height = 6
@@ -63,9 +114,14 @@ local speed_multiplier = 0
 local speed_modifier_enabled = false
 local config_file_path = "config.json"
 local selected_player = nil
-local localPlayer = players_service.LocalPlayer
-local camera = workspace.CurrentCamera
 local silentAimHook = nil
+
+local function safeGetPlayers()
+    if type(players_service.GetPlayers) == "function" then
+        return players_service:GetPlayers()
+    end
+    return {}
+end
 
 local function init_visuals(player)
     if not visuals_enabled then
@@ -80,7 +136,10 @@ local function init_visuals(player)
         return
     end
 
-    local humanoid_root_part = character:WaitForChild("HumanoidRootPart")
+    local humanoid_root_part = character:FindFirstChild("HumanoidRootPart")
+    if not humanoid_root_part then
+        return
+    end
 
     local box_visual = Drawing.new("Square")
     box_visual.Color = Color3.fromRGB(255, 255, 255)
@@ -276,35 +335,45 @@ local function remove_visuals(player)
 end
 
 local function add_visuals(player)
-    player.CharacterAdded:Connect(
-        function()
-            init_visuals(player)
-        end
-    )
-    player.CharacterRemoving:Connect(
-        function()
-            remove_visuals(player)
-        end
-    )
+    if player.CharacterAdded then
+        player.CharacterAdded:Connect(
+            function()
+                init_visuals(player)
+            end
+        )
+    end
+    
+    if player.CharacterRemoving then
+        player.CharacterRemoving:Connect(
+            function()
+                remove_visuals(player)
+            end
+        )
+    end
+    
     if player.Character then
         init_visuals(player)
     end
 end
 
-players_service.PlayerAdded:Connect(add_visuals)
+if players_service.PlayerAdded then
+    players_service.PlayerAdded:Connect(add_visuals)
+end
 
-for _, player in pairs(players_service:GetPlayers()) do
-    add_visuals(player)
+if not env.IsUGC then
+    for _, player in pairs(safeGetPlayers()) do
+        add_visuals(player)
+    end
 end
 
 local function toggle_visuals(state)
     visuals_enabled = state
     if not state then
-        for _, player in pairs(players_service:GetPlayers()) do
+        for _, player in pairs(safeGetPlayers()) do
             remove_visuals(player)
         end
     else
-        for _, player in pairs(players_service:GetPlayers()) do
+        for _, player in pairs(safeGetPlayers()) do
             if player.Character then
                 init_visuals(player)
             end
@@ -312,8 +381,12 @@ local function toggle_visuals(state)
     end
 end
 
-local function aimbot()
+local function safeAimbot()
     if not aimbot_enabled or not aimbot_keybind then
+        return
+    end
+
+    if env.IsUGC then
         return
     end
 
@@ -367,7 +440,7 @@ local function aimbot()
     local closest_player = nil
     local closest_distance = aimbot_fov_size
 
-    for _, player in pairs(players_service:GetPlayers()) do
+    for _, player in pairs(safeGetPlayers()) do
         if
             player ~= localPlayer and player.Character and
                 player.Character:FindFirstChild(aimbot_aim_part)
@@ -429,7 +502,7 @@ local function aimbot()
     end
 end
 
-run_service.RenderStepped:Connect(aimbot)
+run_service.RenderStepped:Connect(safeAimbot)
 
 local fov_circle = Drawing.new("Circle")
 fov_circle.Color = Color3.fromRGB(255, 255, 255)
@@ -509,6 +582,16 @@ local function load_config(path)
 end
 
 local function loop_behind(target_player)
+    if env.IsUGC then
+        WindUI:Notify({
+            Title = "Feature Disabled",
+            Content = "Teleport not available in UGC",
+            Duration = 3,
+            Icon = "x-circle"
+        })
+        return
+    end
+
     teleporting = true
     local player = localPlayer
 
@@ -554,12 +637,14 @@ local function clip()
     Clip = true
 end
 
-local mouse = localPlayer:GetMouse()
-
 local function getClosestPlayerHead()
+    if env.IsUGC then return nil end
+    
     local target
     local distance = math.huge 
-    for _, v in ipairs(players_service:GetPlayers()) do
+    local mouse = localPlayer:GetMouse()
+    
+    for _, v in ipairs(safeGetPlayers()) do
          if v == localPlayer or not v.Character then continue end 
          local character = v.Character 
          if character:FindFirstChild("Head") then
@@ -579,6 +664,16 @@ local function getClosestPlayerHead()
 end
 
 local function toggle_silent_aim(state)
+    if env.IsUGC then
+        WindUI:Notify({
+            Title = "Feature Disabled",
+            Content = "Silent Aim not available in UGC",
+            Duration = 3,
+            Icon = "x-circle"
+        })
+        return
+    end
+    
     if state then
         local old
         old = hookmetamethod(game, "__namecall", function(...)
@@ -603,6 +698,13 @@ local function toggle_silent_aim(state)
     end
 end
 
+WindUI:Notify({
+    Title = "SeraphinHub Loaded",
+    Content = "Rivals script loaded!",
+    Duration = 3,
+    Icon = "bell",
+})
+
 local AimbotTab = Window:Tab({ Title = "Aimbot", Icon = "target" })
 local VisualsTab = Window:Tab({ Title = "Visuals", Icon = "eye" })
 local PlayerTab = Window:Tab({ Title = "Player", Icon = "user" })
@@ -617,6 +719,15 @@ AimbotTab:Toggle({
     Default = false,
     Callback = function(value)
         aimbot_enabled = value
+        if env.IsUGC and value then
+            WindUI:Notify({
+                Title = "Feature Limited",
+                Content = "Aimbot disabled in UGC mode",
+                Duration = 3,
+                Icon = "alert-circle"
+            })
+            aimbot_enabled = false
+        end
     end
 })
 
@@ -729,6 +840,14 @@ VisualsTab:Toggle({
     Default = false,
     Callback = function(value)
         toggle_visuals(value)
+        if env.IsUGC and value then
+            WindUI:Notify({
+                Title = "Visuals Limited",
+                Content = "Visuals may not work in UGC",
+                Duration = 3,
+                Icon = "eye-off"
+            })
+        end
     end
 })
 
@@ -793,13 +912,13 @@ PlayerTab:Toggle({
         speed_modifier_enabled = value
         if speed_modifier_enabled then
             spawn(function()
-                while speed_modifier_enabled do
-                    if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                        localPlayer.Character.HumanoidRootPart.CFrame = localPlayer.Character.HumanoidRootPart.CFrame + localPlayer.Character.Humanoid.MoveDirection * speed_multiplier
-                    end
+                while speed_modifier_enabled and localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") do
+                    localPlayer.Character.Humanoid.WalkSpeed = 16 * (1 + speed_multiplier)
                     task.wait()
                 end
             end)
+        elseif localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") then
+            localPlayer.Character.Humanoid.WalkSpeed = 16
         end
     end
 })
@@ -808,9 +927,12 @@ PlayerTab:Slider({
     Title = "Speed Multiplier",
     Default = 0,
     Min = 0,
-    Max = 0.7,
+    Max = 2,
     Callback = function(value)
         speed_multiplier = value
+        if speed_modifier_enabled and localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") then
+            localPlayer.Character.Humanoid.WalkSpeed = 16 * (1 + value)
+        end
     end
 })
 
@@ -820,10 +942,26 @@ TeleportTab:Input({
     Title = "Player Name",
     Default = "",
     Callback = function(value)
+        if env.IsUGC then
+            WindUI:Notify({
+                Title = "Feature Disabled",
+                Content = "Teleport not available in UGC",
+                Duration = 3,
+                Icon = "x-circle"
+            })
+            return
+        end
+        
         local input_value_lower = value:lower()
-        for _, player in ipairs(players_service:GetPlayers()) do
-            if player.Name:lower():find(input_value_lower, 1, true) or player.DisplayName:lower():find(input_value_lower, 1, true) then
+        for _, player in ipairs(safeGetPlayers()) do
+            if player.Name:lower():find(input_value_lower, 1, true) or (player.DisplayName and player.DisplayName:lower():find(input_value_lower, 1, true)) then
                 selected_player = player
+                WindUI:Notify({
+                    Title = "Player Selected",
+                    Content = "Selected: " .. player.Name,
+                    Duration = 3,
+                    Icon = "user-check"
+                })
                 break
             end
         end
@@ -835,6 +973,13 @@ TeleportTab:Button({
     Callback = function()
         if selected_player then
             loop_behind(selected_player)
+        else
+            WindUI:Notify({
+                Title = "No Player Selected",
+                Content = "Select a player first",
+                Duration = 3,
+                Icon = "user-x"
+            })
         end
     end
 })
@@ -903,3 +1048,20 @@ InfoTab:Section({
     TextXAlignment = "Left",
     TextSize = 17,
 })
+
+InfoTab:Section({
+    Title = "Environment Info: " .. (env.IsUGC and "UGC Mode" or "Game Mode"),
+    TextXAlignment = "Left",
+    TextSize = 14,
+})
+
+Window:SelectTab(1)
+
+if env.IsUGC then
+    WindUI:Notify({
+        Title = "UGC Mode Active",
+        Content = "Some features are limited",
+        Duration = 5,
+        Icon = "info"
+    })
+end
