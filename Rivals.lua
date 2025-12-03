@@ -3,7 +3,7 @@ local success, WindUI = pcall(function()
 end)
 
 if not success or not WindUI then
-    warn(":warning: UI failed to load!")
+    warn("⚠️ UI failed to load!")
     return
 else
     print("✓ UI loaded successfully!")
