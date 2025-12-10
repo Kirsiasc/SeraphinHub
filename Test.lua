@@ -1,8 +1,8 @@
-local success, WindUI = pcall(function()
-    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+local success, Fluent = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 end)
 
-if not success or not WindUI then
+if not success or not Fluent then
     warn("⚠️ UI failed to load!")
     return
 else
@@ -12,7 +12,7 @@ end
 local Window = WindUI:CreateWindow({
     Title = "Seraphin",
     Icon = "rbxassetid://120248611602330",
-    Author = "KirsiaSC | Rivals",
+    Author = "",
     Folder = "SERAPHIN_HUB",
     Size = UDim2.fromOffset(280, 320),
     Transparent = true,
@@ -21,25 +21,30 @@ local Window = WindUI:CreateWindow({
     HasOutline = true
 })
 
-Window:Tag({
-    Title = "v0.0.0.1",
-    Color = Color3.fromRGB(180, 0, 255)
+local Window = Fluent:CreateWindow({
+    Title = "Seraphin"
+    SubTitle = "v0.0.0.1",
+    Icon = "rbxassetid://120248611602330",
+    TabWidth = 160,
+    Size = UDim2.new(280, 320),
+    Acrylic = true,
+    Theme = "Darker",
+    MinimizeKey = Enum.KeyCode.LeftControl
 })
 
-WindUI:Notify({
-    Title = "SeraphinHub Loaded",
-    Content = "Rivals script loaded!",
-    Duration = 3,
-    Icon = "bell",
+Fluent:Notify({
+        Title = "SeraphinHub Loaded",
+        Content = "Rivals script loaded!",
+        Duration = 3
 })
 
-local Info = Window:Tab({ Title = "Info", Icon = "info" })
+local Tabs = {
+    Info = Window:AddTab({ Title = "| Info", Icon = "Info" }),
+    Main = Window:AddTab({ Title = "| Main", Icon = "house" }),
+    Settings = Window:AddTab({ Title = "| Settings", Icon = "settings" })
+}
 
-Info:Section({
-    Title = "Community Support",
-    TextXAlignment = "Left",
-    TextSize = 17,
-})
+local Section = TabInfo:AddSection("Support Community")
 
 Info:Button({
     Title = "Discord",
@@ -51,7 +56,9 @@ Info:Button({
     end
 })
 
-Info:Paragraph({
-    Title = "Support",
-    Desc = "Every time there is a game update or someone reports something, I will fix it as soon as possible."
+Info:AddParagraph({
+    Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible."
 })
+
+
+local Section = TabMain:AddSection("Automatic")
