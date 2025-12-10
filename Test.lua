@@ -1,22 +1,57 @@
-local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+local success, WindUI = pcall(function()
+    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+end)
 
-local function gradient(text, startColor, endColor)
-    local result = ""
-    for i = 1, #text do
-        local t = (i - 1) / (#text - 1)
-        local r = math.floor((startColor.R + (endColor.R - startColor.R) * t) * 255)
-        local g = math.floor((startColor.G + (endColor.G - startColor.G) * t) * 255)
-        local b = math.floor((startColor.B + (endColor.B - startColor.B) * t) * 255)
-        result = result .. string.format('<font color="rgb(%d,%d,%d)">%s</font>', r, g, b, text:sub(i, i))
-    end
-    return result
+if not success or not WindUI then
+    warn("⚠️ UI failed to load!")
+    return
+else
+    print("✓ UI loaded successfully!")
 end
 
-local titleText = gradient("Seraphin", Color3.new(1, 0.2, 0.2), Color3.new(0.2, 0.5, 1))
-local subtitleText = gradient("mielix | Fish It", Color3.new(0.8, 0.8, 0.2), Color3.new(0.2, 0.8, 0.8))
+local Window = WindUI:CreateWindow({
+    Title = "Seraphin",
+    Icon = "rbxassetid://120248611602330",
+    Author = "KirsiaSC | Rivals",
+    Folder = "SERAPHIN_HUB",
+    Size = UDim2.fromOffset(280, 320),
+    Transparent = true,
+    Theme = "Dark",
+    SideBarWidth = 170,
+    HasOutline = true
+})
 
-local Tab1 = Window:Tab({
-    Title = "Tab Title",
-    Icon = "bird",
-    Locked = false,
+Window:Tag({
+    Title = "v0.0.0.1",
+    Color = Color3.fromRGB(180, 0, 255)
+})
+
+WindUI:Notify({
+    Title = "SeraphinHub Loaded",
+    Content = "Rivals script loaded!",
+    Duration = 3,
+    Icon = "bell",
+})
+
+local Info = Window:Tab({ Title = "Info", Icon = "info" })
+
+Info:Section({
+    Title = "Community Support",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+Info:Button({
+    Title = "Discord",
+    Desc = "Click to copy Discord link",
+    Callback = function()
+        if setclipboard then
+            setclipboard("https://discord.gg/getseraphin")
+        end
+    end
+})
+
+Info:Paragraph({
+    Title = "Support",
+    Desc = "Every time there is a game update or someone reports something, I will fix it as soon as possible."
 })
