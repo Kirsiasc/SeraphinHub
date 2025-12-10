@@ -1,8 +1,7 @@
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Seraphin",
-    SubTitle = "v0.0.0.1",
+    Title = "Seraphin | Developer",
     TabWidth = 160,
     Size = UDim2.fromOffset(550, 350),
     Acrylic = true,
