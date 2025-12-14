@@ -11,7 +11,7 @@ end
 
 local Window = WindUI:CreateWindow({
     Title = "Seraphin",
-    Icon = "rbxassetid://120248611602330",
+    Icon = "rbxassetid://135748028632686",
     Author = "KirsiaSC | Evade",
     Folder = "SERAPHIN_HUB",
     Size = UDim2.fromOffset(280, 320),
@@ -22,13 +22,13 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:Tag({
-    Title = "v0.0.0.4",
+    Title = "v0.0.0.1",
     Color = Color3.fromRGB(180, 0, 255)
 })
 
 WindUI:Notify({
     Title = "SeraphinHub Loaded",
-    Content = "Arsenal script loaded!",
+    Content = "Evade script loaded!",
     Duration = 3,
     Icon = "bell",
 })
