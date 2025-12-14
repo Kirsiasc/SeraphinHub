@@ -44,6 +44,7 @@ Info:Section({
 Info:Button({
     Title = "Discord",
     Desc = "Click to copy Discord link",
+    Icon = "mouse"
     Callback = function()
         if setclipboard then
             setclipboard("https://discord.gg/getseraphin")
@@ -56,5 +57,5 @@ Info:Paragraph({
     Desc = "Every time there is a game update or someone reports something, I will fix it as soon as possible."
 })
 
-local Main = Window:Tab({ Title = "Main", Icon = "House" })
+local Main = Window:Tab({ Title = "Main", Icon = "house" })
 
