@@ -11,7 +11,7 @@ end
 
 local Window = WindUI:CreateWindow({
     Title = "Seraphin",
-    Icon = "rbxassetid://120248611602330",
+    Icon = "rbxassetid://135748028632686",
     Author = "KirsiaSC | Hypershot",
     Folder = "SERAPHIN_HUB",
     Size = UDim2.fromOffset(280, 320),
