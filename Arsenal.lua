@@ -22,7 +22,7 @@ local Window = WindUI:CreateWindow({
 })
 
 Window:Tag({
-    Title = "v0.0.0.5",
+    Title = "v0.0.0.4",
     Color = Color3.fromRGB(180, 0, 255)
 })
 
@@ -365,8 +365,90 @@ local ESP = {
     Box = false,
     Line = false,
     Players = {},
+    Drawings = {},
     Connections = {}
 }
+
+local function createDrawing(player, type)
+    if not ESP.Drawings[player] then
+        ESP.Drawings[player] = {}
+    end
+    
+    if type == "Box" then
+        ESP.Drawings[player].Box = Drawing.new("Square")
+        ESP.Drawings[player].Box.Thickness = 1
+        ESP.Drawings[player].Box.Filled = false
+        ESP.Drawings[player].Box.Color = Color3.fromRGB(180, 0, 255)
+        ESP.Drawings[player].Box.Visible = false
+    elseif type == "Line" then
+        ESP.Drawings[player].Line = Drawing.new("Line")
+        ESP.Drawings[player].Line.Thickness = 1
+        ESP.Drawings[player].Line.Color = Color3.fromRGB(180, 0, 255)
+        ESP.Drawings[player].Line.Visible = false
+    end
+end
+
+local function removeDrawing(player, type)
+    if ESP.Drawings[player] then
+        if type == "Box" and ESP.Drawings[player].Box then
+            ESP.Drawings[player].Box:Remove()
+            ESP.Drawings[player].Box = nil
+        elseif type == "Line" and ESP.Drawings[player].Line then
+            ESP.Drawings[player].Line:Remove()
+            ESP.Drawings[player].Line = nil
+        end
+    end
+end
+
+local function updateDrawings()
+    for player, drawings in pairs(ESP.Drawings) do
+        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player ~= LocalPlayer then
+            local char = player.Character
+            local rootPart = char:FindFirstChild("HumanoidRootPart")
+            local head = char:FindFirstChild("Head")
+            
+            if rootPart and head then
+                local rootPos, rootVis = Camera:WorldToViewportPoint(rootPart.Position)
+                local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 1, 0))
+                
+                if rootVis then
+                    if ESP.Box and drawings.Box then
+                        local height = (headPos.Y - rootPos.Y)
+                        local width = height / 2
+                        
+                        drawings.Box.Size = Vector2.new(width, height)
+                        drawings.Box.Position = Vector2.new(rootPos.X - width/2, rootPos.Y - height)
+                        drawings.Box.Visible = true
+                    else
+                        if drawings.Box then
+                            drawings.Box.Visible = false
+                        end
+                    end
+                    
+                    if ESP.Line and drawings.Line then
+                        local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+                        drawings.Line.From = screenCenter
+                        drawings.Line.To = Vector2.new(rootPos.X, rootPos.Y)
+                        drawings.Line.Visible = true
+                    else
+                        if drawings.Line then
+                            drawings.Line.Visible = false
+                        end
+                    end
+                else
+                    if drawings.Box then drawings.Box.Visible = false end
+                    if drawings.Line then drawings.Line.Visible = false end
+                end
+            else
+                if drawings.Box then drawings.Box.Visible = false end
+                if drawings.Line then drawings.Line.Visible = false end
+            end
+        else
+            if drawings.Box then drawings.Box.Visible = false end
+            if drawings.Line then drawings.Line.Visible = false end
+        end
+    end
+end
 
 local function createESP(player)
     if player == LocalPlayer then return end
@@ -376,31 +458,32 @@ local function createESP(player)
         Highlight = nil,
         NameBillboard = nil,
         StudsBillboard = nil,
-        Box = nil,
-        Line = nil,
-        Connection = nil
+        CharAddedConn = nil,
+        CharRemovingConn = nil
     }
     
     ESP.Players[player] = espData
     
-    espData.Connection = player.CharacterAdded:Connect(function(char)
+    local function setupCharacter(char)
         task.wait(0.5)
-        if ESP.Highlight then
-            if espData.Highlight then espData.Highlight:Destroy() end
+        
+        if ESP.Highlight and not espData.Highlight then
             espData.Highlight = Instance.new("Highlight")
             espData.Highlight.Name = "SeraphinESP_HL"
             espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
             espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            espData.Highlight.OutlineTransparency = 0
+            espData.Highlight.FillTransparency = 0.3
             espData.Highlight.Parent = char
         end
         
-        if ESP.Name then
-            if espData.NameBillboard then espData.NameBillboard:Destroy() end
+        if ESP.Name and not espData.NameBillboard then
             espData.NameBillboard = Instance.new("BillboardGui")
             espData.NameBillboard.Name = "SeraphinESP_Name"
             espData.NameBillboard.Size = UDim2.new(0, 200, 0, 50)
             espData.NameBillboard.AlwaysOnTop = true
             espData.NameBillboard.StudsOffset = Vector3.new(0, 3, 0)
+            espData.NameBillboard.Adornee = char:WaitForChild("Head")
             espData.NameBillboard.Parent = char
             
             local nameLabel = Instance.new("TextLabel")
@@ -408,19 +491,20 @@ local function createESP(player)
             nameLabel.BackgroundTransparency = 1
             nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
             nameLabel.TextStrokeTransparency = 0
+            nameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
             nameLabel.Font = Enum.Font.SourceSansBold
             nameLabel.TextSize = 14
             nameLabel.Text = player.Name
             nameLabel.Parent = espData.NameBillboard
         end
         
-        if ESP.Studs then
-            if espData.StudsBillboard then espData.StudsBillboard:Destroy() end
+        if ESP.Studs and not espData.StudsBillboard then
             espData.StudsBillboard = Instance.new("BillboardGui")
             espData.StudsBillboard.Name = "SeraphinESP_Studs"
             espData.StudsBillboard.Size = UDim2.new(0, 200, 0, 50)
             espData.StudsBillboard.AlwaysOnTop = true
             espData.StudsBillboard.StudsOffset = Vector3.new(0, 5, 0)
+            espData.StudsBillboard.Adornee = char:WaitForChild("Head")
             espData.StudsBillboard.Parent = char
             
             local infoLabel = Instance.new("TextLabel")
@@ -428,81 +512,51 @@ local function createESP(player)
             infoLabel.BackgroundTransparency = 1
             infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             infoLabel.TextStrokeTransparency = 0
+            infoLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
             infoLabel.Font = Enum.Font.SourceSansBold
             infoLabel.TextSize = 12
             infoLabel.Text = "0 studs"
             infoLabel.Parent = espData.StudsBillboard
+        end
+        
+        if ESP.Box or ESP.Line then
+            createDrawing(player, "Box")
+            createDrawing(player, "Line")
+        end
+    end
+    
+    espData.CharAddedConn = player.CharacterAdded:Connect(function(char)
+        setupCharacter(char)
+    end)
+    
+    espData.CharRemovingConn = player.CharacterRemoving:Connect(function()
+        if espData.Highlight then
+            espData.Highlight:Destroy()
+            espData.Highlight = nil
+        end
+        if espData.NameBillboard then
+            espData.NameBillboard:Destroy()
+            espData.NameBillboard = nil
+        end
+        if espData.StudsBillboard then
+            espData.StudsBillboard:Destroy()
+            espData.StudsBillboard = nil
         end
     end)
     
     if player.Character then
-        espData.Connection:Disconnect()
-        espData.Connection = nil
-        espData.Connection = player.CharacterAdded:Connect(function(char)
-            task.wait(0.5)
-            if ESP.Highlight then
-                if espData.Highlight then espData.Highlight:Destroy() end
-                espData.Highlight = Instance.new("Highlight")
-                espData.Highlight.Name = "SeraphinESP_HL"
-                espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
-                espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                espData.Highlight.Parent = char
-            end
-        end)
-        
-        if ESP.Highlight then
-            espData.Highlight = Instance.new("Highlight")
-            espData.Highlight.Name = "SeraphinESP_HL"
-            espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
-            espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-            espData.Highlight.Parent = player.Character
-        end
-        
-        if ESP.Name then
-            espData.NameBillboard = Instance.new("BillboardGui")
-            espData.NameBillboard.Name = "SeraphinESP_Name"
-            espData.NameBillboard.Size = UDim2.new(0, 200, 0, 50)
-            espData.NameBillboard.AlwaysOnTop = true
-            espData.NameBillboard.StudsOffset = Vector3.new(0, 3, 0)
-            espData.NameBillboard.Parent = player.Character
-            
-            local nameLabel = Instance.new("TextLabel")
-            nameLabel.Size = UDim2.new(1, 0, 1, 0)
-            nameLabel.BackgroundTransparency = 1
-            nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
-            nameLabel.TextStrokeTransparency = 0
-            nameLabel.Font = Enum.Font.SourceSansBold
-            nameLabel.TextSize = 14
-            nameLabel.Text = player.Name
-            nameLabel.Parent = espData.NameBillboard
-        end
-        
-        if ESP.Studs then
-            espData.StudsBillboard = Instance.new("BillboardGui")
-            espData.StudsBillboard.Name = "SeraphinESP_Studs"
-            espData.StudsBillboard.Size = UDim2.new(0, 200, 0, 50)
-            espData.StudsBillboard.AlwaysOnTop = true
-            espData.StudsBillboard.StudsOffset = Vector3.new(0, 5, 0)
-            espData.StudsBillboard.Parent = player.Character
-            
-            local infoLabel = Instance.new("TextLabel")
-            infoLabel.Size = UDim2.new(1, 0, 1, 0)
-            infoLabel.BackgroundTransparency = 1
-            infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            infoLabel.TextStrokeTransparency = 0
-            infoLabel.Font = Enum.Font.SourceSansBold
-            infoLabel.TextSize = 12
-            infoLabel.Text = "0 studs"
-            infoLabel.Parent = espData.StudsBillboard
-        end
+        setupCharacter(player.Character)
     end
 end
 
 local function removeESP(player)
     local espData = ESP.Players[player]
     if espData then
-        if espData.Connection then
-            espData.Connection:Disconnect()
+        if espData.CharAddedConn then
+            espData.CharAddedConn:Disconnect()
+        end
+        if espData.CharRemovingConn then
+            espData.CharRemovingConn:Disconnect()
         end
         if espData.Highlight then
             espData.Highlight:Destroy()
@@ -513,13 +567,13 @@ local function removeESP(player)
         if espData.StudsBillboard then
             espData.StudsBillboard:Destroy()
         end
-        if espData.Box then
-            espData.Box:Remove()
-        end
-        if espData.Line then
-            espData.Line:Remove()
-        end
         ESP.Players[player] = nil
+    end
+    
+    if ESP.Drawings[player] then
+        removeDrawing(player, "Box")
+        removeDrawing(player, "Line")
+        ESP.Drawings[player] = nil
     end
 end
 
@@ -531,6 +585,10 @@ local function updateESP()
                 espData.StudsBillboard.TextLabel.Text = math.floor(distance) .. " studs"
             end
         end
+    end
+    
+    if ESP.Box or ESP.Line then
+        updateDrawings()
     end
 end
 
@@ -545,6 +603,109 @@ end
 local function cleanupAllESP()
     for player, _ in pairs(ESP.Players) do
         removeESP(player)
+    end
+    
+    for player, _ in pairs(ESP.Drawings) do
+        removeDrawing(player, "Box")
+        removeDrawing(player, "Line")
+    end
+    ESP.Drawings = {}
+end
+
+local function toggleESPFeature(feature, state)
+    ESP[feature] = state
+    
+    if ESP.Enabled then
+        for player, espData in pairs(ESP.Players) do
+            if player ~= LocalPlayer and player.Character then
+                if feature == "Highlight" then
+                    if state then
+                        if not espData.Highlight then
+                            espData.Highlight = Instance.new("Highlight")
+                            espData.Highlight.Name = "SeraphinESP_HL"
+                            espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
+                            espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                            espData.Highlight.OutlineTransparency = 0
+                            espData.Highlight.FillTransparency = 0.3
+                            espData.Highlight.Parent = player.Character
+                        end
+                    else
+                        if espData.Highlight then
+                            espData.Highlight:Destroy()
+                            espData.Highlight = nil
+                        end
+                    end
+                elseif feature == "Name" then
+                    if state then
+                        if not espData.NameBillboard then
+                            espData.NameBillboard = Instance.new("BillboardGui")
+                            espData.NameBillboard.Name = "SeraphinESP_Name"
+                            espData.NameBillboard.Size = UDim2.new(0, 200, 0, 50)
+                            espData.NameBillboard.AlwaysOnTop = true
+                            espData.NameBillboard.StudsOffset = Vector3.new(0, 3, 0)
+                            espData.NameBillboard.Adornee = player.Character:WaitForChild("Head")
+                            espData.NameBillboard.Parent = player.Character
+                            
+                            local nameLabel = Instance.new("TextLabel")
+                            nameLabel.Size = UDim2.new(1, 0, 1, 0)
+                            nameLabel.BackgroundTransparency = 1
+                            nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
+                            nameLabel.TextStrokeTransparency = 0
+                            nameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+                            nameLabel.Font = Enum.Font.SourceSansBold
+                            nameLabel.TextSize = 14
+                            nameLabel.Text = player.Name
+                            nameLabel.Parent = espData.NameBillboard
+                        end
+                    else
+                        if espData.NameBillboard then
+                            espData.NameBillboard:Destroy()
+                            espData.NameBillboard = nil
+                        end
+                    end
+                elseif feature == "Studs" then
+                    if state then
+                        if not espData.StudsBillboard then
+                            espData.StudsBillboard = Instance.new("BillboardGui")
+                            espData.StudsBillboard.Name = "SeraphinESP_Studs"
+                            espData.StudsBillboard.Size = UDim2.new(0, 200, 0, 50)
+                            espData.StudsBillboard.AlwaysOnTop = true
+                            espData.StudsBillboard.StudsOffset = Vector3.new(0, 5, 0)
+                            espData.StudsBillboard.Adornee = player.Character:WaitForChild("Head")
+                            espData.StudsBillboard.Parent = player.Character
+                            
+                            local infoLabel = Instance.new("TextLabel")
+                            infoLabel.Size = UDim2.new(1, 0, 1, 0)
+                            infoLabel.BackgroundTransparency = 1
+                            infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            infoLabel.TextStrokeTransparency = 0
+                            infoLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+                            infoLabel.Font = Enum.Font.SourceSansBold
+                            infoLabel.TextSize = 12
+                            infoLabel.Text = "0 studs"
+                            infoLabel.Parent = espData.StudsBillboard
+                        end
+                    else
+                        if espData.StudsBillboard then
+                            espData.StudsBillboard:Destroy()
+                            espData.StudsBillboard = nil
+                        end
+                    end
+                elseif feature == "Box" then
+                    if state then
+                        createDrawing(player, "Box")
+                    else
+                        removeDrawing(player, "Box")
+                    end
+                elseif feature == "Line" then
+                    if state then
+                        createDrawing(player, "Line")
+                    else
+                        removeDrawing(player, "Line")
+                    end
+                end
+            end
+        end
     end
 end
 
@@ -581,27 +742,7 @@ Visuals:Toggle({
     Title = "ESP Highlight",
     Default = false,
     Callback = function(state)
-        ESP.Highlight = state
-        if ESP.Enabled then
-            for player, espData in pairs(ESP.Players) do
-                if player ~= LocalPlayer then
-                    if state then
-                        if player.Character and not espData.Highlight then
-                            espData.Highlight = Instance.new("Highlight")
-                            espData.Highlight.Name = "SeraphinESP_HL"
-                            espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
-                            espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                            espData.Highlight.Parent = player.Character
-                        end
-                    else
-                        if espData.Highlight then
-                            espData.Highlight:Destroy()
-                            espData.Highlight = nil
-                        end
-                    end
-                end
-            end
-        end
+        toggleESPFeature("Highlight", state)
     end
 })
 
@@ -609,38 +750,7 @@ Visuals:Toggle({
     Title = "ESP Name",
     Default = false,
     Callback = function(state)
-        ESP.Name = state
-        if ESP.Enabled then
-            for player, espData in pairs(ESP.Players) do
-                if player ~= LocalPlayer then
-                    if state then
-                        if player.Character and not espData.NameBillboard then
-                            espData.NameBillboard = Instance.new("BillboardGui")
-                            espData.NameBillboard.Name = "SeraphinESP_Name"
-                            espData.NameBillboard.Size = UDim2.new(0, 200, 0, 50)
-                            espData.NameBillboard.AlwaysOnTop = true
-                            espData.NameBillboard.StudsOffset = Vector3.new(0, 3, 0)
-                            espData.NameBillboard.Parent = player.Character
-                            
-                            local nameLabel = Instance.new("TextLabel")
-                            nameLabel.Size = UDim2.new(1, 0, 1, 0)
-                            nameLabel.BackgroundTransparency = 1
-                            nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
-                            nameLabel.TextStrokeTransparency = 0
-                            nameLabel.Font = Enum.Font.SourceSansBold
-                            nameLabel.TextSize = 14
-                            nameLabel.Text = player.Name
-                            nameLabel.Parent = espData.NameBillboard
-                        end
-                    else
-                        if espData.NameBillboard then
-                            espData.NameBillboard:Destroy()
-                            espData.NameBillboard = nil
-                        end
-                    end
-                end
-            end
-        end
+        toggleESPFeature("Name", state)
     end
 })
 
@@ -648,38 +758,7 @@ Visuals:Toggle({
     Title = "ESP Studs",
     Default = false,
     Callback = function(state)
-        ESP.Studs = state
-        if ESP.Enabled then
-            for player, espData in pairs(ESP.Players) do
-                if player ~= LocalPlayer then
-                    if state then
-                        if player.Character and not espData.StudsBillboard then
-                            espData.StudsBillboard = Instance.new("BillboardGui")
-                            espData.StudsBillboard.Name = "SeraphinESP_Studs"
-                            espData.StudsBillboard.Size = UDim2.new(0, 200, 0, 50)
-                            espData.StudsBillboard.AlwaysOnTop = true
-                            espData.StudsBillboard.StudsOffset = Vector3.new(0, 5, 0)
-                            espData.StudsBillboard.Parent = player.Character
-                            
-                            local infoLabel = Instance.new("TextLabel")
-                            infoLabel.Size = UDim2.new(1, 0, 1, 0)
-                            infoLabel.BackgroundTransparency = 1
-                            infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-                            infoLabel.TextStrokeTransparency = 0
-                            infoLabel.Font = Enum.Font.SourceSansBold
-                            infoLabel.TextSize = 12
-                            infoLabel.Text = "0 studs"
-                            infoLabel.Parent = espData.StudsBillboard
-                        end
-                    else
-                        if espData.StudsBillboard then
-                            espData.StudsBillboard:Destroy()
-                            espData.StudsBillboard = nil
-                        end
-                    end
-                end
-            end
-        end
+        toggleESPFeature("Studs", state)
     end
 })
 
@@ -687,7 +766,7 @@ Visuals:Toggle({
     Title = "ESP Box",
     Default = false,
     Callback = function(state)
-        ESP.Box = state
+        toggleESPFeature("Box", state)
     end
 })
 
@@ -695,7 +774,7 @@ Visuals:Toggle({
     Title = "ESP Line",
     Default = false,
     Callback = function(state)
-        ESP.Line = state
+        toggleESPFeature("Line", state)
     end
 })
 
