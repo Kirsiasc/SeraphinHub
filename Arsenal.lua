@@ -109,10 +109,6 @@ Combat:Toggle({
     end
 })
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-
 _G.KillAura = false
 
 Combat:Toggle({
@@ -179,9 +175,6 @@ Combat:Toggle({
     end
 })
 
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-
 local circle = Drawing.new("Circle")
 circle.Thickness = 1.5
 circle.NumSides = 100
@@ -206,15 +199,65 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
+_G.AutoShot = false
+local autoShotRange = 500
+
+Combat:Toggle({
+    Title = "Auto Shot",
+    Default = false,
+    Callback = function(state)
+        _G.AutoShot = state
+        if state then
+            task.spawn(function()
+                while _G.AutoShot do
+                    task.wait(0.1)
+                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                        if tool and tool:FindFirstChild("Handle") then
+                            local closestPlayer, closestDistance = nil, math.huge
+                            for _, player in ipairs(Players:GetPlayers()) do
+                                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+                                    local character = player.Character
+                                    if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0 then
+                                        local distance = (LocalPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                                        if distance < autoShotRange and distance < closestDistance then
+                                            closestDistance = distance
+                                            closestPlayer = player
+                                        end
+                                    end
+                                end
+                            end
+                            
+                            if closestPlayer and closestPlayer.Character then
+                                local targetHead = closestPlayer.Character:FindFirstChild("Head")
+                                if targetHead then
+                                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                                    task.wait(0.05)
+                                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 1)
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+Combat:Input({
+    Title = "Auto Shot Range",
+    Value = "500",
+    Callback = function(val)
+        local num = tonumber(val)
+        if num then autoShotRange = num end
+    end
+})
+
 Combat:Section({
     Title = "No delay",
     TextXAlignment = "Left",
     TextSize = 17,
 })
-
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 
 _G.NoRecoil = false
 _G.NoSpread = false
@@ -314,11 +357,6 @@ Combat:Toggle({
 
 local Visuals = Window:Tab({ Title = "Visuals", Icon = "eye" })
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
-
 _G.AutoHit = false
 
 Visuals:Toggle({
@@ -329,17 +367,17 @@ Visuals:Toggle({
     end
 })
 
-local circle = Drawing.new("Circle")
-circle.Thickness = 2
-circle.NumSides = 100
-circle.Radius = 100
-circle.Filled = false
-circle.Color = Color3.fromRGB(170, 0, 255)
-circle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-circle.Visible = false
+local circle2 = Drawing.new("Circle")
+circle2.Thickness = 2
+circle2.NumSides = 100
+circle2.Radius = 100
+circle2.Filled = false
+circle2.Color = Color3.fromRGB(170, 0, 255)
+circle2.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+circle2.Visible = false
 
 RunService.RenderStepped:Connect(function()
-    circle.Visible = _G.AutoHit
+    circle2.Visible = _G.AutoHit
 end)
 
 RunService.Heartbeat:Connect(function()
