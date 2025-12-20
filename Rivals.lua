@@ -1,1041 +1,50 @@
-local success, WindUI = pcall(function()
-    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-end)
+if not game:IsLoaded() then game.Loaded:Wait() end
 
-if not success or not WindUI then
-    warn("⚠️ UI failed to load!")
+
+if game.GameId ~= 6035872082 then
+    warn("Seraphin Hub: Not Rivals")
     return
-else
-    print("✓ UI loaded successfully!")
 end
 
-local function detectEnvironment()
-    local isStudio = game:GetService("RunService"):IsStudio()
-    local isUGC = false
-    local hasPlayers = false
-    
-    pcall(function()
-        hasPlayers = #game:GetService("Players"):GetPlayers() > 0
-    end)
-    
-    isUGC = isStudio and not hasPlayers
-    
-    return {
-        IsStudio = isStudio,
-        IsUGC = isUGC,
-        HasPlayers = hasPlayers
-    }
-end
 
-local env = detectEnvironment()
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
-if env.IsUGC then
-    WindUI:Notify({
-        Title = "UGC Environment Detected",
-        Content = "Running in limited compatibility mode",
-        Duration = 5,
-        Icon = "alert-triangle"
-    })
-end
-
-local Window = WindUI:CreateWindow({
-    Title = "Seraphin",
-    Icon = "rbxassetid://135748028632686",
-    Author = "KirsiaSC | Rivals",
-    Folder = "SERAPHIN_HUB",
-    Size = UDim2.new(0, 280, 0, 320),
-    Transparent = true,
-    Theme = "Dark",
-    SideBarWidth = 170,
-    HasOutline = true
+local Window = Fluent:CreateWindow({
+    Title = "Seraphin | Rivals",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(560, 360),
+    Acrylic = true,
+    Theme = "Darker",
+    MinimizeKey = Enum.KeyCode.LeftControl
 })
 
-Window:Tag({
-    Title = "v0.0.0.1",
-    Color = Color3.fromRGB(180, 0, 255)
+Fluent:Notify({
+    Title = "Seraphin Hub",
+    Content = "Rivals loaded successfully",
+    Duration = 3
 })
 
-local players_service
-local player_service_available = pcall(function()
-    players_service = game:GetService("Players")
-end)
 
-if not player_service_available or not players_service then
-    warn("⚠️ Players service not available!")
-    
-    players_service = {
-        LocalPlayer = {
-            Name = "Player",
-            Character = nil,
-            CharacterAdded = Instance.new("BindableEvent").Event,
-            CharacterRemoving = Instance.new("BindableEvent").Event,
-            GetMouse = function() 
-                return {
-                    X = 0,
-                    Y = 0,
-                    Target = nil
-                }
-            end
-        },
-        GetPlayers = function() return {} end,
-        PlayerAdded = Instance.new("BindableEvent").Event
-    }
-end
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
 
-local run_service = game:GetService("RunService")
-local user_input_service = game:GetService("UserInputService")
-local camera = workspace.CurrentCamera
-local localPlayer = players_service.LocalPlayer
 
-local visuals_enabled = false
-local show_boxes_enabled = false
-local show_tracers_enabled = false
-local show_names_enabled = false
-local show_skeleton_enabled = false
-local show_view_line_enabled = false
-local aimbot_enabled = false
-local silent_aim_enabled = false
-local aimbot_fov_size = 50
-local aimbot_aim_part = "Head"
-local aimbot_keybind = Enum.UserInputType.MouseButton2
-local aimbot_smoothness = 0
-local show_fov = false
-local aimbot_smoothness_enabled = false
-local aimbot_prediction_enabled = false
-local aimbot_prediction_strength_x = 0
-local aimbot_prediction_strength_y = 0
-local aimbot_sticky_aim_enabled = false
-local locked_target = nil
-local visual_elements = {}
-local tp_behind_offset = 0
-local tp_behind_height = 6
-local teleporting = false
-local speed_multiplier = 0
-local speed_modifier_enabled = false
-local config_file_path = "config.json"
-local selected_player = nil
-local silentAimHook = nil
+local Tabs = {
+    Info = Window:AddTab({ Title = "| Info", Icon = "info" }),
+    Combat = Window:AddTab({ Title = "| Combat", Icon = "crosshair" }),
+    Visual = Window:AddTab({ Title = "| Visual", Icon = "eye" }),
+    Settings = Window:AddTab({ Title = "| Settings", Icon = "settings" })
+}
 
-local function safeGetPlayers()
-    if type(players_service.GetPlayers) == "function" then
-        return players_service:GetPlayers()
-    end
-    return {}
-end
 
-local function init_visuals(player)
-    if not visuals_enabled then
-        return
-    end
-    if player == localPlayer then
-        return
-    end
+Tabs.Info:AddSection("Community")
 
-    local character = player.Character
-    if not character then
-        return
-    end
-
-    local humanoid_root_part = character:FindFirstChild("HumanoidRootPart")
-    if not humanoid_root_part then
-        return
-    end
-
-    local box_visual = Drawing.new("Square")
-    box_visual.Color = Color3.fromRGB(255, 255, 255)
-    box_visual.Thickness = 2
-    box_visual.Transparency = 1
-    box_visual.Filled = false
-
-    local tracer_visual = Drawing.new("Line")
-    tracer_visual.Color = Color3.fromRGB(255, 255, 255)
-    tracer_visual.Thickness = 1
-    tracer_visual.Transparency = 1
-
-    local name_visual = Drawing.new("Text")
-    name_visual.Text = player.Name
-    name_visual.Color = Color3.fromRGB(255, 255, 255)
-    name_visual.Size = 20
-    name_visual.Center = true
-    name_visual.Outline = true
-    name_visual.Transparency = 1
-
-    local skeleton_lines = {}
-    for i = 1, 6 do
-        local line = Drawing.new("Line")
-        line.Color = Color3.fromRGB(255, 255, 255)
-        line.Thickness = 2.5
-        line.Transparency = 1
-        table.insert(skeleton_lines, line)
-    end
-
-    local view_line = Drawing.new("Line")
-    view_line.Color = Color3.fromRGB(255, 255, 255)
-    view_line.Thickness = 2.5
-    view_line.Transparency = 1
-
-    visual_elements[player] = {
-        box = box_visual,
-        tracer = tracer_visual,
-        name = name_visual,
-        skeleton = skeleton_lines,
-        view_line = view_line
-    }
-
-    local function update_visuals()
-        if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-            box_visual.Visible = false
-            tracer_visual.Visible = false
-            name_visual.Visible = false
-            for _, line in pairs(skeleton_lines) do
-                line.Visible = false
-            end
-            view_line.Visible = false
-            return
-        end
-    
-        if not visuals_enabled then
-            box_visual.Visible = false
-            tracer_visual.Visible = false
-            name_visual.Visible = false
-            for _, line in pairs(skeleton_lines) do
-                line.Visible = false
-            end
-            view_line.Visible = false
-            return
-        end
-    
-        local hrp_position, on_screen = camera:WorldToViewportPoint(humanoid_root_part.Position)
-        if on_screen then
-            local top = camera:WorldToViewportPoint(humanoid_root_part.Position + Vector3.new(0, 3, 0))
-            local bottom = camera:WorldToViewportPoint(humanoid_root_part.Position - Vector3.new(0, 3, 0))
-            local size = Vector2.new(math.abs(top.X - bottom.X) * 1.5, math.abs(top.Y - bottom.Y) * 1.5)
-    
-            if show_boxes_enabled then
-                box_visual.Size = size
-                box_visual.Position = Vector2.new(hrp_position.X - size.X / 2, hrp_position.Y - size.Y / 2)
-                box_visual.Visible = true
-            else
-                box_visual.Visible = false
-            end
-    
-            if show_tracers_enabled then
-                tracer_visual.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
-                tracer_visual.To = Vector2.new(hrp_position.X, hrp_position.Y)
-                tracer_visual.Visible = true
-            else
-                tracer_visual.Visible = false
-            end
-    
-            if show_names_enabled then
-                name_visual.Position = Vector2.new(hrp_position.X, hrp_position.Y - size.Y / 2 - 20)
-                name_visual.Visible = true
-            else
-                name_visual.Visible = false
-            end
-    
-            if show_view_line_enabled and player.Character:FindFirstChild("Head") then
-                local head = player.Character.Head
-                local head_pos = camera:WorldToViewportPoint(head.Position)
-                local forward_vector = player.Character.HumanoidRootPart.CFrame.LookVector * 2
-                local view_point = head.Position + forward_vector
-                local view_pos = camera:WorldToViewportPoint(view_point)
-    
-                view_line.From = Vector2.new(head_pos.X, head_pos.Y)
-                view_line.To = Vector2.new(view_pos.X, view_pos.Y)
-                view_line.Visible = true
-            else
-                view_line.Visible = false
-            end
-    
-            if show_skeleton_enabled and player.Character then
-                local parts = {
-                    head = player.Character:FindFirstChild("Head"),
-                    left_arm = player.Character:FindFirstChild("LeftUpperArm"),
-                    right_arm = player.Character:FindFirstChild("RightUpperArm"),
-                    left_leg = player.Character:FindFirstChild("LeftUpperLeg"),
-                    right_leg = player.Character:FindFirstChild("RightUpperLeg"),
-                    torso = player.Character:FindFirstChild("Torso") or player.Character:FindFirstChild("UpperTorso")
-                }
-    
-                if parts.head and parts.torso then
-                    local head_pos = camera:WorldToViewportPoint(parts.head.Position)
-                    local torso_pos = camera:WorldToViewportPoint(parts.torso.Position)
-    
-                    skeleton_lines[1].From = Vector2.new(head_pos.X, head_pos.Y)
-                    skeleton_lines[1].To = Vector2.new(torso_pos.X, torso_pos.Y)
-                    skeleton_lines[1].Visible = true
-    
-                    if parts.left_arm then
-                        local left_arm_pos = camera:WorldToViewportPoint(parts.left_arm.Position)
-                        skeleton_lines[2].From = Vector2.new(torso_pos.X, torso_pos.Y)
-                        skeleton_lines[2].To = Vector2.new(left_arm_pos.X, left_arm_pos.Y)
-                        skeleton_lines[2].Visible = true
-                    else
-                        skeleton_lines[2].Visible = false
-                    end
-    
-                    if parts.right_arm then
-                        local right_arm_pos = camera:WorldToViewportPoint(parts.right_arm.Position)
-                        skeleton_lines[3].From = Vector2.new(torso_pos.X, torso_pos.Y)
-                        skeleton_lines[3].To = Vector2.new(right_arm_pos.X, right_arm_pos.Y)
-                        skeleton_lines[3].Visible = true
-                    else
-                        skeleton_lines[3].Visible = false
-                    end
-    
-                    if parts.left_leg then
-                        local left_leg_pos = camera:WorldToViewportPoint(parts.left_leg.Position)
-                        skeleton_lines[4].From = Vector2.new(torso_pos.X, torso_pos.Y)
-                        skeleton_lines[4].To = Vector2.new(left_leg_pos.X, left_leg_pos.Y)
-                        skeleton_lines[4].Visible = true
-                    else
-                        skeleton_lines[4].Visible = false
-                    end
-    
-                    if parts.right_leg then
-                        local right_leg_pos = camera:WorldToViewportPoint(parts.right_leg.Position)
-                        skeleton_lines[5].From = Vector2.new(torso_pos.X, torso_pos.Y)
-                        skeleton_lines[5].To = Vector2.new(right_leg_pos.X, right_leg_pos.Y)
-                        skeleton_lines[5].Visible = true
-                    else
-                        skeleton_lines[5].Visible = false
-                    end
-                end
-            else
-                for _, line in pairs(skeleton_lines) do
-                    line.Visible = false
-                end
-            end
-        else
-            box_visual.Visible = false
-            tracer_visual.Visible = false
-            name_visual.Visible = false
-            for _, line in pairs(skeleton_lines) do
-                line.Visible = false
-            end
-            view_line.Visible = false
-        end
-    end
-
-    run_service.RenderStepped:Connect(update_visuals)
-end
-
-local function remove_visuals(player)
-    if visual_elements[player] then
-        visual_elements[player].box:Remove()
-        visual_elements[player].tracer:Remove()
-        visual_elements[player].name:Remove()
-        for _, line in pairs(visual_elements[player].skeleton) do
-            line:Remove()
-        end
-        visual_elements[player].view_line:Remove()
-        visual_elements[player] = nil
-    end
-end
-
-local function add_visuals(player)
-    if player.CharacterAdded then
-        player.CharacterAdded:Connect(
-            function()
-                init_visuals(player)
-            end
-        )
-    end
-    
-    if player.CharacterRemoving then
-        player.CharacterRemoving:Connect(
-            function()
-                remove_visuals(player)
-            end
-        )
-    end
-    
-    if player.Character then
-        init_visuals(player)
-    end
-end
-
-if players_service.PlayerAdded then
-    players_service.PlayerAdded:Connect(add_visuals)
-end
-
-if not env.IsUGC then
-    for _, player in pairs(safeGetPlayers()) do
-        add_visuals(player)
-    end
-end
-
-local function toggle_visuals(state)
-    visuals_enabled = state
-    if not state then
-        for _, player in pairs(safeGetPlayers()) do
-            remove_visuals(player)
-        end
-    else
-        for _, player in pairs(safeGetPlayers()) do
-            if player.Character then
-                init_visuals(player)
-            end
-        end
-    end
-end
-
-local function safeAimbot()
-    if not aimbot_enabled or not aimbot_keybind then
-        return
-    end
-
-    if env.IsUGC then
-        return
-    end
-
-    local is_key_down
-    if aimbot_keybind == Enum.UserInputType.MouseButton2 then
-        is_key_down = user_input_service:IsMouseButtonPressed(Enum.UserInputType.MouseButton2)
-    else
-        is_key_down = user_input_service:IsKeyDown(aimbot_keybind)
-    end
-
-    if not is_key_down then
-        locked_target = nil
-        return
-    end
-
-    if locked_target and aimbot_sticky_aim_enabled then
-        if locked_target.Character and locked_target.Character:FindFirstChild(aimbot_aim_part) then
-            local part = locked_target.Character[aimbot_aim_part]
-            local predicted_position = part.Position
-            if aimbot_prediction_enabled then
-                local velocity = locked_target.Character.HumanoidRootPart.Velocity
-                predicted_position =
-                    part.Position +
-                    Vector3.new(
-                        velocity.X * aimbot_prediction_strength_x * 0.1,
-                        velocity.Y * aimbot_prediction_strength_y * 0.1,
-                        0
-                    )
-            end
-            local screen_pos = camera:WorldToViewportPoint(predicted_position)
-            local target = Vector2.new(screen_pos.X, screen_pos.Y)
-            local screen_center = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
-            local move = target - screen_center
-
-            if aimbot_smoothness_enabled then
-                local move_step = move / (aimbot_smoothness + 1)
-                if mousemoverel then
-                    mousemoverel(move_step.X, move_step.Y)
-                end
-            else
-                if mousemoverel then
-                    mousemoverel(move.X, move.Y)
-                end
-            end
-            return
-        else
-            locked_target = nil
-        end
-    end
-
-    local closest_player = nil
-    local closest_distance = aimbot_fov_size
-
-    for _, player in pairs(safeGetPlayers()) do
-        if
-            player ~= localPlayer and player.Character and
-                player.Character:FindFirstChild(aimbot_aim_part)
-         then
-            local part = player.Character[aimbot_aim_part]
-            local predicted_position = part.Position
-            if aimbot_prediction_enabled then
-                local velocity = player.Character.HumanoidRootPart.Velocity
-                predicted_position =
-                    part.Position +
-                    Vector3.new(
-                        velocity.X * aimbot_prediction_strength_x * 0.1,
-                        velocity.Y * aimbot_prediction_strength_y * 0.1,
-                        0
-                    )
-            end
-            local screen_pos, on_screen = camera:WorldToViewportPoint(predicted_position)
-            if on_screen then
-                local distance =
-                    (Vector2.new(screen_pos.X, screen_pos.Y) -
-                    Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)).magnitude
-                if distance < closest_distance then
-                    closest_distance = distance
-                    closest_player = player
-                end
-            end
-        end
-    end
-
-    if closest_player then
-        locked_target = closest_player
-        local part = closest_player.Character[aimbot_aim_part]
-        local predicted_position = part.Position
-        if aimbot_prediction_enabled then
-            local velocity = closest_player.Character.HumanoidRootPart.Velocity
-            predicted_position =
-                part.Position +
-                Vector3.new(
-                    velocity.X * aimbot_prediction_strength_x * 0.1,
-                    velocity.Y * aimbot_prediction_strength_y * 0.1,
-                    0
-                )
-        end
-        local screen_pos = camera:WorldToViewportPoint(predicted_position)
-        local target = Vector2.new(screen_pos.X, screen_pos.Y)
-        local screen_center = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
-        local move = target - screen_center
-
-        if aimbot_smoothness_enabled then
-            local move_step = move / (aimbot_smoothness + 1)
-            if mousemoverel then
-                mousemoverel(move_step.X, move_step.Y)
-            end
-        else
-            if mousemoverel then
-                mousemoverel(move.X, move.Y)
-            end
-        end
-    end
-end
-
-run_service.RenderStepped:Connect(safeAimbot)
-
-local fov_circle = Drawing.new("Circle")
-fov_circle.Color = Color3.fromRGB(255, 255, 255)
-fov_circle.Thickness = 1
-fov_circle.Transparency = 1
-fov_circle.Filled = false
-
-local function update_fov_circle()
-    if show_fov then
-        local mouse_pos = user_input_service:GetMouseLocation()
-        fov_circle.Radius = aimbot_fov_size
-        fov_circle.Position = Vector2.new(mouse_pos.X, mouse_pos.Y)
-        fov_circle.Visible = true
-    else
-        fov_circle.Visible = false
-    end
-end
-
-run_service.RenderStepped:Connect(update_fov_circle)
-
-local function string_to_enum(string)
-    local newstring = string:gsub("Enum.KeyCode.","")
-    return Enum.KeyCode[newstring]
-end 
-
-local function save_config(path)
-    local config = {
-        visuals_enabled = visuals_enabled,
-        show_boxes_enabled = show_boxes_enabled,
-        show_tracers_enabled = show_tracers_enabled,
-        show_names_enabled = show_names_enabled,
-        show_skeleton_enabled = show_skeleton_enabled,
-        show_view_line_enabled = show_view_line_enabled,
-        aimbot_enabled = aimbot_enabled,
-        silent_aim_enabled = silent_aim_enabled,
-        aimbot_fov_size = aimbot_fov_size,
-        aimbot_aim_part = aimbot_aim_part,
-        aimbot_smoothness = aimbot_smoothness,
-        show_fov = show_fov,
-        aimbot_keybind = tostring(aimbot_keybind),
-        aimbot_smoothness_enabled = aimbot_smoothness_enabled,
-        aimbot_prediction_enabled = aimbot_prediction_enabled,
-        aimbot_prediction_strength_x = aimbot_prediction_strength_x,
-        aimbot_prediction_strength_y = aimbot_prediction_strength_y,
-        aimbot_sticky_aim_enabled = aimbot_sticky_aim_enabled
-    }
-    local config_string = game:GetService("HttpService"):JSONEncode(config)
-    if writefile then
-        writefile(path, config_string)
-    end
-end
-
-local function load_config(path)
-    if isfile and isfile(path) then
-        local config_string = readfile(path)
-        local config = game:GetService("HttpService"):JSONDecode(config_string)
-        visuals_enabled = config.visuals_enabled
-        show_boxes_enabled = config.show_boxes_enabled
-        show_tracers_enabled = config.show_tracers_enabled
-        show_names_enabled = config.show_names_enabled
-        show_skeleton_enabled = config.show_skeleton_enabled
-        show_view_line_enabled = config.show_view_line_enabled
-        aimbot_enabled = config.aimbot_enabled
-        silent_aim_enabled = config.silent_aim_enabled
-        aimbot_fov_size = config.aimbot_fov_size
-        aimbot_aim_part = config.aimbot_aim_part
-        aimbot_smoothness = config.aimbot_smoothness
-        show_fov = config.show_fov
-        aimbot_keybind = string_to_enum(config.aimbot_keybind)
-        aimbot_smoothness_enabled = config.aimbot_smoothness_enabled
-        aimbot_prediction_enabled = config.aimbot_prediction_enabled
-        aimbot_prediction_strength_x = config.aimbot_prediction_strength_x
-        aimbot_prediction_strength_y = config.aimbot_prediction_strength_y
-        aimbot_sticky_aim_enabled = config.aimbot_sticky_aim_enabled
-        toggle_visuals(visuals_enabled)
-    end
-end
-
-local function loop_behind(target_player)
-    if env.IsUGC then
-        WindUI:Notify({
-            Title = "Feature Disabled",
-            Content = "Teleport not available in UGC",
-            Duration = 3,
-            Icon = "x-circle"
-        })
-        return
-    end
-
-    teleporting = true
-    local player = localPlayer
-
-    while teleporting do
-        local target_character = target_player.Character
-        local target_humanoid_root_part = target_character and target_character:FindFirstChild("HumanoidRootPart")
-        local player_character = player.Character
-        local player_humanoid_root_part = player_character and player_character:FindFirstChild("HumanoidRootPart")
-
-        if player_humanoid_root_part and target_humanoid_root_part then
-            local target_cframe = target_humanoid_root_part.CFrame
-            local target_look_vector = target_cframe.LookVector
-            local target_position = target_cframe.Position
-            local new_position =
-                target_position - (target_look_vector * tp_behind_offset) + Vector3.new(0, tp_behind_height, 0)
-            player_humanoid_root_part.CFrame = CFrame.new(new_position, new_position + target_look_vector)
-        end
-
-        task.wait()
-    end
-end
-
-local Noclip = nil
-local Clip = nil
-
-local function noclip()
-    Clip = false
-    local function Nocl()
-        if Clip == false and localPlayer.Character ~= nil then
-            for _,v in pairs(localPlayer.Character:GetDescendants()) do
-                if v:IsA('BasePart') and v.CanCollide then
-                    v.CanCollide = false
-                end
-            end
-        end
-        task.wait(0.21)
-    end
-    Noclip = run_service.Stepped:Connect(Nocl)
-end
-
-local function clip()
-    if Noclip then Noclip:Disconnect() end
-    Clip = true
-end
-
-local function getClosestPlayerHead()
-    if env.IsUGC then return nil end
-    
-    local target
-    local distance = math.huge 
-    local mouse = localPlayer:GetMouse()
-    
-    for _, v in ipairs(safeGetPlayers()) do
-         if v == localPlayer or not v.Character then continue end 
-         local character = v.Character 
-         if character:FindFirstChild("Head") then
-            local head = character.Head 
-            local headPos, onScreen = camera:WorldToViewportPoint(head.Position)
-            
-            if onScreen then 
-                local mouseDist = (Vector2.new(mouse.X, mouse.Y) - Vector2.new(headPos.X, headPos.Y)).Magnitude
-                if mouseDist < distance then 
-                    distance = mouseDist 
-                    target = head
-                end 
-            end 
-        end 
-    end
-    return target 
-end
-
-local function toggle_silent_aim(state)
-    if env.IsUGC then
-        WindUI:Notify({
-            Title = "Feature Disabled",
-            Content = "Silent Aim not available in UGC",
-            Duration = 3,
-            Icon = "x-circle"
-        })
-        return
-    end
-    
-    if state then
-        local old
-        old = hookmetamethod(game, "__namecall", function(...)
-            local method = getnamecallmethod()
-            local args = {...}
-            local callingScript = getcallingscript()
-            if (method == "Raycast") and (tostring(callingScript) == "Equipment" or tostring(callingScript) == "FighterController" or tostring(callingScript) == "PlayerDataController" or tostring(callingScript) == "ControlsController") then 
-                local closestHead = getClosestPlayerHead()
-                if closestHead then
-                    args[2] = camera.CFrame.Position
-                    args[3] = (closestHead.Position - args[2]).Unit * 1000
-                end
-            end
-            return old(unpack(args))
-        end)
-        silentAimHook = old
-    else
-        if silentAimHook then
-            hookmetamethod(game, "__namecall", silentAimHook)
-            silentAimHook = nil
-        end
-    end
-end
-
-WindUI:Notify({
-    Title = "SeraphinHub Loaded",
-    Content = "Rivals script loaded!",
-    Duration = 3,
-    Icon = "bell",
-})
-
-local AimbotTab = Window:Tab({ Title = "Aimbot", Icon = "target" })
-local VisualsTab = Window:Tab({ Title = "Visuals", Icon = "eye" })
-local PlayerTab = Window:Tab({ Title = "Player", Icon = "user" })
-local TeleportTab = Window:Tab({ Title = "Teleport", Icon = "map-pin" })
-local ConfigTab = Window:Tab({ Title = "Config", Icon = "settings" })
-local InfoTab = Window:Tab({ Title = "Info", Icon = "info" })
-
-AimbotTab:Section({Title = "Aimbot Settings"})
-
-AimbotTab:Toggle({
-    Title = "Enable Aimbot",
-    Default = false,
-    Callback = function(value)
-        aimbot_enabled = value
-        if env.IsUGC and value then
-            WindUI:Notify({
-                Title = "Feature Limited",
-                Content = "Aimbot disabled in UGC mode",
-                Duration = 3,
-                Icon = "alert-circle"
-            })
-            aimbot_enabled = false
-        end
-    end
-})
-
-AimbotTab:Toggle({
-    Title = "Silent Aim",
-    Default = false,
-    Callback = function(value)
-        silent_aim_enabled = value
-        toggle_silent_aim(value)
-    end
-})
-
-AimbotTab:Toggle({
-    Title = "Show FOV",
-    Default = false,
-    Callback = function(value)
-        show_fov = value
-    end
-})
-
-AimbotTab:Toggle({
-    Title = "Smoothness",
-    Default = false,
-    Callback = function(value)
-        aimbot_smoothness_enabled = value
-    end
-})
-
-AimbotTab:Toggle({
-    Title = "Prediction",
-    Default = false,
-    Callback = function(value)
-        aimbot_prediction_enabled = value
-    end
-})
-
-AimbotTab:Toggle({
-    Title = "Sticky Aim",
-    Default = false,
-    Callback = function(value)
-        aimbot_sticky_aim_enabled = value
-    end
-})
-
-AimbotTab:Keybind({
-    Title = "Aimbot Keybind",
-    Default = "MouseButton2",
-    Callback = function(key)
-        if key == "Unknown" then
-            aimbot_keybind = Enum.UserInputType.MouseButton2
-        else
-            aimbot_keybind = Enum.KeyCode[key]
-        end
-    end
-})
-
-AimbotTab:Dropdown({
-    Title = "Aim Part",
-    Default = "Head",
-    Items = {"Head", "HumanoidRootPart"},
-    Callback = function(value)
-        aimbot_aim_part = value
-    end
-})
-
-AimbotTab:Slider({
-    Title = "FOV Size",
-    Default = 50,
-    Min = 0,
-    Max = 100,
-    Callback = function(value)
-        aimbot_fov_size = value
-    end
-})
-
-AimbotTab:Slider({
-    Title = "Smoothness",
-    Default = 0,
-    Min = 0,
-    Max = 10,
-    Callback = function(value)
-        aimbot_smoothness = value
-    end
-})
-
-AimbotTab:Slider({
-    Title = "Prediction X",
-    Default = 0,
-    Min = 0,
-    Max = 1,
-    Callback = function(value)
-        aimbot_prediction_strength_x = value
-    end
-})
-
-AimbotTab:Slider({
-    Title = "Prediction Y",
-    Default = 0,
-    Min = 0,
-    Max = 1,
-    Callback = function(value)
-        aimbot_prediction_strength_y = value
-    end
-})
-
-VisualsTab:Section({Title = "Visuals Settings"})
-
-VisualsTab:Toggle({
-    Title = "Enable Visuals",
-    Default = false,
-    Callback = function(value)
-        toggle_visuals(value)
-        if env.IsUGC and value then
-            WindUI:Notify({
-                Title = "Visuals Limited",
-                Content = "Visuals may not work in UGC",
-                Duration = 3,
-                Icon = "eye-off"
-            })
-        end
-    end
-})
-
-VisualsTab:Toggle({
-    Title = "Boxes",
-    Default = false,
-    Callback = function(value)
-        show_boxes_enabled = value
-    end
-})
-
-VisualsTab:Toggle({
-    Title = "Tracers",
-    Default = false,
-    Callback = function(value)
-        show_tracers_enabled = value
-    end
-})
-
-VisualsTab:Toggle({
-    Title = "Names",
-    Default = false,
-    Callback = function(value)
-        show_names_enabled = value
-    end
-})
-
-VisualsTab:Toggle({
-    Title = "Skeleton",
-    Default = false,
-    Callback = function(value)
-        show_skeleton_enabled = value
-    end
-})
-
-VisualsTab:Toggle({
-    Title = "View Line",
-    Default = false,
-    Callback = function(value)
-        show_view_line_enabled = value
-    end
-})
-
-PlayerTab:Section({Title = "Player Settings"})
-
-PlayerTab:Toggle({
-    Title = "Noclip",
-    Default = false,
-    Callback = function(value)
-        if value then
-            noclip()
-        else
-            clip()
-        end
-    end
-})
-
-PlayerTab:Toggle({
-    Title = "Speed Modifier",
-    Default = false,
-    Callback = function(value)
-        speed_modifier_enabled = value
-        if speed_modifier_enabled then
-            spawn(function()
-                while speed_modifier_enabled and localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") do
-                    localPlayer.Character.Humanoid.WalkSpeed = 16 * (1 + speed_multiplier)
-                    task.wait()
-                end
-            end)
-        elseif localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") then
-            localPlayer.Character.Humanoid.WalkSpeed = 16
-        end
-    end
-})
-
-PlayerTab:Slider({
-    Title = "Speed Multiplier",
-    Default = 0,
-    Min = 0,
-    Max = 2,
-    Callback = function(value)
-        speed_multiplier = value
-        if speed_modifier_enabled and localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") then
-            localPlayer.Character.Humanoid.WalkSpeed = 16 * (1 + value)
-        end
-    end
-})
-
-TeleportTab:Section({Title = "Teleport Settings"})
-
-TeleportTab:Input({
-    Title = "Player Name",
-    Default = "",
-    Callback = function(value)
-        if env.IsUGC then
-            WindUI:Notify({
-                Title = "Feature Disabled",
-                Content = "Teleport not available in UGC",
-                Duration = 3,
-                Icon = "x-circle"
-            })
-            return
-        end
-        
-        local input_value_lower = value:lower()
-        for _, player in ipairs(safeGetPlayers()) do
-            if player.Name:lower():find(input_value_lower, 1, true) or (player.DisplayName and player.DisplayName:lower():find(input_value_lower, 1, true)) then
-                selected_player = player
-                WindUI:Notify({
-                    Title = "Player Selected",
-                    Content = "Selected: " .. player.Name,
-                    Duration = 3,
-                    Icon = "user-check"
-                })
-                break
-            end
-        end
-    end
-})
-
-TeleportTab:Button({
-    Title = "Loop Teleport To Player",
-    Callback = function()
-        if selected_player then
-            loop_behind(selected_player)
-        else
-            WindUI:Notify({
-                Title = "No Player Selected",
-                Content = "Select a player first",
-                Duration = 3,
-                Icon = "user-x"
-            })
-        end
-    end
-})
-
-TeleportTab:Button({
-    Title = "Stop Teleporting",
-    Callback = function()
-        teleporting = false
-    end
-})
-
-ConfigTab:Section({Title = "Configuration"})
-
-ConfigTab:Input({
-    Title = "Config Path",
-    Default = "config.json",
-    Callback = function(value)
-        config_file_path = value
-    end
-})
-
-ConfigTab:Button({
-    Title = "Save Config",
-    Callback = function()
-        save_config(config_file_path or "config.json")
-        WindUI:Notify({
-            Title = "Config Saved",
-            Content = "Configuration saved successfully!",
-            Duration = 3,
-            Icon = "check-circle"
-        })
-    end
-})
-
-ConfigTab:Button({
-    Title = "Load Config",
-    Callback = function()
-        load_config(config_file_path or "config.json")
-        WindUI:Notify({
-            Title = "Config Loaded",
-            Content = "Configuration loaded successfully!",
-            Duration = 3,
-            Icon = "check-circle"
-        })
-    end
-})
-
-InfoTab:Section({
-    Title = "Community Support",
-    TextXAlignment = "Left",
-    TextSize = 17,
-})
-
-InfoTab:Button({
-    Title = "Discord",
-    Desc = "Click to copy Discord link",
+Tabs.Info:AddButton({
+    Title = "Copy Discord",
+    Description = "Seraphin Discord",
     Callback = function()
         if setclipboard then
             setclipboard("https://discord.gg/getseraphin")
@@ -1043,25 +52,191 @@ InfoTab:Button({
     end
 })
 
-InfoTab:Section({
-    Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible.",
-    TextXAlignment = "Left",
-    TextSize = 17,
+Tabs.Info:AddParagraph({
+    Title = "About",
+    Content = "Seraphin Hub is optimized specifically for Rivals.\nSmooth, simple, and effective."
 })
 
-InfoTab:Section({
-    Title = "Environment Info: " .. (env.IsUGC and "UGC Mode" or "Game Mode"),
-    TextXAlignment = "Left",
-    TextSize = 14,
-})
 
-Window:SelectTab(1)
+local AimAssist = false
+local SilentAim = false
+local ESPEnabled = false
+local ShowFOV = false
 
-if env.IsUGC then
-    WindUI:Notify({
-        Title = "UGC Mode Active",
-        Content = "Some features are limited",
-        Duration = 5,
-        Icon = "info"
-    })
+local AimSmooth = 0.18
+local FOVRadius = 150
+
+
+local function IsEnemy(plr)
+    if not plr.Team or not LocalPlayer.Team then
+        return true
+    end
+    return plr.Team ~= LocalPlayer.Team
 end
+
+local function IsAlive(plr)
+    return plr.Character
+    and plr.Character:FindFirstChild("Humanoid")
+    and plr.Character.Humanoid.Health > 0
+end
+
+
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Thickness = 2
+FOVCircle.Filled = false
+FOVCircle.Color = Color3.fromRGB(0, 255, 0)
+FOVCircle.Visible = false
+
+RunService.RenderStepped:Connect(function()
+    FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y + 36)
+    FOVCircle.Radius = FOVRadius
+    FOVCircle.Visible = ShowFOV
+end)
+
+
+local function GetClosestEnemy()
+    local closest, shortest = nil, math.huge
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer
+        and IsEnemy(plr)
+        and IsAlive(plr)
+        and plr.Character:FindFirstChild("Head") then
+
+            local pos, visible = Camera:WorldToViewportPoint(plr.Character.Head.Position)
+            if visible then
+                local dist = (Vector2.new(pos.X, pos.Y) - Vector2.new(Mouse.X, Mouse.Y)).Magnitude
+                if dist < shortest and dist <= FOVRadius then
+                    shortest = dist
+                    closest = plr
+                end
+            end
+        end
+    end
+    return closest
+end
+
+
+RunService.RenderStepped:Connect(function()
+    if not AimAssist then return end
+    local target = GetClosestEnemy()
+    if target and target.Character and target.Character:FindFirstChild("Head") then
+        local cf = CFrame.new(
+            Camera.CFrame.Position,
+            target.Character.Head.Position
+        )
+        Camera.CFrame = Camera.CFrame:Lerp(cf, AimSmooth)
+    end
+end)
+
+
+local mt = getrawmetatable(game)
+local old = mt.__namecall
+setreadonly(mt, false)
+
+mt.__namecall = newcclosure(function(self, ...)
+    local method = getnamecallmethod()
+    local args = {...}
+
+    if SilentAim
+    and tostring(method) == "FireServer"
+    and args[1]
+    and typeof(args[1]) == "Vector3" then
+
+        local target = GetClosestEnemy()
+        if target and target.Character and target.Character:FindFirstChild("Head") then
+            args[1] = target.Character.Head.Position
+            return old(self, unpack(args))
+        end
+    end
+    return old(self, ...)
+end)
+
+setreadonly(mt, true)
+
+
+local ESPObjects = {}
+
+local function ClearESP()
+    for _, v in pairs(ESPObjects) do
+        if v then v:Remove() end
+    end
+    table.clear(ESPObjects)
+end
+
+RunService.RenderStepped:Connect(function()
+    ClearESP()
+    if not ESPEnabled then return end
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and IsEnemy(plr) and IsAlive(plr) then
+            local char = plr.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local pos, vis = Camera:WorldToViewportPoint(hrp.Position)
+                if vis then
+                    local text = Drawing.new("Text")
+                    text.Text = plr.Name
+                    text.Size = 14
+                    text.Center = true
+                    text.Color = Color3.fromRGB(255, 80, 80)
+                    text.Position = Vector2.new(pos.X, pos.Y)
+                    text.Visible = true
+                    table.insert(ESPObjects, text)
+                end
+            end
+        end
+    end
+end)
+
+
+Tabs.Combat:AddToggle("AutoAim", {
+    Title = "Auto Aim",
+    Default = false,
+    Callback = function(v) AimAssist = v end
+})
+
+Tabs.Combat:AddToggle("SilentAim", {
+    Title = "Silent Aim",
+    Default = false,
+    Callback = function(v) SilentAim = v end
+})
+
+Tabs.Combat:AddSlider("Smooth", {
+    Title = "Aim Smooth",
+    Min = 0.05,
+    Max = 0.4,
+    Default = AimSmooth,
+    Callback = function(v) AimSmooth = v end
+})
+
+
+Tabs.Visual:AddToggle("FOV", {
+    Title = "Show FOV",
+    Default = false,
+    Callback = function(v) ShowFOV = v end
+})
+
+Tabs.Visual:AddSlider("FOVSize", {
+    Title = "FOV Radius",
+    Min = 50,
+    Max = 400,
+    Default = FOVRadius,
+    Callback = function(v) FOVRadius = v end
+})
+
+Tabs.Visual:AddToggle("ESP", {
+    Title = "ESP Name",
+    Default = false,
+    Callback = function(v) ESPEnabled = v end
+})
+
+
+Tabs.Settings:AddButton({
+    Title = "Unload UI",
+    Callback = function()
+        Window:Destroy()
+        FOVCircle:Remove()
+        ClearESP()
+    end
+})
