@@ -355,52 +355,130 @@ Combat:Toggle({
     end
 })
 
+
 local Visuals = Window:Tab({ Title = "Visuals", Icon = "eye" })
 
 local ESP = {
-    Enabled = false,
-    Highlight = false,
-    Name = false,
-    Studs = false,
-    Box = false,
-    Line = false,
     Players = {},
     Drawings = {},
     Connections = {}
 }
 
-local function createDrawing(player, type)
-    if not ESP.Drawings[player] then
-        ESP.Drawings[player] = {}
+local ESPFeatures = {
+    Box = false,
+    Line = false,
+    Name = false,
+    Studs = false,
+    Highlight = false
+}
+
+local function createESP(player)
+    if player == LocalPlayer then return end
+    if ESP.Players[player] then return end
+    
+    ESP.Players[player] = true
+    
+    local drawings = {}
+    
+    if ESPFeatures.Box then
+        drawings.Box = Drawing.new("Square")
+        drawings.Box.Thickness = 1
+        drawings.Box.Filled = false
+        drawings.Box.Color = Color3.fromRGB(180, 0, 255)
+        drawings.Box.Visible = false
     end
     
-    if type == "Box" then
-        ESP.Drawings[player].Box = Drawing.new("Square")
-        ESP.Drawings[player].Box.Thickness = 1
-        ESP.Drawings[player].Box.Filled = false
-        ESP.Drawings[player].Box.Color = Color3.fromRGB(180, 0, 255)
-        ESP.Drawings[player].Box.Visible = false
-    elseif type == "Line" then
-        ESP.Drawings[player].Line = Drawing.new("Line")
-        ESP.Drawings[player].Line.Thickness = 1
-        ESP.Drawings[player].Line.Color = Color3.fromRGB(180, 0, 255)
-        ESP.Drawings[player].Line.Visible = false
+    if ESPFeatures.Line then
+        drawings.Line = Drawing.new("Line")
+        drawings.Line.Thickness = 1
+        drawings.Line.Color = Color3.fromRGB(180, 0, 255)
+        drawings.Line.Visible = false
     end
-end
-
-local function removeDrawing(player, type)
-    if ESP.Drawings[player] then
-        if type == "Box" and ESP.Drawings[player].Box then
-            ESP.Drawings[player].Box:Remove()
-            ESP.Drawings[player].Box = nil
-        elseif type == "Line" and ESP.Drawings[player].Line then
-            ESP.Drawings[player].Line:Remove()
-            ESP.Drawings[player].Line = nil
+    
+    if ESPFeatures.Name then
+        drawings.Name = Drawing.new("Text")
+        drawings.Name.Text = player.Name
+        drawings.Name.Size = 14
+        drawings.Name.Center = true
+        drawings.Name.Outline = true
+        drawings.Name.OutlineColor = Color3.new(0, 0, 0)
+        drawings.Name.Color = Color3.fromRGB(180, 0, 255)
+        drawings.Name.Visible = false
+    end
+    
+    if ESPFeatures.Studs then
+        drawings.Distance = Drawing.new("Text")
+        drawings.Distance.Size = 12
+        drawings.Distance.Center = true
+        drawings.Distance.Outline = true
+        drawings.Distance.OutlineColor = Color3.new(0, 0, 0)
+        drawings.Distance.Color = Color3.fromRGB(255, 255, 255)
+        drawings.Distance.Visible = false
+    end
+    
+    if ESPFeatures.Highlight then
+        drawings.Highlight = Instance.new("Highlight")
+        drawings.Highlight.Name = "SeraphinESP_HL"
+        drawings.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
+        drawings.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+        drawings.Highlight.OutlineTransparency = 0
+        drawings.Highlight.FillTransparency = 0.3
+        drawings.Highlight.Enabled = false
+    end
+    
+    ESP.Drawings[player] = drawings
+    
+    local function characterAdded(char)
+        if drawings.Highlight then
+            drawings.Highlight.Adornee = char
+            drawings.Highlight.Parent = char
         end
     end
+    
+    local charAddedConn = player.CharacterAdded:Connect(characterAdded)
+    local charRemovingConn = player.CharacterRemoving:Connect(function()
+        if drawings.Highlight then
+            drawings.Highlight.Adornee = nil
+            drawings.Highlight.Parent = nil
+        end
+    end)
+    
+    ESP.Connections[player] = {
+        CharAdded = charAddedConn,
+        CharRemoving = charRemovingConn
+    }
+    
+    if player.Character then
+        characterAdded(player.Character)
+    end
 end
 
-local function updateDrawings()
+local function removeESP(player)
+    if ESP.Drawings[player] then
+        for _, drawing in pairs(ESP.Drawings[player]) do
+            if typeof(drawing) == "userdata" and drawing.Remove then
+                drawing:Remove()
+            elseif typeof(drawing) == "Instance" then
+                drawing:Destroy()
+            end
+        end
+        ESP.Drawings[player] = nil
+    end
+    
+    if ESP.Connections[player] then
+        if ESP.Connections[player].CharAdded then
+            ESP.Connections[player].CharAdded:Disconnect()
+        end
+        if ESP.Connections[player].CharRemoving then
+            ESP.Connections[player].CharRemoving:Disconnect()
+        end
+        ESP.Connections[player] = nil
+    end
+    
+    ESP.Players[player] = nil
+end
+
+local function updateESP()
     for player, drawings in pairs(ESP.Drawings) do
         if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player ~= LocalPlayer then
             local char = player.Character
@@ -409,186 +487,62 @@ local function updateDrawings()
             
             if rootPart and head then
                 local rootPos, rootVis = Camera:WorldToViewportPoint(rootPart.Position)
-                local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 1, 0))
+                local headPos = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 1.5, 0))
                 
                 if rootVis then
-                    if ESP.Box and drawings.Box then
+                    local distanceVal = (LocalPlayer.Character.HumanoidRootPart.Position - rootPart.Position).Magnitude
+                    
+                    if drawings.Box then
                         local height = (headPos.Y - rootPos.Y)
                         local width = height / 2
                         
                         drawings.Box.Size = Vector2.new(width, height)
                         drawings.Box.Position = Vector2.new(rootPos.X - width/2, rootPos.Y - height)
                         drawings.Box.Visible = true
-                    else
-                        if drawings.Box then
-                            drawings.Box.Visible = false
-                        end
                     end
                     
-                    if ESP.Line and drawings.Line then
-                        local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+                    if drawings.Line then
+                        local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
                         drawings.Line.From = screenCenter
                         drawings.Line.To = Vector2.new(rootPos.X, rootPos.Y)
                         drawings.Line.Visible = true
-                    else
-                        if drawings.Line then
-                            drawings.Line.Visible = false
-                        end
+                    end
+                    
+                    if drawings.Name then
+                        drawings.Name.Position = Vector2.new(rootPos.X, headPos.Y + 10)
+                        drawings.Name.Visible = true
+                    end
+                    
+                    if drawings.Distance then
+                        drawings.Distance.Text = math.floor(distanceVal) .. " studs"
+                        drawings.Distance.Position = Vector2.new(rootPos.X, headPos.Y + 25)
+                        drawings.Distance.Visible = true
+                    end
+                    
+                    if drawings.Highlight then
+                        drawings.Highlight.Enabled = true
                     end
                 else
                     if drawings.Box then drawings.Box.Visible = false end
                     if drawings.Line then drawings.Line.Visible = false end
+                    if drawings.Name then drawings.Name.Visible = false end
+                    if drawings.Distance then drawings.Distance.Visible = false end
+                    if drawings.Highlight then drawings.Highlight.Enabled = false end
                 end
             else
                 if drawings.Box then drawings.Box.Visible = false end
                 if drawings.Line then drawings.Line.Visible = false end
+                if drawings.Name then drawings.Name.Visible = false end
+                if drawings.Distance then drawings.Distance.Visible = false end
+                if drawings.Highlight then drawings.Highlight.Enabled = false end
             end
         else
             if drawings.Box then drawings.Box.Visible = false end
             if drawings.Line then drawings.Line.Visible = false end
+            if drawings.Name then drawings.Name.Visible = false end
+            if drawings.Distance then drawings.Distance.Visible = false end
+            if drawings.Highlight then drawings.Highlight.Enabled = false end
         end
-    end
-end
-
-local function createESP(player)
-    if player == LocalPlayer then return end
-    if ESP.Players[player] then return end
-    
-    local espData = {
-        Highlight = nil,
-        NameBillboard = nil,
-        StudsBillboard = nil,
-        CharAddedConn = nil,
-        CharRemovingConn = nil
-    }
-    
-    ESP.Players[player] = espData
-    
-    local function setupCharacter(char)
-        task.wait(0.5)
-        
-        if ESP.Highlight and not espData.Highlight then
-            espData.Highlight = Instance.new("Highlight")
-            espData.Highlight.Name = "SeraphinESP_HL"
-            espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
-            espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-            espData.Highlight.OutlineTransparency = 0
-            espData.Highlight.FillTransparency = 0.3
-            espData.Highlight.Parent = char
-        end
-        
-        if ESP.Name and not espData.NameBillboard then
-            espData.NameBillboard = Instance.new("BillboardGui")
-            espData.NameBillboard.Name = "SeraphinESP_Name"
-            espData.NameBillboard.Size = UDim2.new(0, 200, 0, 50)
-            espData.NameBillboard.AlwaysOnTop = true
-            espData.NameBillboard.StudsOffset = Vector3.new(0, 3, 0)
-            espData.NameBillboard.Adornee = char:WaitForChild("Head")
-            espData.NameBillboard.Parent = char
-            
-            local nameLabel = Instance.new("TextLabel")
-            nameLabel.Size = UDim2.new(1, 0, 1, 0)
-            nameLabel.BackgroundTransparency = 1
-            nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
-            nameLabel.TextStrokeTransparency = 0
-            nameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-            nameLabel.Font = Enum.Font.SourceSansBold
-            nameLabel.TextSize = 14
-            nameLabel.Text = player.Name
-            nameLabel.Parent = espData.NameBillboard
-        end
-        
-        if ESP.Studs and not espData.StudsBillboard then
-            espData.StudsBillboard = Instance.new("BillboardGui")
-            espData.StudsBillboard.Name = "SeraphinESP_Studs"
-            espData.StudsBillboard.Size = UDim2.new(0, 200, 0, 50)
-            espData.StudsBillboard.AlwaysOnTop = true
-            espData.StudsBillboard.StudsOffset = Vector3.new(0, 5, 0)
-            espData.StudsBillboard.Adornee = char:WaitForChild("Head")
-            espData.StudsBillboard.Parent = char
-            
-            local infoLabel = Instance.new("TextLabel")
-            infoLabel.Size = UDim2.new(1, 0, 1, 0)
-            infoLabel.BackgroundTransparency = 1
-            infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            infoLabel.TextStrokeTransparency = 0
-            infoLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-            infoLabel.Font = Enum.Font.SourceSansBold
-            infoLabel.TextSize = 12
-            infoLabel.Text = "0 studs"
-            infoLabel.Parent = espData.StudsBillboard
-        end
-        
-        if ESP.Box or ESP.Line then
-            createDrawing(player, "Box")
-            createDrawing(player, "Line")
-        end
-    end
-    
-    espData.CharAddedConn = player.CharacterAdded:Connect(function(char)
-        setupCharacter(char)
-    end)
-    
-    espData.CharRemovingConn = player.CharacterRemoving:Connect(function()
-        if espData.Highlight then
-            espData.Highlight:Destroy()
-            espData.Highlight = nil
-        end
-        if espData.NameBillboard then
-            espData.NameBillboard:Destroy()
-            espData.NameBillboard = nil
-        end
-        if espData.StudsBillboard then
-            espData.StudsBillboard:Destroy()
-            espData.StudsBillboard = nil
-        end
-    end)
-    
-    if player.Character then
-        setupCharacter(player.Character)
-    end
-end
-
-local function removeESP(player)
-    local espData = ESP.Players[player]
-    if espData then
-        if espData.CharAddedConn then
-            espData.CharAddedConn:Disconnect()
-        end
-        if espData.CharRemovingConn then
-            espData.CharRemovingConn:Disconnect()
-        end
-        if espData.Highlight then
-            espData.Highlight:Destroy()
-        end
-        if espData.NameBillboard then
-            espData.NameBillboard:Destroy()
-        end
-        if espData.StudsBillboard then
-            espData.StudsBillboard:Destroy()
-        end
-        ESP.Players[player] = nil
-    end
-    
-    if ESP.Drawings[player] then
-        removeDrawing(player, "Box")
-        removeDrawing(player, "Line")
-        ESP.Drawings[player] = nil
-    end
-end
-
-local function updateESP()
-    for player, espData in pairs(ESP.Players) do
-        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player ~= LocalPlayer then
-            if espData.StudsBillboard and espData.StudsBillboard.Parent then
-                local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
-                espData.StudsBillboard.TextLabel.Text = math.floor(distance) .. " studs"
-            end
-        end
-    end
-    
-    if ESP.Box or ESP.Line then
-        updateDrawings()
     end
 end
 
@@ -604,136 +558,127 @@ local function cleanupAllESP()
     for player, _ in pairs(ESP.Players) do
         removeESP(player)
     end
-    
-    for player, _ in pairs(ESP.Drawings) do
-        removeDrawing(player, "Box")
-        removeDrawing(player, "Line")
-    end
-    ESP.Drawings = {}
 end
 
-local function toggleESPFeature(feature, state)
-    ESP[feature] = state
-    
-    if ESP.Enabled then
-        for player, espData in pairs(ESP.Players) do
-            if player ~= LocalPlayer and player.Character then
-                if feature == "Highlight" then
-                    if state then
-                        if not espData.Highlight then
-                            espData.Highlight = Instance.new("Highlight")
-                            espData.Highlight.Name = "SeraphinESP_HL"
-                            espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
-                            espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                            espData.Highlight.OutlineTransparency = 0
-                            espData.Highlight.FillTransparency = 0.3
-                            espData.Highlight.Parent = player.Character
-                        end
-                    else
-                        if espData.Highlight then
-                            espData.Highlight:Destroy()
-                            espData.Highlight = nil
-                        end
-                    end
-                elseif feature == "Name" then
-                    if state then
-                        if not espData.NameBillboard then
-                            espData.NameBillboard = Instance.new("BillboardGui")
-                            espData.NameBillboard.Name = "SeraphinESP_Name"
-                            espData.NameBillboard.Size = UDim2.new(0, 200, 0, 50)
-                            espData.NameBillboard.AlwaysOnTop = true
-                            espData.NameBillboard.StudsOffset = Vector3.new(0, 3, 0)
-                            espData.NameBillboard.Adornee = player.Character:WaitForChild("Head")
-                            espData.NameBillboard.Parent = player.Character
-                            
-                            local nameLabel = Instance.new("TextLabel")
-                            nameLabel.Size = UDim2.new(1, 0, 1, 0)
-                            nameLabel.BackgroundTransparency = 1
-                            nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
-                            nameLabel.TextStrokeTransparency = 0
-                            nameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-                            nameLabel.Font = Enum.Font.SourceSansBold
-                            nameLabel.TextSize = 14
-                            nameLabel.Text = player.Name
-                            nameLabel.Parent = espData.NameBillboard
-                        end
-                    else
-                        if espData.NameBillboard then
-                            espData.NameBillboard:Destroy()
-                            espData.NameBillboard = nil
-                        end
-                    end
-                elseif feature == "Studs" then
-                    if state then
-                        if not espData.StudsBillboard then
-                            espData.StudsBillboard = Instance.new("BillboardGui")
-                            espData.StudsBillboard.Name = "SeraphinESP_Studs"
-                            espData.StudsBillboard.Size = UDim2.new(0, 200, 0, 50)
-                            espData.StudsBillboard.AlwaysOnTop = true
-                            espData.StudsBillboard.StudsOffset = Vector3.new(0, 5, 0)
-                            espData.StudsBillboard.Adornee = player.Character:WaitForChild("Head")
-                            espData.StudsBillboard.Parent = player.Character
-                            
-                            local infoLabel = Instance.new("TextLabel")
-                            infoLabel.Size = UDim2.new(1, 0, 1, 0)
-                            infoLabel.BackgroundTransparency = 1
-                            infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-                            infoLabel.TextStrokeTransparency = 0
-                            infoLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
-                            infoLabel.Font = Enum.Font.SourceSansBold
-                            infoLabel.TextSize = 12
-                            infoLabel.Text = "0 studs"
-                            infoLabel.Parent = espData.StudsBillboard
-                        end
-                    else
-                        if espData.StudsBillboard then
-                            espData.StudsBillboard:Destroy()
-                            espData.StudsBillboard = nil
-                        end
-                    end
-                elseif feature == "Box" then
-                    if state then
-                        createDrawing(player, "Box")
-                    else
-                        removeDrawing(player, "Box")
-                    end
-                elseif feature == "Line" then
-                    if state then
-                        createDrawing(player, "Line")
-                    else
-                        removeDrawing(player, "Line")
-                    end
-                end
-            end
-        end
-    end
+local function refreshESP()
+    cleanupAllESP()
+    setupAllESP()
 end
 
 Players.PlayerAdded:Connect(function(player)
-    if ESP.Enabled then
-        createESP(player)
-    end
+    createESP(player)
 end)
 
 Players.PlayerRemoving:Connect(function(player)
     removeESP(player)
 end)
 
-RunService.RenderStepped:Connect(function()
-    if ESP.Enabled then
-        updateESP()
-    end
-end)
+RunService.RenderStepped:Connect(updateESP)
 
 Visuals:Toggle({
-    Title = "ESP",
+    Title = "ESP Box",
     Default = false,
     Callback = function(state)
-        ESP.Enabled = state
+        ESPFeatures.Box = state
         if state then
-            setupAllESP()
+            for player, drawings in pairs(ESP.Drawings) do
+                if not drawings.Box then
+                    drawings.Box = Drawing.new("Square")
+                    drawings.Box.Thickness = 1
+                    drawings.Box.Filled = false
+                    drawings.Box.Color = Color3.fromRGB(180, 0, 255)
+                    drawings.Box.Visible = false
+                end
+            end
         else
-            cleanupAllESP()
+            for _, drawings in pairs(ESP.Drawings) do
+                if drawings.Box then
+                    drawings.Box:Remove()
+                    drawings.Box = nil
+                end
+            end
+        end
+    end
+})
+
+Visuals:Toggle({
+    Title = "ESP Line",
+    Default = false,
+    Callback = function(state)
+        ESPFeatures.Line = state
+        if state then
+            for player, drawings in pairs(ESP.Drawings) do
+                if not drawings.Line then
+                    drawings.Line = Drawing.new("Line")
+                    drawings.Line.Thickness = 1
+                    drawings.Line.Color = Color3.fromRGB(180, 0, 255)
+                    drawings.Line.Visible = false
+                end
+            end
+        else
+            for _, drawings in pairs(ESP.Drawings) do
+                if drawings.Line then
+                    drawings.Line:Remove()
+                    drawings.Line = nil
+                end
+            end
+        end
+    end
+})
+
+Visuals:Toggle({
+    Title = "ESP Name",
+    Default = false,
+    Callback = function(state)
+        ESPFeatures.Name = state
+        if state then
+            for player, drawings in pairs(ESP.Drawings) do
+                if not drawings.Name then
+                    drawings.Name = Drawing.new("Text")
+                    drawings.Name.Text = player.Name
+                    drawings.Name.Size = 14
+                    drawings.Name.Center = true
+                    drawings.Name.Outline = true
+                    drawings.Name.OutlineColor = Color3.new(0, 0, 0)
+                    drawings.Name.Color = Color3.fromRGB(180, 0, 255)
+                    drawings.Name.Visible = false
+                end
+            end
+        else
+            for _, drawings in pairs(ESP.Drawings) do
+                if drawings.Name then
+                    drawings.Name:Remove()
+                    drawings.Name = nil
+                end
+            end
+        end
+    end
+})
+
+Visuals:Toggle({
+    Title = "ESP Studs",
+    Default = false,
+    Callback = function(state)
+        ESPFeatures.Studs = state
+        if state then
+            for player, drawings in pairs(ESP.Drawings) do
+                if not drawings.Distance then
+                    drawings.Distance = Drawing.new("Text")
+                    drawings.Distance.Size = 12
+                    drawings.Distance.Center = true
+                    drawings.Distance.Outline = true
+                    drawings.Distance.OutlineColor = Color3.new(0, 0, 0)
+                    drawings.Distance.Color = Color3.fromRGB(255, 255, 255)
+                    drawings.Distance.Visible = false
+                end
+            end
+        else
+            for _, drawings in pairs(ESP.Drawings) do
+                if drawings.Distance then
+                    drawings.Distance:Remove()
+                    drawings.Distance = nil
+                end
+            end
         end
     end
 })
@@ -742,41 +687,36 @@ Visuals:Toggle({
     Title = "ESP Highlight",
     Default = false,
     Callback = function(state)
-        toggleESPFeature("Highlight", state)
+        ESPFeatures.Highlight = state
+        if state then
+            for player, drawings in pairs(ESP.Drawings) do
+                if not drawings.Highlight then
+                    drawings.Highlight = Instance.new("Highlight")
+                    drawings.Highlight.Name = "SeraphinESP_HL"
+                    drawings.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
+                    drawings.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    drawings.Highlight.OutlineTransparency = 0
+                    drawings.Highlight.FillTransparency = 0.3
+                    drawings.Highlight.Enabled = false
+                    
+                    if player.Character then
+                        drawings.Highlight.Adornee = player.Character
+                        drawings.Highlight.Parent = player.Character
+                    end
+                end
+            end
+        else
+            for _, drawings in pairs(ESP.Drawings) do
+                if drawings.Highlight then
+                    drawings.Highlight:Destroy()
+                    drawings.Highlight = nil
+                end
+            end
+        end
     end
 })
 
-Visuals:Toggle({
-    Title = "ESP Name",
-    Default = false,
-    Callback = function(state)
-        toggleESPFeature("Name", state)
-    end
-})
-
-Visuals:Toggle({
-    Title = "ESP Studs",
-    Default = false,
-    Callback = function(state)
-        toggleESPFeature("Studs", state)
-    end
-})
-
-Visuals:Toggle({
-    Title = "ESP Box",
-    Default = false,
-    Callback = function(state)
-        toggleESPFeature("Box", state)
-    end
-})
-
-Visuals:Toggle({
-    Title = "ESP Line",
-    Default = false,
-    Callback = function(state)
-        toggleESPFeature("Line", state)
-    end
-})
+setupAllESP()
 
 local PlayersTab = Window:Tab({
     Title = "Players",
