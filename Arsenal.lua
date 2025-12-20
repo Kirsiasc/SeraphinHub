@@ -5,265 +5,80 @@ end)
 if not success or not WindUI then
     warn("⚠️ UI failed to load!")
     return
+else
+    print("✓ UI loaded successfully!")
 end
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
 local VirtualUser = game:GetService("VirtualUser")
-
-local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
 local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
 
 local Window = WindUI:CreateWindow({
     Title = "Seraphin",
     Icon = "rbxassetid://120248611602330",
     Author = "KirsiaSC | Arsenal",
     Folder = "SERAPHIN_HUB",
-    Size = UDim2.fromOffset(280, 320),
+    Size = UDim2.fromOffset(300, 370),
     Transparent = true,
     Theme = "Dark",
     SideBarWidth = 170,
     HasOutline = true
 })
 
-Window:EditOpenButton({
-    Enabled = false,
-})
+Window:Tag({ Title = "v0.0.0.6", Color = Color3.fromRGB(0,0,0) })
 
-local CollectionService = game:GetService("CollectionService")
-local Players = game:GetService("Players")
-local G2L = {}
-
-G2L["ScreenGui_1"] = Instance.new("ScreenGui")
-G2L["ScreenGui_1"].Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
-G2L["ScreenGui_1"].ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-CollectionService:AddTag(G2L["ScreenGui_1"], "main")
-
-G2L["ButtonRezise_2"] = Instance.new("ImageButton")
-G2L["ButtonRezise_2"].Parent = G2L["ScreenGui_1"]
-G2L["ButtonRezise_2"].BorderSizePixel = 0
-G2L["ButtonRezise_2"].Draggable = true
-G2L["ButtonRezise_2"].BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-G2L["ButtonRezise_2"].Image = "rbxassetid://120248611602330"
-G2L["ButtonRezise_2"].Size = UDim2.new(0, 45, 0, 45)
-G2L["ButtonRezise_2"].Position = UDim2.new(0.13, 0, 0.03, 0)
-
-local corner = Instance.new("UICorner", G2L["ButtonRezise_2"])
-corner.CornerRadius = UDim.new(0, 8)
-
-local neon = Instance.new("UIStroke", G2L["ButtonRezise_2"])
-neon.Thickness = 2
-neon.Color = Color3.fromRGB(0, 255, 0)
-neon.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-
-G2L["ButtonRezise_2"].MouseButton1Click:Connect(function()
-    G2L["ButtonRezise_2"].Visible = false
-    Window:Open()
-end)
-
-Window:OnClose(function()
-    G2L["ButtonRezise_2"].Visible = true
-end)
-
-Window:OnDestroy(function()
-    G2L["ButtonRezise_2"].Visible = false
-end)
-
-G2L["ButtonRezise_2"].Visible = false
-
-G2L["ButtonRezise_2"].Visible = false
-
-Window:Tag({
-    Title = "v0.0.0.5",
-    Color = Color3.fromRGB(180, 0, 255)
-})
-
-WindUI:Notify({
-    Title = "SeraphinHub Loaded",
-    Content = "Arsenal script loaded!",
-    Duration = 3,
-    Icon = "bell"
-})
-
-local Info = Window:Tab({ Title = "Info", Icon = "info" })
-
-Info:Button({
-    Title = "Discord",
-    Callback = function()
-        if setclipboard then
-            setclipboard("https://discord.gg/getseraphin")
-        end
-    end
-})
-
-Tab1:Divider()
-
-Tab1:Paragraph({
-    Title = "Support",
-    Desc = "Every time there is a game update or someone reports something, I will fix it as soon as possible."
-})
-
-Tab1:Divider()
-
-Tab1:Keybind({
-    Title = "Close/Open UI",
-    Desc = "Keybind to Close/Open UI",
-    Value = "G",
-    Callback = function(v)
-        Window:SetToggleKey(Enum.KeyCode[v])
-    end
-})
+WindUI:Notify({ Title = "Seraphin Loaded", Content = "Arsenal script loaded!", Duration = 3 })
 
 local Combat = Window:Tab({ Title = "Combat", Icon = "sword" })
 
-_G.Hitbox = false
-_G.KillAura = false
-_G.Aimbot = false
-_G.AutoAim = false
-_G.AimCircle = false
-_G.NoRecoil = false
-_G.NoSpread = false
-_G.TeleportEnemy = false
-_G.AutoKnife = false
+_G.SilentAim = false
+_G.RageMode = false
+_G.AutoFire = false
+_G.HitChance = 100
+_G.FOV = 120
+_G.RageTarget = nil
 
-Combat:Toggle({
-    Title = "Hitbox Extender",
-    Callback = function(v)
-        _G.Hitbox = v
-    end
-})
+Combat:Toggle({ Title = "Silent Aim", Callback = function(v) _G.SilentAim = v end })
+Combat:Toggle({ Title = "Rage Mode", Callback = function(v) _G.RageMode = v end })
+Combat:Toggle({ Title = "Auto Fire", Callback = function(v) _G.AutoFire = v end })
 
-RunService.Heartbeat:Connect(function()
-    if _G.Hitbox then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Team ~= LocalPlayer.Team and p.Character and p.Character:FindFirstChild("Head") then
-                p.Character.Head.Size = Vector3.new(5,5,5)
-                p.Character.Head.CanCollide = false
-            end
-        end
-    end
-end)
-
-Combat:Toggle({
-    Title = "Kill Aura",
-    Callback = function(v)
-        _G.KillAura = v
-    end
-})
-
-RunService.Heartbeat:Connect(function()
-    if _G.KillAura and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character:FindFirstChild("HumanoidRootPart") then
-                if (LocalPlayer.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude < 100 then
-                    p.Character.Humanoid:TakeDamage(5)
-                end
-            end
-        end
-    end
-end)
-
-Combat:Toggle({
-    Title = "Aimbot",
-    Callback = function(v)
-        _G.Aimbot = v
-    end
-})
-
-Combat:Toggle({
-    Title = "Auto Aim (Head)",
-    Callback = function(v)
-        _G.AutoAim = v
-    end
-})
-
-local AimCircle = Drawing.new("Circle")
-AimCircle.Radius = 70
-AimCircle.Thickness = 1.5
-AimCircle.Color = Color3.fromRGB(170,0,255)
-AimCircle.Filled = false
-AimCircle.Visible = false
-
-Combat:Toggle({
-    Title = "Aim Circle",
-    Callback = function(v)
-        _G.AimCircle = v
-        AimCircle.Visible = v
-    end
-})
-
-RunService.RenderStepped:Connect(function()
-    if _G.AimCircle then
-        local m = UserInputService:GetMouseLocation()
-        AimCircle.Position = Vector2.new(m.X, m.Y + 36)
-    end
-end)
-
-RunService.RenderStepped:Connect(function()
-    if (_G.Aimbot or _G.AutoAim) and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local target, dist = nil, math.huge
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Team ~= LocalPlayer.Team and p.Character and p.Character:FindFirstChild("Head") then
-                local d = (LocalPlayer.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
-                if d < dist then
-                    dist = d
-                    target = p
-                end
-            end
-        end
-        if target then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Character.Head.Position)
-        end
-    end
-end)
-
-Combat:Toggle({
-    Title = "No Recoil",
-    Callback = function(v)
-        _G.NoRecoil = v
-    end
-})
-
-Combat:Toggle({
-    Title = "No Spread",
-    Callback = function(v)
-        _G.NoSpread = v
-    end
-})
-
-RunService.Stepped:Connect(function()
-    local c = LocalPlayer.Character
-    if c then
-        local t = c:FindFirstChildOfClass("Tool")
-        if t then
-            if t:FindFirstChild("CameraRecoil") and _G.NoRecoil then
-                t.CameraRecoil.Value = 0
-            end
-            if t:FindFirstChild("Spread") and _G.NoSpread then
-                t.Spread.Value = 0
-            end
-        end
-    end
-end)
+Combat:Input({ Title = "Hit Chance %", Value = "100", Callback = function(v) local n=tonumber(v) if n then _G.HitChance=math.clamp(n,0,100) end end })
+Combat:Input({ Title = "Silent FOV", Value = "120", Callback = function(v) local n=tonumber(v) if n then _G.FOV=n end end })
 
 local Visuals = Window:Tab({ Title = "Visuals", Icon = "eye" })
 
-_G.ESP = false
+_G.ESPBox = false
+_G.ESPCorner = false
+_G.ESPTracer = false
+_G.ESPName = false
+_G.ESPDistance = false
+_G.ESPHighlight = false
+_G.ESPSize = 1
+_G.ESPThickness = 1
+
+Visuals:Toggle({ Title = "ESP Box", Callback = function(v) _G.ESPBox=v end })
+Visuals:Toggle({ Title = "ESP Corner", Callback = function(v) _G.ESPCorner=v end })
+Visuals:Toggle({ Title = "ESP Tracer", Callback = function(v) _G.ESPTracer=v end })
+Visuals:Toggle({ Title = "ESP Name", Callback = function(v) _G.ESPName=v end })
+Visuals:Toggle({ Title = "ESP Distance", Callback = function(v) _G.ESPDistance=v end })
 
 Visuals:Toggle({
     Title = "ESP Highlight",
     Callback = function(v)
-        _G.ESP = v
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character then
+        _G.ESPHighlight=v
+        for _,p in pairs(Players:GetPlayers()) do
+            if p~=LocalPlayer and p.Character then
                 if v then
                     if not p.Character:FindFirstChild("SeraphinHL") then
-                        local h = Instance.new("Highlight", p.Character)
-                        h.Name = "SeraphinHL"
-                        h.FillColor = Color3.fromRGB(180,0,255)
+                        local h=Instance.new("Highlight",p.Character)
+                        h.Name="SeraphinHL"
+                        h.FillColor=Color3.fromRGB(0,0,0)
+                        h.OutlineColor=Color3.fromRGB(0,0,0)
                     end
                 else
                     if p.Character:FindFirstChild("SeraphinHL") then
@@ -275,75 +90,126 @@ Visuals:Toggle({
     end
 })
 
-local PlayersTab = Window:Tab({ Title = "Players", Icon = "user" })
+Visuals:Input({ Title = "ESP Size", Value = "1", Callback = function(v) local n=tonumber(v) if n then _G.ESPSize=n end end })
+Visuals:Input({ Title = "ESP Thickness", Value = "1", Callback = function(v) local n=tonumber(v) if n then _G.ESPThickness=n end end })
 
-local walkVal, jumpVal = 16, 50
+local espCache = {}
 
-PlayersTab:Input({
-    Title = "WalkSpeed",
-    Value = "16",
-    Callback = function(v)
-        walkVal = tonumber(v) or 16
-        if LocalPlayer.Character then
-            LocalPlayer.Character.Humanoid.WalkSpeed = walkVal
-        end
-    end
-})
+local function L() local l=Drawing.new("Line") l.Color=Color3.fromRGB(0,0,0) l.Thickness=_G.ESPThickness l.Visible=false return l end
+local function T() local t=Drawing.new("Text") t.Color=Color3.fromRGB(0,0,0) t.Size=13 t.Center=true t.Outline=true t.Visible=false return t end
 
-PlayersTab:Input({
-    Title = "JumpPower",
-    Value = "50",
-    Callback = function(v)
-        jumpVal = tonumber(v) or 50
-        if LocalPlayer.Character then
-            LocalPlayer.Character.Humanoid.JumpPower = jumpVal
-        end
-    end
-})
+local function setup(p)
+    espCache[p]={box={L(),L(),L(),L()},tr=L(),name=T(),dist=T()}
+end
 
-PlayersTab:Toggle({
-    Title = "Noclip",
-    Callback = function(v)
-        _G.Noclip = v
-    end
-})
+for _,p in pairs(Players:GetPlayers()) do if p~=LocalPlayer then setup(p) end end
+Players.PlayerAdded:Connect(function(p) if p~=LocalPlayer then setup(p) end end)
+Players.PlayerRemoving:Connect(function(p) if espCache[p] then for _,v in pairs(espCache[p].box) do v:Remove() end espCache[p].tr:Remove() espCache[p].name:Remove() espCache[p].dist:Remove() espCache[p]=nil end end)
 
-RunService.Stepped:Connect(function()
-    if _G.Noclip and LocalPlayer.Character then
-        for _, p in pairs(LocalPlayer.Character:GetDescendants()) do
-            if p:IsA("BasePart") then
-                p.CanCollide = false
+RunService.RenderStepped:Connect(function()
+    for p,e in pairs(espCache) do
+        local c=p.Character
+        if not c or not c:FindFirstChild("HumanoidRootPart") then
+            for _,v in pairs(e.box) do v.Visible=false end
+            e.tr.Visible=false e.name.Visible=false e.dist.Visible=false
+        else
+            local hrp=c.HumanoidRootPart
+            local pos,on=Camera:WorldToViewportPoint(hrp.Position)
+            if on then
+                local s=_G.ESPSize
+                local w,h=40*s,60*s
+                local x,y=pos.X-w/2,pos.Y-h/2
+                local b=e.box
+                b[1].From=Vector2.new(x,y) b[1].To=Vector2.new(x+w,y)
+                b[2].From=Vector2.new(x+w,y) b[2].To=Vector2.new(x+w,y+h)
+                b[3].From=Vector2.new(x+w,y+h) b[3].To=Vector2.new(x,y+h)
+                b[4].From=Vector2.new(x,y+h) b[4].To=Vector2.new(x,y)
+                for _,v in pairs(b) do v.Thickness=_G.ESPThickness v.Visible=_G.ESPBox end
+                e.tr.From=Vector2.new(Camera.ViewportSize.X/2,Camera.ViewportSize.Y)
+                e.tr.To=Vector2.new(pos.X,pos.Y)
+                e.tr.Thickness=_G.ESPThickness
+                e.tr.Visible=_G.ESPTracer
+                e.name.Text=p.Name e.name.Position=Vector2.new(pos.X,y-12) e.name.Visible=_G.ESPName
+                e.dist.Text=math.floor((Camera.CFrame.Position-hrp.Position).Magnitude).."m"
+                e.dist.Position=Vector2.new(pos.X,y+h+2) e.dist.Visible=_G.ESPDistance
             end
         end
     end
 end)
 
+local function chance() return math.random(0,100)<=_G.HitChance end
+
+task.spawn(function()
+    while task.wait() do
+        if _G.RageMode then
+            local c,d=nil,math.huge
+            for _,p in pairs(Players:GetPlayers()) do
+                if p~=LocalPlayer and p.Team~=LocalPlayer.Team and p.Character and p.Character:FindFirstChild("Head") then
+                    local m=(LocalPlayer.Character.HumanoidRootPart.Position-p.Character.HumanoidRootPart.Position).Magnitude
+                    if m<d then d=m c=p end
+                end
+            end
+            _G.RageTarget=c
+        else
+            _G.RageTarget=nil
+        end
+    end
+end)
+
+local mt=getrawmetatable(game)
+setreadonly(mt,false)
+local old=mt.__namecall
+
+mt.__namecall=newcclosure(function(self,...)
+    local a={...}
+    if getnamecallmethod()=="FindPartOnRayWithIgnoreList" and _G.SilentAim and chance() then
+        local t=_G.RageTarget
+        if not t then
+            local c,d=nil,math.huge
+            for _,p in pairs(Players:GetPlayers()) do
+                if p~=LocalPlayer and p.Team~=LocalPlayer.Team and p.Character and p.Character:FindFirstChild("Head") then
+                    local s,on=Camera:WorldToViewportPoint(p.Character.Head.Position)
+                    if on then
+                        local m=(Vector2.new(s.X,s.Y)-UserInputService:GetMouseLocation()).Magnitude
+                        if m<_G.FOV and m<d then d=m c=p end
+                    end
+                end
+            end
+            t=c
+        end
+        if t and t.Character and t.Character:FindFirstChild("Head") then
+            a[1]=Ray.new(Camera.CFrame.Position,(t.Character.Head.Position-Camera.CFrame.Position).Unit*5000)
+            return old(self,unpack(a))
+        end
+    end
+    return old(self,...)
+end)
+
+setreadonly(mt,true)
+
 local Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
 
-Settings:Toggle({
-    Title = "AntiAFK",
-    Callback = function(v)
-        _G.AntiAFK = v
-        task.spawn(function()
-            while _G.AntiAFK do
-                task.wait(60)
-                VirtualUser:CaptureController()
-                VirtualUser:ClickButton2(Vector2.new())
-            end
-        end)
-    end
-})
+_G.AntiAFK=false
+_G.HideUI=false
 
-Settings:Button({
-    Title = "Rejoin",
-    Callback = function()
-        TeleportService:Teleport(game.PlaceId, LocalPlayer)
-    end
-})
+Settings:Toggle({ Title="Anti AFK", Callback=function(v) _G.AntiAFK=v end })
+Settings:Toggle({ Title="Toggle UI", Callback=function(v) _G.HideUI=v Window:SetVisible(not v) end })
 
-Settings:Button({
-    Title = "Infinite Yield",
-    Callback = function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+Settings:Button({ Title="Save Config", Callback=function() WindUI:SaveConfig("Seraphin") end })
+Settings:Button({ Title="Load Config", Callback=function() WindUI:LoadConfig("Seraphin") end })
+Settings:Button({ Title="Delete Config", Callback=function() WindUI:DeleteConfig("Seraphin") end })
+
+Settings:Button({ Title="Rejoin", Callback=function() TeleportService:Teleport(game.PlaceId,LocalPlayer) end })
+Settings:Button({ Title="Infinite Yield", Callback=function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end })
+
+RunService.Heartbeat:Connect(function()
+    if _G.AntiAFK then
+        VirtualUser:Button2Down(Vector2.new(),Camera.CFrame)
+        task.wait(1)
+        VirtualUser:Button2Up(Vector2.new(),Camera.CFrame)
     end
-})
+    if _G.AutoFire and _G.RageMode then
+        local c=LocalPlayer.Character
+        if c then local t=c:FindFirstChildOfClass("Tool") if t then pcall(function() t:Activate() end) end end
+    end
+end)
