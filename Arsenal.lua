@@ -9,207 +9,744 @@ else
     print("✓ UI loaded successfully!")
 end
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local TeleportService = game:GetService("TeleportService")
-local VirtualUser = game:GetService("VirtualUser")
-local HttpService = game:GetService("HttpService")
-local Camera = workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
-
 local Window = WindUI:CreateWindow({
     Title = "Seraphin",
     Icon = "rbxassetid://120248611602330",
     Author = "KirsiaSC | Arsenal",
     Folder = "SERAPHIN_HUB",
-    Size = UDim2.fromOffset(300, 370),
+    Size = UDim2.fromOffset(280, 320),
     Transparent = true,
     Theme = "Dark",
     SideBarWidth = 170,
     HasOutline = true
 })
 
-Window:Tag({ Title = "v0.0.0.6", Color = Color3.fromRGB(0,0,0) })
+Window:Tag({
+    Title = "v0.0.0.4",
+    Color = Color3.fromRGB(180, 0, 255)
+})
 
-WindUI:Notify({ Title = "Seraphin Loaded", Content = "Arsenal script loaded!", Duration = 3 })
+WindUI:Notify({
+    Title = "SeraphinHub Loaded",
+    Content = "Arsenal script loaded!",
+    Duration = 3,
+    Icon = "bell",
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+local Info = Window:Tab({ Title = "Info", Icon = "info" })
+
+Info:Section({
+    Title = "Community Support",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+Info:Button({
+    Title = "Discord",
+    Desc = "Click to copy Discord link",
+    Callback = function()
+        if setclipboard then
+            setclipboard("https://discord.gg/getseraphin")
+        end
+    end
+})
+
+Info:Section({
+    Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible.",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
 
 local Combat = Window:Tab({ Title = "Combat", Icon = "sword" })
 
-_G.SilentAim = false
-_G.RageMode = false
-_G.AutoFire = false
-_G.HitChance = 100
-_G.FOV = 120
-_G.RageTarget = nil
+local hitboxEnabled = false
+Combat:Toggle({
+    Title = "Hitbox Extender",
+    Default = false,
+    Callback = function(v)
+        hitboxEnabled = v
+        if v then
+            task.spawn(function()
+                while hitboxEnabled do
+                    task.wait(0.5)
+                    for _, enemy in pairs(Players:GetPlayers()) do
+                        if enemy.Team ~= LocalPlayer.Team and enemy.Character and enemy.Character:FindFirstChild("Head") then
+                            local head = enemy.Character.Head
+                            if not head:FindFirstChild("HitboxNeon") then
+                                local adorn = Instance.new("BoxHandleAdornment")
+                                adorn.Name = "HitboxNeon"
+                                adorn.Adornee = head
+                                adorn.Parent = head
+                                adorn.AlwaysOnTop = true
+                                adorn.ZIndex = 5
+                                adorn.Size = Vector3.new(5, 5, 5)
+                                adorn.Transparency = 0.3
+                                adorn.Color3 = Color3.fromRGB(170, 0, 255)
+                            end
+                            head.Size = Vector3.new(5, 5, 5)
+                            head.CanCollide = false
+                        end
+                    end
+                end
+                
+                for _, enemy in pairs(Players:GetPlayers()) do
+                    if enemy.Character and enemy.Character:FindFirstChild("Head") then
+                        local head = enemy.Character.Head
+                        if head:FindFirstChild("HitboxNeon") then
+                            head.HitboxNeon:Destroy()
+                        end
+                        head.Size = Vector3.new(1, 1, 1)
+                    end
+                end
+            end)
+        end
+    end
+})
 
-Combat:Toggle({ Title = "Silent Aim", Callback = function(v) _G.SilentAim = v end })
-Combat:Toggle({ Title = "Rage Mode", Callback = function(v) _G.RageMode = v end })
-Combat:Toggle({ Title = "Auto Fire", Callback = function(v) _G.AutoFire = v end })
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
 
-Combat:Input({ Title = "Hit Chance %", Value = "100", Callback = function(v) local n=tonumber(v) if n then _G.HitChance=math.clamp(n,0,100) end end })
-Combat:Input({ Title = "Silent FOV", Value = "120", Callback = function(v) local n=tonumber(v) if n then _G.FOV=n end end })
+_G.KillAura = false
+
+Combat:Toggle({
+    Title = "Kill Aura",
+    Default = false,
+    Callback = function(state)
+        _G.KillAura = state
+    end
+})
+
+RunService.Heartbeat:Connect(function()
+    if _G.KillAura and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character:FindFirstChild("HumanoidRootPart") then
+                local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                if distance < 100 then
+                    player.Character.Humanoid:TakeDamage(5)
+                end
+            end
+        end
+    end
+end)
+
+Combat:Toggle({
+    Title = "Aimbot",
+    Default = false,
+    Callback = function(state)
+        _G.Aimbot = state
+    end
+})
+
+Combat:Toggle({
+    Title = "Auto Aim (Head)",
+    Default = false,
+    Callback = function(state)
+        _G.AutoAim = state
+        if state then
+            task.spawn(function()
+                while _G.AutoAim do
+                    task.wait()
+                    local closestPlayer, closestDistance = nil, math.huge
+                    for _, player in ipairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+                            local character = player.Character
+                            if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Head") then
+                                local distance = (LocalPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                                if distance < closestDistance then
+                                    closestDistance = distance
+                                    closestPlayer = player
+                                end
+                            end
+                        end
+                    end
+
+                    if closestPlayer and closestPlayer.Character then
+                        local targetHead = closestPlayer.Character:FindFirstChild("Head")
+                        if targetHead then
+                            Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetHead.Position)
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local circle = Drawing.new("Circle")
+circle.Thickness = 1.5
+circle.NumSides = 100
+circle.Radius = 70
+circle.Filled = false
+circle.Color = Color3.fromRGB(170, 0, 255)
+circle.Visible = false
+
+Combat:Toggle({
+    Title = "Aim Circle",
+    Default = false,
+    Callback = function(state)
+        _G.AimCircle = state
+        circle.Visible = state
+    end
+})
+
+RunService.RenderStepped:Connect(function()
+    if _G.AimCircle then
+        local mouse = UserInputService:GetMouseLocation()
+        circle.Position = Vector2.new(mouse.X, mouse.Y + 36)
+    end
+end)
+
+Combat:Section({
+    Title = "No delay",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+_G.NoRecoil = false
+_G.NoSpread = false
+
+Combat:Toggle({
+    Title = "No Recoil",
+    Default = false,
+    Callback = function(state)
+        _G.NoRecoil = state
+    end
+})
+
+Combat:Toggle({
+    Title = "No Spread",
+    Default = false,
+    Callback = function(state)
+        _G.NoSpread = state
+    end
+})
+
+RunService.Stepped:Connect(function()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChildOfClass("Tool") then
+        local tool = char:FindFirstChildOfClass("Tool")
+        if tool:FindFirstChild("CameraRecoil") and _G.NoRecoil then
+            tool.CameraRecoil.Value = 0
+        end
+        if tool:FindFirstChild("Spread") and _G.NoSpread then
+            tool.Spread.Value = 0
+        end
+    end
+end)
+
+Combat:Section({
+    Title = "Attack",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+Combat:Toggle({
+    Title = "Teleport to Enemy",
+    Default = false,
+    Callback = function(state)
+        _G.TeleportEnemy = state
+        task.spawn(function()
+            while _G.TeleportEnemy do
+                task.wait(1)
+                local nearest, dist = nil, math.huge
+                for _, plr in pairs(Players:GetPlayers()) do
+                    if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                        local mag = (LocalPlayer.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+                        if mag < dist then
+                            dist = mag
+                            nearest = plr
+                        end
+                    end
+                end
+                if nearest and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = nearest.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 3)
+                end
+            end
+        end)
+    end
+})
+
+local knifeRange = 10
+Combat:Input({
+    Title = "Knife Range",
+    Value = "10",
+    Callback = function(val)
+        local num = tonumber(val)
+        if num then knifeRange = num end
+    end
+})
+
+Combat:Toggle({
+    Title = "Auto Knife",
+    Default = false,
+    Callback = function(state)
+        _G.AutoKnife = state
+        task.spawn(function()
+            while _G.AutoKnife do
+                task.wait(0.2)
+                for _, plr in pairs(Players:GetPlayers()) do
+                    if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                        local mag = (LocalPlayer.Character.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude
+                        if mag <= knifeRange then
+                            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 1)
+                        end
+                    end
+                end
+            end
+        end)
+    end
+})
 
 local Visuals = Window:Tab({ Title = "Visuals", Icon = "eye" })
 
-_G.ESPBox = false
-_G.ESPCorner = false
-_G.ESPTracer = false
-_G.ESPName = false
-_G.ESPDistance = false
-_G.ESPHighlight = false
-_G.ESPSize = 1
-_G.ESPThickness = 1
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
-Visuals:Toggle({ Title = "ESP Box", Callback = function(v) _G.ESPBox=v end })
-Visuals:Toggle({ Title = "ESP Corner", Callback = function(v) _G.ESPCorner=v end })
-Visuals:Toggle({ Title = "ESP Tracer", Callback = function(v) _G.ESPTracer=v end })
-Visuals:Toggle({ Title = "ESP Name", Callback = function(v) _G.ESPName=v end })
-Visuals:Toggle({ Title = "ESP Distance", Callback = function(v) _G.ESPDistance=v end })
+_G.AutoHit = false
+
+Visuals:Toggle({
+    Title = "Auto Hit",
+    Default = false,
+    Callback = function(state)
+        _G.AutoHit = state
+    end
+})
+
+local circle = Drawing.new("Circle")
+circle.Thickness = 2
+circle.NumSides = 100
+circle.Radius = 100
+circle.Filled = false
+circle.Color = Color3.fromRGB(170, 0, 255)
+circle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+circle.Visible = false
+
+RunService.RenderStepped:Connect(function()
+    circle.Visible = _G.AutoHit
+end)
+
+RunService.Heartbeat:Connect(function()
+    if _G.AutoHit then
+        local char = LocalPlayer.Character
+        local tool = char and char:FindFirstChildOfClass("Tool")
+        if char and tool and tool:FindFirstChild("Handle") then
+            for _, target in pairs(Players:GetPlayers()) do
+                if target ~= LocalPlayer and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                    local distance = (target.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
+                    if distance < 100 then
+                        pcall(function()
+                            tool:Activate()
+                        end)
+                    end
+                end
+            end
+        end
+    end
+end)
 
 Visuals:Toggle({
     Title = "ESP Highlight",
-    Callback = function(v)
-        _G.ESPHighlight=v
-        for _,p in pairs(Players:GetPlayers()) do
-            if p~=LocalPlayer and p.Character then
-                if v then
-                    if not p.Character:FindFirstChild("SeraphinHL") then
-                        local h=Instance.new("Highlight",p.Character)
-                        h.Name="SeraphinHL"
-                        h.FillColor=Color3.fromRGB(0,0,0)
-                        h.OutlineColor=Color3.fromRGB(0,0,0)
+    Default = false,
+    Callback = function(state)
+        _G.ESPHighlight = state
+        if state then
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
+                    local char = plr.Character or plr.CharacterAdded:Wait()
+                    if not char:FindFirstChild("SeraphinESP_HL") then
+                        local hl = Instance.new("Highlight")
+                        hl.Name = "SeraphinESP_HL"
+                        hl.FillColor = Color3.fromRGB(180, 0, 255)
+                        hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+                        hl.Parent = char
                     end
-                else
-                    if p.Character:FindFirstChild("SeraphinHL") then
-                        p.Character.SeraphinHL:Destroy()
-                    end
+                end
+            end
+        else
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_HL") then
+                    plr.Character.SeraphinESP_HL:Destroy()
                 end
             end
         end
     end
 })
 
-Visuals:Input({ Title = "ESP Size", Value = "1", Callback = function(v) local n=tonumber(v) if n then _G.ESPSize=n end end })
-Visuals:Input({ Title = "ESP Thickness", Value = "1", Callback = function(v) local n=tonumber(v) if n then _G.ESPThickness=n end end })
+Visuals:Toggle({
+    Title = "ESP Name",
+    Default = false,
+    Callback = function(state)
+        _G.ESPName = state
+        if state then
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
+                    local char = plr.Character or plr.CharacterAdded:Wait()
+                    if not char:FindFirstChild("SeraphinESP_Name") then
+                        local billboard = Instance.new("BillboardGui", char)
+                        billboard.Name = "SeraphinESP_Name"
+                        billboard.Size = UDim2.new(0, 200, 0, 50)
+                        billboard.AlwaysOnTop = true
+                        billboard.StudsOffset = Vector3.new(0, 3, 0)
 
-local espCache = {}
-
-local function L() local l=Drawing.new("Line") l.Color=Color3.fromRGB(0,0,0) l.Thickness=_G.ESPThickness l.Visible=false return l end
-local function T() local t=Drawing.new("Text") t.Color=Color3.fromRGB(0,0,0) t.Size=13 t.Center=true t.Outline=true t.Visible=false return t end
-
-local function setup(p)
-    espCache[p]={box={L(),L(),L(),L()},tr=L(),name=T(),dist=T()}
-end
-
-for _,p in pairs(Players:GetPlayers()) do if p~=LocalPlayer then setup(p) end end
-Players.PlayerAdded:Connect(function(p) if p~=LocalPlayer then setup(p) end end)
-Players.PlayerRemoving:Connect(function(p) if espCache[p] then for _,v in pairs(espCache[p].box) do v:Remove() end espCache[p].tr:Remove() espCache[p].name:Remove() espCache[p].dist:Remove() espCache[p]=nil end end)
-
-RunService.RenderStepped:Connect(function()
-    for p,e in pairs(espCache) do
-        local c=p.Character
-        if not c or not c:FindFirstChild("HumanoidRootPart") then
-            for _,v in pairs(e.box) do v.Visible=false end
-            e.tr.Visible=false e.name.Visible=false e.dist.Visible=false
-        else
-            local hrp=c.HumanoidRootPart
-            local pos,on=Camera:WorldToViewportPoint(hrp.Position)
-            if on then
-                local s=_G.ESPSize
-                local w,h=40*s,60*s
-                local x,y=pos.X-w/2,pos.Y-h/2
-                local b=e.box
-                b[1].From=Vector2.new(x,y) b[1].To=Vector2.new(x+w,y)
-                b[2].From=Vector2.new(x+w,y) b[2].To=Vector2.new(x+w,y+h)
-                b[3].From=Vector2.new(x+w,y+h) b[3].To=Vector2.new(x,y+h)
-                b[4].From=Vector2.new(x,y+h) b[4].To=Vector2.new(x,y)
-                for _,v in pairs(b) do v.Thickness=_G.ESPThickness v.Visible=_G.ESPBox end
-                e.tr.From=Vector2.new(Camera.ViewportSize.X/2,Camera.ViewportSize.Y)
-                e.tr.To=Vector2.new(pos.X,pos.Y)
-                e.tr.Thickness=_G.ESPThickness
-                e.tr.Visible=_G.ESPTracer
-                e.name.Text=p.Name e.name.Position=Vector2.new(pos.X,y-12) e.name.Visible=_G.ESPName
-                e.dist.Text=math.floor((Camera.CFrame.Position-hrp.Position).Magnitude).."m"
-                e.dist.Position=Vector2.new(pos.X,y+h+2) e.dist.Visible=_G.ESPDistance
-            end
-        end
-    end
-end)
-
-local function chance() return math.random(0,100)<=_G.HitChance end
-
-task.spawn(function()
-    while task.wait() do
-        if _G.RageMode then
-            local c,d=nil,math.huge
-            for _,p in pairs(Players:GetPlayers()) do
-                if p~=LocalPlayer and p.Team~=LocalPlayer.Team and p.Character and p.Character:FindFirstChild("Head") then
-                    local m=(LocalPlayer.Character.HumanoidRootPart.Position-p.Character.HumanoidRootPart.Position).Magnitude
-                    if m<d then d=m c=p end
-                end
-            end
-            _G.RageTarget=c
-        else
-            _G.RageTarget=nil
-        end
-    end
-end)
-
-local mt=getrawmetatable(game)
-setreadonly(mt,false)
-local old=mt.__namecall
-
-mt.__namecall=newcclosure(function(self,...)
-    local a={...}
-    if getnamecallmethod()=="FindPartOnRayWithIgnoreList" and _G.SilentAim and chance() then
-        local t=_G.RageTarget
-        if not t then
-            local c,d=nil,math.huge
-            for _,p in pairs(Players:GetPlayers()) do
-                if p~=LocalPlayer and p.Team~=LocalPlayer.Team and p.Character and p.Character:FindFirstChild("Head") then
-                    local s,on=Camera:WorldToViewportPoint(p.Character.Head.Position)
-                    if on then
-                        local m=(Vector2.new(s.X,s.Y)-UserInputService:GetMouseLocation()).Magnitude
-                        if m<_G.FOV and m<d then d=m c=p end
+                        local nameLabel = Instance.new("TextLabel", billboard)
+                        nameLabel.Size = UDim2.new(1, 0, 1, 0)
+                        nameLabel.BackgroundTransparency = 1
+                        nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
+                        nameLabel.TextStrokeTransparency = 0
+                        nameLabel.Font = Enum.Font.SourceSansBold
+                        nameLabel.TextSize = 14
+                        nameLabel.Text = plr.Name
                     end
                 end
             end
-            t=c
-        end
-        if t and t.Character and t.Character:FindFirstChild("Head") then
-            a[1]=Ray.new(Camera.CFrame.Position,(t.Character.Head.Position-Camera.CFrame.Position).Unit*5000)
-            return old(self,unpack(a))
+        else
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Name") then
+                    plr.Character.SeraphinESP_Name:Destroy()
+                end
+            end
         end
     end
-    return old(self,...)
+})
+
+Visuals:Toggle({
+    Title = "ESP Studs",
+    Default = false,
+    Callback = function(state)
+        _G.ESPStuds = state
+        if state then
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
+                    local char = plr.Character or plr.CharacterAdded:Wait()
+                    if not char:FindFirstChild("SeraphinESP_Studs") then
+                        local billboard = Instance.new("BillboardGui", char)
+                        billboard.Name = "SeraphinESP_Studs"
+                        billboard.Size = UDim2.new(0, 200, 0, 50)
+                        billboard.AlwaysOnTop = true
+                        billboard.StudsOffset = Vector3.new(0, 5, 0)
+
+                        local infoLabel = Instance.new("TextLabel", billboard)
+                        infoLabel.Size = UDim2.new(1, 0, 1, 0)
+                        infoLabel.BackgroundTransparency = 1
+                        infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        infoLabel.TextStrokeTransparency = 0
+                        infoLabel.Font = Enum.Font.SourceSansBold
+                        infoLabel.TextSize = 12
+                        infoLabel.Text = "0 studs"
+                    end
+                end
+            end
+        else
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Studs") then
+                    plr.Character.SeraphinESP_Studs:Destroy()
+                end
+            end
+        end
+    end
+})
+
+Visuals:Toggle({
+    Title = "ESP Line",
+    Default = false,
+    Callback = function(state)
+        _G.ESPLine = state
+    end
+})
+
+Visuals:Toggle({
+    Title = "ESP Box",
+    Default = false,
+    Callback = function(state)
+        _G.ESPBox = state
+    end
+})
+
+local PlayersTab = Window:Tab({
+    Title = "Players",
+    Icon = "user"
+})
+
+local walkVal, jumpVal = 16, 50
+
+local function applyStats(char)
+    local hum = char:WaitForChild("Humanoid")
+    hum.WalkSpeed = walkVal
+    hum.UseJumpPower = true
+    hum.JumpPower = jumpVal
+end
+
+applyStats(LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait())
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    char:WaitForChild("Humanoid")
+    task.wait(0.2)
+    applyStats(char)
 end)
 
-setreadonly(mt,true)
+PlayersTab:Input({
+    Title = "WalkSpeed",
+    Value = tostring(walkVal),
+    Callback = function(val)
+        local spd = tonumber(val)
+        if spd and spd >= 16 then
+            walkVal = spd
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.WalkSpeed = walkVal
+            end
+        end
+    end
+})
+
+PlayersTab:Input({
+    Title = "JumpPower",
+    Value = tostring(jumpVal),
+    Callback = function(val)
+        local jp = tonumber(val)
+        if jp then
+            jumpVal = jp
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                LocalPlayer.Character.Humanoid.UseJumpPower = true
+                LocalPlayer.Character.Humanoid.JumpPower = jumpVal
+            end
+        end
+    end
+})
+
+PlayersTab:Toggle({
+    Title = "Noclip",
+    Default = false,
+    Callback = function(state)
+        _G.Noclip = state
+    end
+})
+
+game:GetService("RunService").Stepped:Connect(function()
+    if _G.Noclip and game.Players.LocalPlayer.Character then
+        for _, part in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+PlayersTab:Toggle({
+    Title = "Infinite Jump",
+    Default = false,
+    Callback = function(state)
+        _G.InfiniteJump = state
+    end
+})
+
+UserInputService.JumpRequest:Connect(function()
+    if _G.InfiniteJump then
+        local char = LocalPlayer.Character
+        if char and char:FindFirstChildOfClass("Humanoid") then
+            char:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+PlayersTab:Toggle({
+    Title = "Fly",
+    Default = false,
+    Callback = function(state)
+        _G.Fly = state
+        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if state and hrp then
+            local bv = Instance.new("BodyVelocity")
+            bv.Name = "FlyVelocity"
+            bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+            bv.Velocity = Vector3.zero
+            bv.Parent = hrp
+            task.spawn(function()
+                while _G.Fly and bv.Parent do
+                    task.wait()
+                    bv.Velocity = Camera.CFrame.LookVector * 50
+                end
+            end)
+        else
+            if hrp and hrp:FindFirstChild("FlyVelocity") then
+                hrp.FlyVelocity:Destroy()
+            end
+        end
+    end
+})
 
 local Settings = Window:Tab({ Title = "Settings", Icon = "settings" })
 
-_G.AntiAFK=false
-_G.HideUI=false
-
-Settings:Toggle({ Title="Anti AFK", Callback=function(v) _G.AntiAFK=v end })
-Settings:Toggle({ Title="Toggle UI", Callback=function(v) _G.HideUI=v Window:SetVisible(not v) end })
-
-Settings:Button({ Title="Save Config", Callback=function() WindUI:SaveConfig("Seraphin") end })
-Settings:Button({ Title="Load Config", Callback=function() WindUI:LoadConfig("Seraphin") end })
-Settings:Button({ Title="Delete Config", Callback=function() WindUI:DeleteConfig("Seraphin") end })
-
-Settings:Button({ Title="Rejoin", Callback=function() TeleportService:Teleport(game.PlaceId,LocalPlayer) end })
-Settings:Button({ Title="Infinite Yield", Callback=function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end })
-
-RunService.Heartbeat:Connect(function()
-    if _G.AntiAFK then
-        VirtualUser:Button2Down(Vector2.new(),Camera.CFrame)
-        task.wait(1)
-        VirtualUser:Button2Up(Vector2.new(),Camera.CFrame)
+Settings:Toggle({
+    Title = "AntiAFK",
+    Default = false,
+    Callback = function(state)
+        _G.AntiAFK = state
+        local VirtualUser = game:GetService("VirtualUser")
+        task.spawn(function()
+            while _G.AntiAFK do
+                task.wait(60)
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new())
+            end
+        end)
     end
-    if _G.AutoFire and _G.RageMode then
-        local c=LocalPlayer.Character
-        if c then local t=c:FindFirstChildOfClass("Tool") if t then pcall(function() t:Activate() end) end end
+})
+
+Settings:Toggle({
+    Title = "Auto Reconnect",
+    Default = false,
+    Callback = function(state)
+        _G.AutoReconnect = state
+        task.spawn(function()
+            while _G.AutoReconnect do
+                task.wait(2)
+                local reconnectUI = game:GetService("CoreGui"):FindFirstChild("RobloxPromptGui")
+                if reconnectUI then
+                    local prompt = reconnectUI:FindFirstChild("promptOverlay")
+                    if prompt then
+                        local errorPrompt = prompt:FindFirstChild("ErrorPrompt")
+                        if errorPrompt then
+                            local confirmButton = errorPrompt:FindFirstChild("ConfirmButton")
+                            if confirmButton then
+                                firesignal(confirmButton.MouseButton1Click)
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end
+})
+
+Settings:Section({
+    Title = "Server",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+Settings:Button({
+    Title = "Rejoin",
+    Desc = "Reconnect to current server",
+    Callback = function()
+        local TeleportService = game:GetService("TeleportService")
+        local PlaceId = game.PlaceId
+        local Player = game.Players.LocalPlayer
+        TeleportService:Teleport(PlaceId, Player)
+    end
+})
+
+Settings:Button({
+    Title = "Server Hop",
+    Desc = "Teleport to a different server",
+    Callback = function()
+        local HttpService = game:GetService("HttpService")
+        local TeleportService = game:GetService("TeleportService")
+        local PlaceId = game.PlaceId
+        local Servers = {}
+        local success, response = pcall(function()
+            return game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+        end)
+        if success and response then
+            local data = HttpService:JSONDecode(response)
+            for _, v in pairs(data.data) do
+                if v.playing < v.maxPlayers and v.id ~= game.JobId then
+                    table.insert(Servers, v.id)
+                end
+            end
+        end
+        if #Servers > 0 then
+            local randomServer = Servers[math.random(1, #Servers)]
+            TeleportService:TeleportToPlaceInstance(PlaceId, randomServer, game.Players.LocalPlayer)
+        end
+    end
+})
+
+Settings:Section({
+    Title = "Config",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+Settings:Button({
+    Title = "Save Config",
+    Desc = "Save your current settings",
+    Callback = function()
+        WindUI:SaveConfig("Seraphin_Config")
+    end
+})
+
+Settings:Button({
+    Title = "Load Config",
+    Desc = "Load your saved settings",
+    Callback = function()
+        WindUI:LoadConfig("Seraphin_Config")
+    end
+})
+
+Settings:Button({
+    Title = "Delete Config",
+    Desc = "Delete saved config",
+    Callback = function()
+        WindUI:DeleteConfig("Seraphin_Config")
+    end
+})
+
+task.spawn(function()
+    while true do
+        task.wait()
+        if _G.Aimbot then
+            local closestPlayer, closestDistance = nil, math.huge
+
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
+                    local character = player.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Head") then
+                        local distance = (LocalPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
+                        if distance < closestDistance then
+                            closestDistance = distance
+                            closestPlayer = player
+                        end
+                    end
+                end
+            end
+
+            if closestPlayer and closestPlayer.Character then
+                local targetHead = closestPlayer.Character:FindFirstChild("Head")
+                if targetHead then
+                    Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetHead.Position)
+                end
+            end
+        end
     end
 end)
+
+Settings:Section({
+    Title = "other scripts",
+    TextXAlignment = "Left",
+    TextSize = 17,
+})
+
+Settings:Button({
+    Title = "Infinite Yield",
+    Desc = "Script Other",
+    Callback = function()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+    end
+})
