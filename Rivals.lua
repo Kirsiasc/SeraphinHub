@@ -205,7 +205,10 @@ Tabs.Combat:AddSlider("Smooth", {
     Min = 0.05,
     Max = 0.4,
     Default = AimSmooth,
-    Callback = function(v) AimSmooth = v end
+    Rounding = 2,
+    Callback = function(v)
+        AimSmooth = v
+    end
 })
 
 
@@ -220,7 +223,10 @@ Tabs.Visual:AddSlider("FOVSize", {
     Min = 50,
     Max = 400,
     Default = FOVRadius,
-    Callback = function(v) FOVRadius = v end
+    Rounding = 0,
+    Callback = function(v)
+        FOVRadius = v
+    end
 })
 
 Tabs.Visual:AddToggle("ESP", {
