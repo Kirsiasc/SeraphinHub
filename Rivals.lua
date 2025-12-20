@@ -1,16 +1,14 @@
 if not game:IsLoaded() then game.Loaded:Wait() end
 
-
 if game.GameId ~= 6035872082 then
     warn("Seraphin Hub: Not Rivals")
     return
 end
 
-
 local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Seraphin | Rivals",
+    Title = "Seraphin | Rivals | Developer",
     TabWidth = 160,
     Size = UDim2.fromOffset(560, 360),
     Acrylic = true,
