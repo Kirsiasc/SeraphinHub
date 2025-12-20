@@ -199,42 +199,42 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-_G.AutoShot = false
-local autoShotRange = 500
+_G.TriggerBot = false
+local triggerBotRange = 500
 
 Combat:Toggle({
-    Title = "Auto Shot",
+    Title = "Trigger Bot",
     Default = false,
     Callback = function(state)
-        _G.AutoShot = state
+        _G.TriggerBot = state
         if state then
             task.spawn(function()
-                while _G.AutoShot do
-                    task.wait(0.1)
+                while _G.TriggerBot do
+                    task.wait(0.05)
                     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
                         local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
                         if tool and tool:FindFirstChild("Handle") then
-                            local closestPlayer, closestDistance = nil, math.huge
+                            local closestPlayer = nil
                             for _, player in ipairs(Players:GetPlayers()) do
                                 if player ~= LocalPlayer and player.Team ~= LocalPlayer.Team then
                                     local character = player.Character
                                     if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0 then
                                         local distance = (LocalPlayer.Character.HumanoidRootPart.Position - character.HumanoidRootPart.Position).Magnitude
-                                        if distance < autoShotRange and distance < closestDistance then
-                                            closestDistance = distance
-                                            closestPlayer = player
+                                        if distance < triggerBotRange then
+                                            local screenPoint, onScreen = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
+                                            if onScreen then
+                                                closestPlayer = player
+                                                break
+                                            end
                                         end
                                     end
                                 end
                             end
                             
                             if closestPlayer and closestPlayer.Character then
-                                local targetHead = closestPlayer.Character:FindFirstChild("Head")
-                                if targetHead then
-                                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 1)
-                                    task.wait(0.05)
-                                    game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 1)
-                                end
+                                game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                                task.wait(0.03)
+                                game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 0, 0, false, game, 1)
                             end
                         end
                     end
@@ -245,11 +245,11 @@ Combat:Toggle({
 })
 
 Combat:Input({
-    Title = "Auto Shot Range",
+    Title = "Trigger Bot Range",
     Value = "500",
     Callback = function(val)
         local num = tonumber(val)
-        if num then autoShotRange = num end
+        if num then triggerBotRange = num end
     end
 })
 
@@ -357,70 +357,248 @@ Combat:Toggle({
 
 local Visuals = Window:Tab({ Title = "Visuals", Icon = "eye" })
 
-_G.AutoHit = false
+local ESP = {
+    Enabled = false,
+    Highlight = false,
+    Name = false,
+    Studs = false,
+    Box = false,
+    Line = false,
+    Players = {},
+    Connections = {}
+}
 
-Visuals:Toggle({
-    Title = "Auto Hit",
-    Default = false,
-    Callback = function(state)
-        _G.AutoHit = state
+local function createESP(player)
+    if player == LocalPlayer then return end
+    if ESP.Players[player] then return end
+    
+    local espData = {
+        Highlight = nil,
+        NameBillboard = nil,
+        StudsBillboard = nil,
+        Box = nil,
+        Line = nil,
+        Connection = nil
+    }
+    
+    ESP.Players[player] = espData
+    
+    espData.Connection = player.CharacterAdded:Connect(function(char)
+        task.wait(0.5)
+        if ESP.Highlight then
+            if espData.Highlight then espData.Highlight:Destroy() end
+            espData.Highlight = Instance.new("Highlight")
+            espData.Highlight.Name = "SeraphinESP_HL"
+            espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
+            espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            espData.Highlight.Parent = char
+        end
+        
+        if ESP.Name then
+            if espData.NameBillboard then espData.NameBillboard:Destroy() end
+            espData.NameBillboard = Instance.new("BillboardGui")
+            espData.NameBillboard.Name = "SeraphinESP_Name"
+            espData.NameBillboard.Size = UDim2.new(0, 200, 0, 50)
+            espData.NameBillboard.AlwaysOnTop = true
+            espData.NameBillboard.StudsOffset = Vector3.new(0, 3, 0)
+            espData.NameBillboard.Parent = char
+            
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, 0, 1, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
+            nameLabel.TextStrokeTransparency = 0
+            nameLabel.Font = Enum.Font.SourceSansBold
+            nameLabel.TextSize = 14
+            nameLabel.Text = player.Name
+            nameLabel.Parent = espData.NameBillboard
+        end
+        
+        if ESP.Studs then
+            if espData.StudsBillboard then espData.StudsBillboard:Destroy() end
+            espData.StudsBillboard = Instance.new("BillboardGui")
+            espData.StudsBillboard.Name = "SeraphinESP_Studs"
+            espData.StudsBillboard.Size = UDim2.new(0, 200, 0, 50)
+            espData.StudsBillboard.AlwaysOnTop = true
+            espData.StudsBillboard.StudsOffset = Vector3.new(0, 5, 0)
+            espData.StudsBillboard.Parent = char
+            
+            local infoLabel = Instance.new("TextLabel")
+            infoLabel.Size = UDim2.new(1, 0, 1, 0)
+            infoLabel.BackgroundTransparency = 1
+            infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            infoLabel.TextStrokeTransparency = 0
+            infoLabel.Font = Enum.Font.SourceSansBold
+            infoLabel.TextSize = 12
+            infoLabel.Text = "0 studs"
+            infoLabel.Parent = espData.StudsBillboard
+        end
+    end)
+    
+    if player.Character then
+        espData.Connection:Disconnect()
+        espData.Connection = nil
+        espData.Connection = player.CharacterAdded:Connect(function(char)
+            task.wait(0.5)
+            if ESP.Highlight then
+                if espData.Highlight then espData.Highlight:Destroy() end
+                espData.Highlight = Instance.new("Highlight")
+                espData.Highlight.Name = "SeraphinESP_HL"
+                espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
+                espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                espData.Highlight.Parent = char
+            end
+        end)
+        
+        if ESP.Highlight then
+            espData.Highlight = Instance.new("Highlight")
+            espData.Highlight.Name = "SeraphinESP_HL"
+            espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
+            espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+            espData.Highlight.Parent = player.Character
+        end
+        
+        if ESP.Name then
+            espData.NameBillboard = Instance.new("BillboardGui")
+            espData.NameBillboard.Name = "SeraphinESP_Name"
+            espData.NameBillboard.Size = UDim2.new(0, 200, 0, 50)
+            espData.NameBillboard.AlwaysOnTop = true
+            espData.NameBillboard.StudsOffset = Vector3.new(0, 3, 0)
+            espData.NameBillboard.Parent = player.Character
+            
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, 0, 1, 0)
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
+            nameLabel.TextStrokeTransparency = 0
+            nameLabel.Font = Enum.Font.SourceSansBold
+            nameLabel.TextSize = 14
+            nameLabel.Text = player.Name
+            nameLabel.Parent = espData.NameBillboard
+        end
+        
+        if ESP.Studs then
+            espData.StudsBillboard = Instance.new("BillboardGui")
+            espData.StudsBillboard.Name = "SeraphinESP_Studs"
+            espData.StudsBillboard.Size = UDim2.new(0, 200, 0, 50)
+            espData.StudsBillboard.AlwaysOnTop = true
+            espData.StudsBillboard.StudsOffset = Vector3.new(0, 5, 0)
+            espData.StudsBillboard.Parent = player.Character
+            
+            local infoLabel = Instance.new("TextLabel")
+            infoLabel.Size = UDim2.new(1, 0, 1, 0)
+            infoLabel.BackgroundTransparency = 1
+            infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            infoLabel.TextStrokeTransparency = 0
+            infoLabel.Font = Enum.Font.SourceSansBold
+            infoLabel.TextSize = 12
+            infoLabel.Text = "0 studs"
+            infoLabel.Parent = espData.StudsBillboard
+        end
     end
-})
+end
 
-local circle2 = Drawing.new("Circle")
-circle2.Thickness = 2
-circle2.NumSides = 100
-circle2.Radius = 100
-circle2.Filled = false
-circle2.Color = Color3.fromRGB(170, 0, 255)
-circle2.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-circle2.Visible = false
+local function removeESP(player)
+    local espData = ESP.Players[player]
+    if espData then
+        if espData.Connection then
+            espData.Connection:Disconnect()
+        end
+        if espData.Highlight then
+            espData.Highlight:Destroy()
+        end
+        if espData.NameBillboard then
+            espData.NameBillboard:Destroy()
+        end
+        if espData.StudsBillboard then
+            espData.StudsBillboard:Destroy()
+        end
+        if espData.Box then
+            espData.Box:Remove()
+        end
+        if espData.Line then
+            espData.Line:Remove()
+        end
+        ESP.Players[player] = nil
+    end
+end
 
-RunService.RenderStepped:Connect(function()
-    circle2.Visible = _G.AutoHit
-end)
-
-RunService.Heartbeat:Connect(function()
-    if _G.AutoHit then
-        local char = LocalPlayer.Character
-        local tool = char and char:FindFirstChildOfClass("Tool")
-        if char and tool and tool:FindFirstChild("Handle") then
-            for _, target in pairs(Players:GetPlayers()) do
-                if target ~= LocalPlayer and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-                    local distance = (target.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
-                    if distance < 100 then
-                        pcall(function()
-                            tool:Activate()
-                        end)
-                    end
-                end
+local function updateESP()
+    for player, espData in pairs(ESP.Players) do
+        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player ~= LocalPlayer then
+            if espData.StudsBillboard and espData.StudsBillboard.Parent then
+                local distance = (LocalPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+                espData.StudsBillboard.TextLabel.Text = math.floor(distance) .. " studs"
             end
         end
     end
+end
+
+local function setupAllESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            createESP(player)
+        end
+    end
+end
+
+local function cleanupAllESP()
+    for player, _ in pairs(ESP.Players) do
+        removeESP(player)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if ESP.Enabled then
+        createESP(player)
+    end
 end)
+
+Players.PlayerRemoving:Connect(function(player)
+    removeESP(player)
+end)
+
+RunService.RenderStepped:Connect(function()
+    if ESP.Enabled then
+        updateESP()
+    end
+end)
+
+Visuals:Toggle({
+    Title = "ESP",
+    Default = false,
+    Callback = function(state)
+        ESP.Enabled = state
+        if state then
+            setupAllESP()
+        else
+            cleanupAllESP()
+        end
+    end
+})
 
 Visuals:Toggle({
     Title = "ESP Highlight",
     Default = false,
     Callback = function(state)
-        _G.ESPHighlight = state
-        if state then
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
-                    local char = plr.Character or plr.CharacterAdded:Wait()
-                    if not char:FindFirstChild("SeraphinESP_HL") then
-                        local hl = Instance.new("Highlight")
-                        hl.Name = "SeraphinESP_HL"
-                        hl.FillColor = Color3.fromRGB(180, 0, 255)
-                        hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-                        hl.Parent = char
+        ESP.Highlight = state
+        if ESP.Enabled then
+            for player, espData in pairs(ESP.Players) do
+                if player ~= LocalPlayer then
+                    if state then
+                        if player.Character and not espData.Highlight then
+                            espData.Highlight = Instance.new("Highlight")
+                            espData.Highlight.Name = "SeraphinESP_HL"
+                            espData.Highlight.FillColor = Color3.fromRGB(180, 0, 255)
+                            espData.Highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+                            espData.Highlight.Parent = player.Character
+                        end
+                    else
+                        if espData.Highlight then
+                            espData.Highlight:Destroy()
+                            espData.Highlight = nil
+                        end
                     end
-                end
-            end
-        else
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_HL") then
-                    plr.Character.SeraphinESP_HL:Destroy()
                 end
             end
         end
@@ -431,33 +609,35 @@ Visuals:Toggle({
     Title = "ESP Name",
     Default = false,
     Callback = function(state)
-        _G.ESPName = state
-        if state then
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
-                    local char = plr.Character or plr.CharacterAdded:Wait()
-                    if not char:FindFirstChild("SeraphinESP_Name") then
-                        local billboard = Instance.new("BillboardGui", char)
-                        billboard.Name = "SeraphinESP_Name"
-                        billboard.Size = UDim2.new(0, 200, 0, 50)
-                        billboard.AlwaysOnTop = true
-                        billboard.StudsOffset = Vector3.new(0, 3, 0)
-
-                        local nameLabel = Instance.new("TextLabel", billboard)
-                        nameLabel.Size = UDim2.new(1, 0, 1, 0)
-                        nameLabel.BackgroundTransparency = 1
-                        nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
-                        nameLabel.TextStrokeTransparency = 0
-                        nameLabel.Font = Enum.Font.SourceSansBold
-                        nameLabel.TextSize = 14
-                        nameLabel.Text = plr.Name
+        ESP.Name = state
+        if ESP.Enabled then
+            for player, espData in pairs(ESP.Players) do
+                if player ~= LocalPlayer then
+                    if state then
+                        if player.Character and not espData.NameBillboard then
+                            espData.NameBillboard = Instance.new("BillboardGui")
+                            espData.NameBillboard.Name = "SeraphinESP_Name"
+                            espData.NameBillboard.Size = UDim2.new(0, 200, 0, 50)
+                            espData.NameBillboard.AlwaysOnTop = true
+                            espData.NameBillboard.StudsOffset = Vector3.new(0, 3, 0)
+                            espData.NameBillboard.Parent = player.Character
+                            
+                            local nameLabel = Instance.new("TextLabel")
+                            nameLabel.Size = UDim2.new(1, 0, 1, 0)
+                            nameLabel.BackgroundTransparency = 1
+                            nameLabel.TextColor3 = Color3.fromRGB(180, 0, 255)
+                            nameLabel.TextStrokeTransparency = 0
+                            nameLabel.Font = Enum.Font.SourceSansBold
+                            nameLabel.TextSize = 14
+                            nameLabel.Text = player.Name
+                            nameLabel.Parent = espData.NameBillboard
+                        end
+                    else
+                        if espData.NameBillboard then
+                            espData.NameBillboard:Destroy()
+                            espData.NameBillboard = nil
+                        end
                     end
-                end
-            end
-        else
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Name") then
-                    plr.Character.SeraphinESP_Name:Destroy()
                 end
             end
         end
@@ -468,33 +648,35 @@ Visuals:Toggle({
     Title = "ESP Studs",
     Default = false,
     Callback = function(state)
-        _G.ESPStuds = state
-        if state then
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team then
-                    local char = plr.Character or plr.CharacterAdded:Wait()
-                    if not char:FindFirstChild("SeraphinESP_Studs") then
-                        local billboard = Instance.new("BillboardGui", char)
-                        billboard.Name = "SeraphinESP_Studs"
-                        billboard.Size = UDim2.new(0, 200, 0, 50)
-                        billboard.AlwaysOnTop = true
-                        billboard.StudsOffset = Vector3.new(0, 5, 0)
-
-                        local infoLabel = Instance.new("TextLabel", billboard)
-                        infoLabel.Size = UDim2.new(1, 0, 1, 0)
-                        infoLabel.BackgroundTransparency = 1
-                        infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-                        infoLabel.TextStrokeTransparency = 0
-                        infoLabel.Font = Enum.Font.SourceSansBold
-                        infoLabel.TextSize = 12
-                        infoLabel.Text = "0 studs"
+        ESP.Studs = state
+        if ESP.Enabled then
+            for player, espData in pairs(ESP.Players) do
+                if player ~= LocalPlayer then
+                    if state then
+                        if player.Character and not espData.StudsBillboard then
+                            espData.StudsBillboard = Instance.new("BillboardGui")
+                            espData.StudsBillboard.Name = "SeraphinESP_Studs"
+                            espData.StudsBillboard.Size = UDim2.new(0, 200, 0, 50)
+                            espData.StudsBillboard.AlwaysOnTop = true
+                            espData.StudsBillboard.StudsOffset = Vector3.new(0, 5, 0)
+                            espData.StudsBillboard.Parent = player.Character
+                            
+                            local infoLabel = Instance.new("TextLabel")
+                            infoLabel.Size = UDim2.new(1, 0, 1, 0)
+                            infoLabel.BackgroundTransparency = 1
+                            infoLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                            infoLabel.TextStrokeTransparency = 0
+                            infoLabel.Font = Enum.Font.SourceSansBold
+                            infoLabel.TextSize = 12
+                            infoLabel.Text = "0 studs"
+                            infoLabel.Parent = espData.StudsBillboard
+                        end
+                    else
+                        if espData.StudsBillboard then
+                            espData.StudsBillboard:Destroy()
+                            espData.StudsBillboard = nil
+                        end
                     end
-                end
-            end
-        else
-            for _, plr in pairs(Players:GetPlayers()) do
-                if plr.Character and plr.Character:FindFirstChild("SeraphinESP_Studs") then
-                    plr.Character.SeraphinESP_Studs:Destroy()
                 end
             end
         end
@@ -502,18 +684,18 @@ Visuals:Toggle({
 })
 
 Visuals:Toggle({
-    Title = "ESP Line",
+    Title = "ESP Box",
     Default = false,
     Callback = function(state)
-        _G.ESPLine = state
+        ESP.Box = state
     end
 })
 
 Visuals:Toggle({
-    Title = "ESP Box",
+    Title = "ESP Line",
     Default = false,
     Callback = function(state)
-        _G.ESPBox = state
+        ESP.Line = state
     end
 })
 
