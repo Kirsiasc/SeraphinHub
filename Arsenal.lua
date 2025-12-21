@@ -18,7 +18,11 @@ local Window = WindUI:CreateWindow({
     Transparent = true,
     Theme = "Dark",
     SideBarWidth = 170,
-    HasOutline = true
+    HasOutline = true,
+    User = {
+        Enabled = true,
+        Anonymous = true,
+    },
 })
 
 Window:EditOpenButton({
