@@ -43,7 +43,7 @@ G2L["ButtonRezise_2"].Parent = G2L["ScreenGui_1"]
 G2L["ButtonRezise_2"].BorderSizePixel = 0
 G2L["ButtonRezise_2"].Draggable = true
 G2L["ButtonRezise_2"].BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-G2L["ButtonRezise_2"].Image = "rbxassetid://123032091977400"
+G2L["ButtonRezise_2"].Image = "rbxassetid://120248611602330"
 G2L["ButtonRezise_2"].Size = UDim2.new(0, 45, 0, 45)
 G2L["ButtonRezise_2"].Position = UDim2.new(0.13, 0, 0.03, 0)
 
