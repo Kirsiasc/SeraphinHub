@@ -106,10 +106,9 @@ Info:Button({
     end
 })
 
-Info:Section({
-    Title = "Every time there is a game update or someone reports something, I will fix it as soon as possible.",
-    TextXAlignment = "Left",
-    TextSize = 17,
+Tab1:Paragraph({
+    Title = "Support",
+    Desc = "Every time there is a game update or someone reports something, I will fix it as soon as possible."
 })
 
 local Combat = Window:Tab({ Title = "Combat", Icon = "sword" })
