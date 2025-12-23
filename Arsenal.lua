@@ -922,6 +922,15 @@ Settings:Toggle({
     end
 })
 
+Settings:Keybind({
+    Title = "Keybind",
+    Desc = "Keybind to open ui",
+    Value = "G",
+    Callback = function(v)
+        Window:SetToggleKey(Enum.KeyCode[v])
+    end
+})
+
 Settings:Section({
     Title = "Server",
     TextXAlignment = "Left",
